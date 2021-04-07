@@ -36,8 +36,6 @@ class Trainer:
         optimizer.load_state_dict(checkpoint['optimizer'])
         for g in optimizer.param_groups:
             g['lr'] = config['training']['learning_rate']
-        checkpoint['model'] = model.state_dict()
-        checkpoint['optimizer'] = optimizer.state_dict()
 
         train_loader = new_dataloader(data=train_data)
         val_loader = new_dataloader(data=val_data)
@@ -81,9 +79,13 @@ class Trainer:
 
                 if model.get_step() % config['training']['checkpoint_steps'] == 0:
                     step = model.get_step() // 1000
+                    checkpoint['model'] = model.state_dict()
+                    checkpoint['optimizer'] = optimizer.state_dict()
                     torch.save(checkpoint, self.checkpoint_dir / f'model_step_{step}k.pt')
 
             loss_sum = 0
+            checkpoint['model'] = model.state_dict()
+            checkpoint['optimizer'] = optimizer.state_dict()
             torch.save(checkpoint, self.checkpoint_dir / 'latest_model.pt')
 
     def validate(self, model: TransformerModel, val_batches: List[dict]) -> float:
