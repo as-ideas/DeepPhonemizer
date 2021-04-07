@@ -18,11 +18,12 @@ if __name__ == '__main__':
     checkpoint_path = '/tmp/checkpoints/model_step_0k.pt'
     checkpoint = torch.load(checkpoint_path, map_location=torch.device('cpu'))
     model = TransformerModel.from_config(checkpoint['config']['model'])
+    model.load_state_dict(checkpoint['model'])
 
     text_tok = checkpoint['text_tokenizer']
     phon_tok = checkpoint['phoneme_tokenizer']
 
-    print(f'Restored model with step {checkpoint["model_step"]}')
+    print(f'Restored model with step {model.get_step()}')
 
     text = 'Hausaufgabe'
 

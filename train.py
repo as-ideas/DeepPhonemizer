@@ -70,7 +70,6 @@ if __name__ == '__main__':
             'lang_indices': lang_indices,
             'text_tokenizer': text_tokenizer,
             'phoneme_tokenizer': phoneme_tokenizer,
-            'model_step': 0,
             'config': config
         }
 
@@ -90,4 +89,4 @@ if __name__ == '__main__':
     random.shuffle(data)
     n_val = config['preprocessing']['n_val']
     train_data, val_data = data[n_val:], data[:n_val]
-    trainer.train(checkpoint, train_data=train_data, val_data=val_data)
+    trainer.train(checkpoint=checkpoint, train_data=train_data, val_data=val_data)
