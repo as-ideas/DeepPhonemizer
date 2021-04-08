@@ -27,7 +27,7 @@ if __name__ == '__main__':
 
     text = 'raketenwerk'
 
-    tokens = checkpoint['text_tokenizer'](text)
+    tokens = checkpoint['text_tokenizer'](text) + [0] * 10
     pred = model.generate(torch.tensor(tokens).unsqueeze(0))
     pred_decoded = checkpoint['phoneme_tokenizer'].decode(pred, remove_special_tokens=True)
     pred_decoded = ''.join(pred_decoded)

@@ -11,7 +11,7 @@ model:
   d_fft: 2048
   encoder_layers: 4
   decoder_layers: 4
-  dropout: 0.
+  dropout: 0.1
   heads: 4
 
 training:
