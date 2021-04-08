@@ -54,8 +54,8 @@ if __name__ == '__main__':
         print('Initializing new model from config, build tokenizers...')
         lang_symbols, text_symbols, phoneme_symbols = get_symbols(raw_data)
         lang_indices = {l: i for i, l in enumerate(lang_symbols)}
-        text_tokenizer = Tokenizer(text_symbols)
-        phoneme_tokenizer = Tokenizer(phoneme_symbols)
+        text_tokenizer = Tokenizer(text_symbols, lowercase=config['preprocessing']['lowercase'])
+        phoneme_tokenizer = Tokenizer(phoneme_symbols, lowercase=config['preprocessing']['lowercase'])
 
         print('Creating model...')
         config['model']['encoder_vocab_size'] = text_tokenizer.vocab_size
