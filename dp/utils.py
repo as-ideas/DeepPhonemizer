@@ -1,8 +1,9 @@
-import yaml
 import pickle
-import torch
 from pathlib import Path
-from typing import Dict, List, Any, Union, Tuple
+from typing import Dict, List, Any, Union
+
+import torch
+import yaml
 
 
 def read_config(path: str) -> Dict[str, Any]:

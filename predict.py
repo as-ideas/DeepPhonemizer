@@ -19,13 +19,14 @@ if __name__ == '__main__':
     checkpoint = torch.load(checkpoint_path, map_location=torch.device('cpu'))
     model = TransformerModel.from_config(checkpoint['config']['model'])
     model.load_state_dict(checkpoint['model'])
+    model.eval()
 
     text_tok = checkpoint['text_tokenizer']
     phon_tok = checkpoint['phoneme_tokenizer']
 
     print(f'Restored model with step {model.get_step()}')
 
-    text = 'Fußballweltmeisterinnen'
+    text = 'Verdaddlung'
 
     tokens = checkpoint['text_tokenizer'](text) + [0] * 10
     pred = model.generate(torch.tensor(tokens).unsqueeze(0))

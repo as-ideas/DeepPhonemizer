@@ -1,15 +1,13 @@
-from pathlib import Path
 from random import Random
-from typing import List, Tuple, Any, Dict
-import pickle
+from random import Random
+from typing import List, Any, Dict
+
 import numpy as np
 import torch
 from torch.nn.utils.rnn import pad_sequence
 from torch.utils.data.dataloader import DataLoader
 from torch.utils.data.dataset import Dataset
 from torch.utils.data.sampler import Sampler
-from dp.text import Tokenizer
-from dp.utils import unpickle_binary
 
 
 class PhonemizerDataset(Dataset):

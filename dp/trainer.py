@@ -1,12 +1,9 @@
 from pathlib import Path
-from typing import List, Tuple
+from typing import List
 
-import numpy as np
 import torch
 import tqdm
-from torch.nn import CTCLoss
 from torch.optim import Adam
-from torch.utils.data import DataLoader
 from torch.utils.tensorboard import SummaryWriter
 
 from dp.dataset import new_dataloader

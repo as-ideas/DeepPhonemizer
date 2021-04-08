@@ -1,8 +1,7 @@
-from typing import List
+import math
 
 import torch
 import torch.nn as nn
-import math
 
 
 # https://colab.research.google.com/drive/1g4ZFCGegOmD-xXL-Ggu7K5LVoJeXYJ75
