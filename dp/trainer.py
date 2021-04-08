@@ -12,6 +12,7 @@ from torch.utils.tensorboard import SummaryWriter
 from dp.dataset import new_dataloader
 from dp.model import TransformerModel
 from dp.text import Tokenizer
+from dp.utils import to_device
 
 
 class Trainer:
@@ -23,6 +24,7 @@ class Trainer:
         self.ce_loss = torch.nn.CrossEntropyLoss(ignore_index=0)
 
     def train(self,
+              model: TransformerModel,
               checkpoint: dict,
               train_data: List[tuple],
               val_data: List[tuple]) -> None:
@@ -30,7 +32,6 @@ class Trainer:
         device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
 
         config = checkpoint['config']
-        model = TransformerModel.from_config(config['model']).to(device)
 
         optimizer = Adam(model.parameters())
         optimizer.load_state_dict(checkpoint['optimizer'])
@@ -47,6 +48,7 @@ class Trainer:
         for epoch in range(start_epoch + 1, config['training']['epochs'] + 1):
             pbar = tqdm.tqdm(enumerate(train_loader, 1), total=len(train_loader))
             for i, batch in pbar:
+                batch = to_device(batch, device)
                 pbar.set_description(desc=f'Epoch: {epoch} | Step {model.get_step()} '
                                           f'| Loss: {loss_sum / i:#.4}', refresh=True)
                 text = batch['text']
@@ -89,9 +91,11 @@ class Trainer:
             torch.save(checkpoint, self.checkpoint_dir / 'latest_model.pt')
 
     def validate(self, model: TransformerModel, val_batches: List[dict]) -> float:
+        device = next(model.parameters()).device
         model.eval()
         val_loss = 0.
         for batch in val_batches:
+            batch = to_device(batch, device)
             text = batch['text']
             phonemes = batch['phonemes']
             phonemes_in, phonemes_tar = phonemes[:, :-1], phonemes[:, 1:]
@@ -108,14 +112,17 @@ class Trainer:
                          phoneme_tokenizer: Tokenizer,
                          val_batches: List[dict],
                          n_samples: int) -> None:
+        device = next(model.parameters()).device
         model.eval()
         total_generated = 0
         for batch in val_batches:
+            batch = to_device(batch, device)
             for i in range(batch['text'].size(0)):
                 total_generated += 1
                 text = batch['text'][i, :]
                 target = batch['phonemes'][i, :]
                 generated = model.generate(text.unsqueeze(0))
+                text, target, generated = text.detach().cpu(), target.detach().cpu(), generated.detach().cpu()
                 text = text_tokenizer.decode(text, remove_special_tokens=True)
                 text = ''.join(text)
                 gen_decoded = phoneme_tokenizer.decode(generated, remove_special_tokens=True)

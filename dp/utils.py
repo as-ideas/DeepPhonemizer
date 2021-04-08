@@ -1,7 +1,8 @@
 import yaml
 import pickle
+import torch
 from pathlib import Path
-from typing import Dict, List, Any, Union
+from typing import Dict, List, Any, Union, Tuple
 
 
 def read_config(path: str) -> Dict[str, Any]:
@@ -27,3 +28,7 @@ def pickle_binary(data: object, file: Union[str, Path]) -> None:
 def unpickle_binary(file: Union[str, Path]) -> Any:
     with open(str(file), 'rb') as f:
         return pickle.load(f)
+
+
+def to_device(batch: Dict[str, torch.tensor], device: torch.device) -> Dict[str, torch.tensor]:
+    return {key: val.to(device) for key, val in batch.items()}

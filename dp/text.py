@@ -5,9 +5,11 @@ class Tokenizer:
 
     def __init__(self,
                  symbols: List[str],
+                 lowercase=True,
                  pad_token='_',
                  start_token='<',
                  end_token='>') -> None:
+        self.lowercase = lowercase
         self.pad_index = 0
         self.start_index = 1
         self.end_index = 2
@@ -21,6 +23,8 @@ class Tokenizer:
         self.vocab_size = len(self.idx_to_token)
 
     def __call__(self, sentence: Iterable[str], append_start_end=True) -> List[int]:
+        if self.lowercase:
+            sentence = [s.lower() for s in sentence]
         sequence = [self.token_to_idx[c] for c in sentence if c in self.token_to_idx]
         if append_start_end:
             sequence = [self.start_index] + sequence + [self.end_index]

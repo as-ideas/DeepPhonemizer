@@ -70,6 +70,7 @@ def collate_dataset(batch: List[dict]) -> torch.tensor:
     phonemes = pad_sequence(phonemes, batch_first=True, padding_value=0)
     phonemes_len = torch.tensor([b['phonemes_len'] for b in batch]).long()
     item_ids = [b['item_id'] for b in batch]
+    item_ids = torch.tensor(item_ids).long()
     return {'text': text, 'phonemes': phonemes, 'text_len': text_len,
             'phonemes_len': phonemes_len, 'item_id': item_ids, 'language': lang}
 

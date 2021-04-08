@@ -51,13 +51,13 @@ if __name__ == '__main__':
         model = TransformerModel.from_config(checkpoint['config']['model'])
         print(f'Restored model with step {checkpoint["model_step"]}')
     else:
-        print('Build up symbols and languages...')
+        print('Initializing new model from config, build tokenizers...')
         lang_symbols, text_symbols, phoneme_symbols = get_symbols(raw_data)
         lang_indices = {l: i for i, l in enumerate(lang_symbols)}
         text_tokenizer = Tokenizer(text_symbols)
         phoneme_tokenizer = Tokenizer(phoneme_symbols)
 
-        print('Initializing new model from config...')
+        print('Creating model...')
         config['model']['encoder_vocab_size'] = text_tokenizer.vocab_size
         config['model']['decoder_vocab_size'] = phoneme_tokenizer.vocab_size
         config['model']['decoder_start_index'] = phoneme_tokenizer.start_index
@@ -70,7 +70,8 @@ if __name__ == '__main__':
             'lang_indices': lang_indices,
             'text_tokenizer': text_tokenizer,
             'phoneme_tokenizer': phoneme_tokenizer,
-            'config': config
+            'config': config,
+            'data': raw_data
         }
 
     print('Tokenizing...')
@@ -89,4 +90,5 @@ if __name__ == '__main__':
     random.shuffle(data)
     n_val = config['preprocessing']['n_val']
     train_data, val_data = data[n_val:], data[:n_val]
-    trainer.train(checkpoint=checkpoint, train_data=train_data, val_data=val_data)
+    trainer.train(model=model, checkpoint=checkpoint,
+                  train_data=train_data, val_data=val_data)
