@@ -126,7 +126,7 @@ class Trainer:
                 text = batch['text'][i, :]
                 target = batch['phonemes'][i, :]
                 generated = model.generate(text.unsqueeze(0))
-                text, target, generated = text.detach().cpu(), target.detach().cpu(), generated.detach().cpu()
+                text, target = text.detach().cpu(), target.detach().cpu()
                 text = text_tokenizer.decode(text, remove_special_tokens=True)
                 text = ''.join(text)
                 gen_decoded = phoneme_tokenizer.decode(generated, remove_special_tokens=True)
