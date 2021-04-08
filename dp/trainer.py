@@ -34,9 +34,10 @@ class Trainer:
         config = checkpoint['config']
 
         optimizer = Adam(model.parameters())
-        optimizer.load_state_dict(checkpoint['optimizer'])
-        for g in optimizer.param_groups:
-            g['lr'] = config['training']['learning_rate']
+        if 'optimizer' in checkpoint:
+            optimizer.load_state_dict(checkpoint['optimizer'])
+            for g in optimizer.param_groups:
+                g['lr'] = config['training']['learning_rate']
 
         train_loader = new_dataloader(data=train_data)
         val_loader = new_dataloader(data=val_data)

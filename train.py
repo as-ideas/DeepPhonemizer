@@ -2,7 +2,7 @@ import pickle
 import argparse
 import random
 from collections import Counter
-from typing import List, Tuple, Dict
+from typing import List, Tuple, Dict, Iterable, Any
 
 import tqdm
 import torch
@@ -28,6 +28,19 @@ def get_data(file: str) -> List[Tuple[str, str, str]]:
     return data_filtered
 
 
+def init_checkpoint(raw_data: List[Tuple[str, Iterable[str], Iterable[str]]]) -> Dict[str, Any]:
+    preprocessor = Preprocessor.build_from_data(data=raw_data)
+    config['model']['encoder_vocab_size'] = preprocessor.text_tokenizer.vocab_size
+    config['model']['decoder_vocab_size'] = preprocessor.phoneme_tokenizer.vocab_size
+    config['model']['decoder_start_index'] = preprocessor.phoneme_tokenizer.start_index
+    config['model']['decoder_end_index'] = preprocessor.phoneme_tokenizer.end_index
+    checkpoint = {
+        'preprocessor': preprocessor,
+        'config': config,
+    }
+    return checkpoint
+
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Preprocessing for DeepForcedAligner.')
     parser.add_argument('--config', '-c', default='config.yaml', help='Points to the config file.')
@@ -43,32 +56,20 @@ if __name__ == '__main__':
         checkpoint = torch.load(args.checkpoint, map_location=torch.device('cpu'))
         model = TransformerModel.from_config(checkpoint['config']['model'])
         model.load_state_dict(checkpoint['model'])
-        print(f'Restored model with step {model.get_step()}')
+        print(f'Loaded model with step: {model.get_step()}')
         for key, val in config['training'].items():
             val_orig = checkpoint['config']['training'][key]
             if val_orig != val:
                 print(f'Overwriting training param: {key} {val_orig} --> {val}')
                 checkpoint['config']['training'][key] = val
         config = checkpoint['config']
-        preprocessor = checkpoint['preprocessor']
     else:
         print('Initializing new model from config, build preprocessor...')
-        preprocessor = Preprocessor.build_from_data(data=raw_data)
-        print('Creating model...')
-        config['model']['encoder_vocab_size'] = preprocessor.text_tokenizer.vocab_size
-        config['model']['decoder_vocab_size'] = preprocessor.phoneme_tokenizer.vocab_size
-        config['model']['decoder_start_index'] = preprocessor.phoneme_tokenizer.start_index
-        config['model']['decoder_end_index'] = preprocessor.phoneme_tokenizer.end_index
+        checkpoint = init_checkpoint(raw_data)
         model = TransformerModel.from_config(config['model'])
-        optimizer = torch.optim.Adam(model.parameters(), lr=1e-4)
-        checkpoint = {
-            'model': model.state_dict(),
-            'optimizer': optimizer.state_dict(),
-            'preprocessor': preprocessor,
-            'config': config,
-        }
 
     print('Preprocessing...')
+    preprocessor = checkpoint['preprocessor']
     random = random.Random(42)
     random.shuffle(raw_data)
     n_val = config['preprocessing']['n_val']
@@ -76,7 +77,7 @@ if __name__ == '__main__':
 
     # data augmentation, redo later
     train_data_augmented = []
-    for lang, text, phon in data:
+    for lang, text, phon in train_data:
         _, rand_text, rand_phon = random.choice(train_data)
         train_data_augmented.append((lang, text + rand_text, phon + rand_phon))
 
