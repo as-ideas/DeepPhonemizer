@@ -7,6 +7,7 @@ from torch.optim import Adam
 from torch.utils.tensorboard import SummaryWriter
 
 from dp.dataset import new_dataloader
+from dp.decorators import ignore_exception
 from dp.model import TransformerModel
 from dp.text import Tokenizer, Preprocessor
 from dp.utils import to_device
@@ -107,6 +108,7 @@ class Trainer:
         model.train()
         return val_loss / len(val_batches)
 
+    @ignore_exception
     def generate_samples(self,
                          model: TransformerModel,
                          preprocessor: Preprocessor,
@@ -127,13 +129,10 @@ class Trainer:
                 generated = model.generate(text.unsqueeze(0))
                 text, target = text.detach().cpu(), target.detach().cpu()
                 text = text_tokenizer.decode(text, remove_special_tokens=True)
-                text = ''.join(text)
                 gen_decoded = phoneme_tokenizer.decode(generated, remove_special_tokens=True)
-                gen_decoded = ''.join(gen_decoded)
                 target = phoneme_tokenizer.decode(target, remove_special_tokens=True)
-                target = ''.join(target)
-                string = f'     {text:<30} {gen_decoded:<30} {target:<30} '
-                gen_texts.append(string)
+                text, gen_decoded, target = ''.join(text), ''.join(gen_decoded), ''.join(target)
+                gen_texts.append(f'     {text:<30} {gen_decoded:<30} {target:<30}')
                 if len(gen_texts) >= n_samples:
                     break
             if len(gen_texts) >= n_samples:
