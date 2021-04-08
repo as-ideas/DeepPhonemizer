@@ -41,15 +41,22 @@ if __name__ == '__main__':
     parser.add_argument('--config', '-c', default='config.yaml', help='Points to the config file.')
     parser.add_argument('--checkpoint', '-cp', default=None, help='Points to the a model file to restore.')
     args = parser.parse_args()
-    config = read_config(args.config)
 
     raw_data = get_data('/Users/cschaefe/datasets/nlp/heavily_cleaned_phoneme_dataset_DE.pkl')
+
+    config = read_config(args.config)
 
     if args.checkpoint:
         print(f'Restoring model from checkpoint: {args.checkpoint}')
         checkpoint = torch.load(args.checkpoint, map_location=torch.device('cpu'))
         model = TransformerModel.from_config(checkpoint['config']['model'])
         print(f'Restored model with step {checkpoint["model_step"]}')
+        for key, val in config['training']:
+            val_orig = model['config']['training']
+            if val_orig != val:
+                print(f'Overwriting training config: {key} {val_orig} --> {val}')
+                model['config']['training'][key] = val
+        config = model['config']
     else:
         print('Initializing new model from config, build tokenizers...')
         lang_symbols, text_symbols, phoneme_symbols = get_symbols(raw_data)
