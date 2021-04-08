@@ -56,10 +56,11 @@ class Trainer:
                 text = batch['text']
                 phonemes = batch['phonemes']
                 phonemes_in, phonemes_tar = phonemes[:, :-1], phonemes[:, 1:]
-                optimizer.zero_grad()
                 pred = model.forward(text, phonemes_in)
                 loss = ce_loss(pred.transpose(1, 2), phonemes_tar)
+                optimizer.zero_grad()
                 loss.backward()
+                torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
                 optimizer.step()
 
                 loss_sum += loss.item()
