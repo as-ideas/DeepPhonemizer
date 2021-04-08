@@ -1,4 +1,7 @@
-from typing import List, Iterable
+from collections import Counter
+
+import tqdm
+from typing import List, Iterable, Dict, Tuple
 
 
 class Tokenizer:
@@ -35,3 +38,42 @@ class Tokenizer:
         if remove_special_tokens:
             decoded = [d for d in decoded if d not in self.special_tokens]
         return decoded
+
+
+class Preprocessor:
+
+    def __init__(self,
+                 lang_indices: Dict[str, int],
+                 text_tokenizer: Tokenizer,
+                 phoneme_tokenizer: Tokenizer) -> None:
+        self.lang_indices = lang_indices
+        self.text_tokenizer = text_tokenizer
+        self.phoneme_tokenizer = phoneme_tokenizer
+
+    def __call__(self, data: List[Tuple[str, Iterable[str], Iterable[str]]], progress=True) \
+            -> List[Tuple[int, Iterable[int], Iterable[int]]]:
+        data_processed = []
+        data_iter = tqdm.tqdm(data, total=len(data)) if progress else iter(data)
+        for lang, text, phonemes in data_iter:
+            text_tokens = self.text_tokenizer(text)
+            phoneme_tokens = self.phoneme_tokenizer(phonemes)
+            lang_index = self.lang_indices[lang]
+            data_processed.append((lang_index, text_tokens, phoneme_tokens))
+        return data_processed
+
+    @classmethod
+    def build_from_data(cls, data: List[Tuple[str, Iterable[str], Iterable[str]]], lowercase=True) -> 'Preprocessor':
+        lang_counter, text_counter, phoneme_counter = Counter(), Counter(), Counter()
+        for lang, text, phonemes in data:
+            lang_counter.update([lang])
+            text_counter.update(text)
+            phoneme_counter.update(phonemes)
+        text_symbols = sorted((list(text_counter.keys())))
+        phoneme_symbols = sorted(list(phoneme_counter.keys()))
+        lang_symbols = sorted(list(lang_counter.keys()))
+        lang_indices = {l: i for i, l in enumerate(lang_symbols)}
+        text_tokenizer = Tokenizer(text_symbols, lowercase=lowercase)
+        phoneme_tokenizer = Tokenizer(phoneme_symbols, lowercase=lowercase)
+        return Preprocessor(lang_indices=lang_indices,
+                            text_tokenizer=text_tokenizer,
+                            phoneme_tokenizer=phoneme_tokenizer)

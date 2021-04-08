@@ -8,7 +8,7 @@ from torch.utils.tensorboard import SummaryWriter
 
 from dp.dataset import new_dataloader
 from dp.model import TransformerModel
-from dp.text import Tokenizer
+from dp.text import Tokenizer, Preprocessor
 from dp.utils import to_device
 
 
@@ -74,8 +74,7 @@ class Trainer:
 
                 if model.get_step() % config['training']['generate_steps'] == 0:
                     self.generate_samples(model=model,
-                                          text_tokenizer=checkpoint['text_tokenizer'],
-                                          phoneme_tokenizer=checkpoint['phoneme_tokenizer'],
+                                          preprocessor=checkpoint['preprocessor'],
                                           val_batches=val_batches,
                                           n_samples=config['training']['n_generate_samples'])
 
@@ -110,12 +109,13 @@ class Trainer:
 
     def generate_samples(self,
                          model: TransformerModel,
-                         text_tokenizer: Tokenizer,
-                         phoneme_tokenizer: Tokenizer,
+                         preprocessor: Preprocessor,
                          val_batches: List[dict],
                          n_samples: int) -> None:
         device = next(model.parameters()).device
         model.eval()
+        text_tokenizer = preprocessor.text_tokenizer
+        phoneme_tokenizer = preprocessor.phoneme_tokenizer
         total_generated = 0
         gen_texts = []
         for batch in val_batches:
