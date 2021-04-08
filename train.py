@@ -25,7 +25,6 @@ def get_data(file: str) -> List[Tuple[str, str, str]]:
     for lang, text, phon in data:
         if 0 < len(phon) < 50 and ' ' not in text and 0 < len(text) <50:
             data_filtered.append((lang, text, phon))
-
     return data_filtered
 
 
@@ -70,13 +69,21 @@ if __name__ == '__main__':
         }
 
     print('Preprocessing...')
-    data = preprocessor(raw_data)
     random = random.Random(42)
-    random.shuffle(data)
+    random.shuffle(raw_data)
     n_val = config['preprocessing']['n_val']
-    train_data, val_data = data[n_val:], data[:n_val]
+    train_data, val_data = raw_data[n_val:], raw_data[:n_val]
+
+    # data augmentation, redo later
+    train_data_augmented = []
+    for lang, text, phon in data:
+        _, rand_text, rand_phon = random.choice(train_data)
+        train_data_augmented.append((lang, text + rand_text, phon + rand_phon))
+
+    train_data_augmented = preprocessor(train_data_augmented)
+    val_data = preprocessor(val_data)
 
     print('Training...')
     trainer = Trainer(checkpoint_dir=config['paths']['checkpoint_dir'])
     trainer.train(model=model, checkpoint=checkpoint,
-                  train_data=train_data, val_data=val_data)
+                  train_data=train_data_augmented, val_data=val_data)
