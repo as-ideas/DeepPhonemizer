@@ -42,7 +42,7 @@ class Trainer:
 
         train_loader = new_dataloader(data=train_data)
         val_loader = new_dataloader(data=val_data)
-        val_batches = sorted([b for b in val_loader], key=lambda x: x['text_len'][0])
+        val_batches = sorted([b for b in val_loader], key=lambda x: -x['text_len'][0])
 
         loss_sum = 0.
         start_epoch = model.get_step() // len(train_loader)
