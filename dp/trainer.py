@@ -30,6 +30,7 @@ class Trainer:
               val_data: List[tuple]) -> None:
 
         device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
+        model = model.to(device)
         ce_loss = self.ce_loss.to(device)
 
         config = checkpoint['config']
