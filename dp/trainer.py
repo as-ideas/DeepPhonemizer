@@ -122,19 +122,16 @@ class Trainer:
         gen_texts = []
         for batch in val_batches:
             batch = to_device(batch, device)
-            for i in range(batch['text'].size(0)):
-                total_generated += 1
-                text = batch['text'][i, :]
-                target = batch['phonemes'][i, :]
-                generated = model.generate(text.unsqueeze(0))
-                text, target = text.detach().cpu(), target.detach().cpu()
-                text = text_tokenizer.decode(text, remove_special_tokens=True)
-                gen_decoded = phoneme_tokenizer.decode(generated, remove_special_tokens=True)
-                target = phoneme_tokenizer.decode(target, remove_special_tokens=True)
-                text, gen_decoded, target = ''.join(text), ''.join(gen_decoded), ''.join(target)
-                gen_texts.append(f'     {text:<30} {gen_decoded:<30} {target:<30}')
-                if len(gen_texts) >= n_samples:
-                    break
+            total_generated += 1
+            text = batch['text'][0, :]
+            target = batch['phonemes'][0, :]
+            generated = model.generate(text.unsqueeze(0))
+            text, target = text.detach().cpu(), target.detach().cpu()
+            text = text_tokenizer.decode(text, remove_special_tokens=True)
+            gen_decoded = phoneme_tokenizer.decode(generated, remove_special_tokens=True)
+            target = phoneme_tokenizer.decode(target, remove_special_tokens=True)
+            text, gen_decoded, target = ''.join(text), ''.join(gen_decoded), ''.join(target)
+            gen_texts.append(f'     {text:<30} {gen_decoded:<30} {target:<30}')
             if len(gen_texts) >= n_samples:
                 break
 
