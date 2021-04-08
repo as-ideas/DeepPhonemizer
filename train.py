@@ -51,7 +51,7 @@ if __name__ == '__main__':
         checkpoint = torch.load(args.checkpoint, map_location=torch.device('cpu'))
         model = TransformerModel.from_config(checkpoint['config']['model'])
         print(f'Restored model with step {model.get_step()}')
-        for key, val in config['training']:
+        for key, val in config['training'].items():
             val_orig = model['config']['training']
             if val_orig != val:
                 print(f'Overwriting training config: {key} {val_orig} --> {val}')
