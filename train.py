@@ -55,7 +55,7 @@ if __name__ == '__main__':
             val_orig = checkpoint['config']['training']
             if val_orig != val:
                 print(f'Overwriting training config: {key} {val_orig} --> {val}')
-                model['config']['training'][key] = val
+                checkpoint['config']['training'][key] = val
         config = model['config']
     else:
         print('Initializing new model from config, build tokenizers...')
