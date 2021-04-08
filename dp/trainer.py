@@ -30,6 +30,7 @@ class Trainer:
               val_data: List[tuple]) -> None:
 
         device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
+        ce_loss = self.ce_loss.to(device)
 
         config = checkpoint['config']
 
@@ -56,7 +57,7 @@ class Trainer:
                 phonemes_in, phonemes_tar = phonemes[:, :-1], phonemes[:, 1:]
                 optimizer.zero_grad()
                 pred = model.forward(text, phonemes_in)
-                loss = self.ce_loss(pred.transpose(1, 2), phonemes_tar)
+                loss = ce_loss(pred.transpose(1, 2), phonemes_tar)
                 loss.backward()
                 optimizer.step()
 
@@ -92,6 +93,8 @@ class Trainer:
 
     def validate(self, model: TransformerModel, val_batches: List[dict]) -> float:
         device = next(model.parameters()).device
+        ce_loss = self.ce_loss.to(device)
+
         model.eval()
         val_loss = 0.
         for batch in val_batches:
@@ -101,7 +104,7 @@ class Trainer:
             phonemes_in, phonemes_tar = phonemes[:, :-1], phonemes[:, 1:]
             with torch.no_grad():
                 pred = model.forward(text, phonemes_in)
-                loss = self.ce_loss(pred.transpose(1, 2), phonemes_tar)
+                loss = ce_loss(pred.transpose(1, 2), phonemes_tar)
                 val_loss += loss.item()
         model.train()
         return val_loss / len(val_batches)
