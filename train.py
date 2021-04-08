@@ -21,7 +21,11 @@ def get_data(file: str) -> List[Tuple[str, str, str]]:
     tuples = df[['title', 'pronunciation']]
     for x in tuples.to_numpy():
         data.append(('de', x[0], x[1]))
-    return data
+    data_filtered = []
+    for lang, text, phon in data:
+        if 0 < len(phon) < 50 and ' ' not in text and 0 < len(text) <50:
+            data_filtered.append((lang, text, phon))
+    return data_filtered
 
 
 def get_symbols(raw_data: List[tuple]) -> Tuple[list, list, list]:
