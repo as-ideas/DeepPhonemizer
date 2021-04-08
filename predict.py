@@ -25,7 +25,7 @@ if __name__ == '__main__':
 
     print(f'Restored model with step {model.get_step()}')
 
-    text = 'raketenwerk'
+    text = 'Fußballweltmeisterinnen'
 
     tokens = checkpoint['text_tokenizer'](text) + [0] * 10
     pred = model.generate(torch.tensor(tokens).unsqueeze(0))

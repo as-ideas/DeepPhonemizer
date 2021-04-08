@@ -25,6 +25,7 @@ def get_data(file: str) -> List[Tuple[str, str, str]]:
     for lang, text, phon in data:
         if 0 < len(phon) < 50 and ' ' not in text and 0 < len(text) <50:
             data_filtered.append((lang, text, phon))
+
     return data_filtered
 
 
@@ -83,7 +84,6 @@ if __name__ == '__main__':
             'text_tokenizer': text_tokenizer,
             'phoneme_tokenizer': phoneme_tokenizer,
             'config': config,
-            'data': raw_data
         }
 
     print('Tokenizing...')
