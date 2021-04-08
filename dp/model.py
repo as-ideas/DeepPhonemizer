@@ -77,8 +77,8 @@ class TransformerModel(nn.Module):
 
         trg_mask = self.generate_square_subsequent_mask(len(trg)).to(trg.device)
 
-        src_pad_mask = self.make_len_mask(src)
-        trg_pad_mask = self.make_len_mask(trg)
+        src_pad_mask = self.make_len_mask(src).to(trg.device)
+        trg_pad_mask = self.make_len_mask(trg).to(trg.device)
 
         src = self.encoder(src)
         src = self.pos_encoder(src)
@@ -106,7 +106,7 @@ class TransformerModel(nn.Module):
 
         out_indices = [self.decoder_start_index]
         for i in range(max_len):
-            trg_tensor = torch.tensor(out_indices).long().unsqueeze(1)
+            trg_tensor = torch.tensor(out_indices).long().unsqueeze(1).to(input.device)
             output = self.decoder(trg_tensor)
             output = self.pos_decoder(output)
             output = self.transformer.decoder(output, input)
