@@ -52,11 +52,11 @@ if __name__ == '__main__':
         model = TransformerModel.from_config(checkpoint['config']['model'])
         print(f'Restored model with step {model.get_step()}')
         for key, val in config['training'].items():
-            val_orig = checkpoint['config']['training']
+            val_orig = checkpoint['config']['training'][key]
             if val_orig != val:
                 print(f'Overwriting training config: {key} {val_orig} --> {val}')
                 checkpoint['config']['training'][key] = val
-        config = model['config']
+        config = checkpoint['config']
     else:
         print('Initializing new model from config, build tokenizers...')
         lang_symbols, text_symbols, phoneme_symbols = get_symbols(raw_data)
