@@ -1,6 +1,6 @@
 from random import Random
 from random import Random
-from typing import List, Any, Dict
+from typing import List, Any, Dict, Tuple, Iterable
 
 import numpy as np
 import torch
@@ -12,7 +12,7 @@ from torch.utils.data.sampler import Sampler
 
 class PhonemizerDataset(Dataset):
 
-    def __init__(self, items: List[tuple]) -> None:
+    def __init__(self, items: List[Tuple[int, List[int], List[int]]]) -> None:
         super().__init__()
         self.items = items
 
@@ -73,7 +73,7 @@ def collate_dataset(batch: List[dict]) -> torch.tensor:
             'phonemes_len': phonemes_len, 'item_id': item_ids, 'language': lang}
 
 
-def new_dataloader(data: List[tuple],
+def new_dataloader(data: List[Tuple[int, List[int], List[int]]],
                    batch_size=32,
                    use_binning=True) -> DataLoader:
 

@@ -51,7 +51,7 @@ class Preprocessor:
         self.phoneme_tokenizer = phoneme_tokenizer
 
     def __call__(self, data: List[Tuple[str, Iterable[str], Iterable[str]]], progress=True) \
-            -> List[Tuple[int, Iterable[int], Iterable[int]]]:
+            -> List[Tuple[int, List[int], List[int]]]:
         data_processed = []
         data_iter = tqdm.tqdm(data, total=len(data)) if progress else iter(data)
         for lang, text, phonemes in data_iter:
