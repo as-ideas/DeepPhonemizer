@@ -21,7 +21,7 @@ class PositionalEncoding(nn.Module):
         pe = pe.unsqueeze(0).transpose(0, 1)
         self.register_buffer('pe', pe)
 
-    def forward(self, x):
+    def forward(self, x):         # shape: [T, N]
         x = x + self.scale * self.pe[:x.size(0), :]
         return self.dropout(x)
 
@@ -68,11 +68,12 @@ class TransformerModel(nn.Module):
     def make_len_mask(self, inp):
         return (inp == 0).transpose(0, 1)
 
-    def forward(self, src, trg):
+    def forward(self, src, trg):         # shape: [N, T]
+
         if self.training:
             self.step += 1
 
-        src = src.transpose(0, 1)
+        src = src.transpose(0, 1)        # shape: [T, N]
         trg = trg.transpose(0, 1)
 
         trg_mask = self.generate_square_subsequent_mask(len(trg)).to(trg.device)
@@ -94,24 +95,23 @@ class TransformerModel(nn.Module):
         return output
 
     def generate(self,
-                 input: torch.tensor,
+                 input: torch.tensor,          # shape: [N, T]
                  max_len=100) -> torch.tensor:
 
-        input = input.transpose(0, 1)
+        input = input.transpose(0, 1)          # shape: [T, N]
+        src_pad_mask = self.make_len_mask(input).to(input.device)
         input = self.encoder(input)
         input = self.pos_encoder(input)
-        input = self.transformer.encoder(input)
-
-        #encoder_output = self.transformer.encoder(self.pos_encoder(self.encoder(input)))
+        input = self.transformer.encoder(input, src_key_padding_mask=src_pad_mask)
 
         out_indices = [self.decoder_start_index]
         for i in range(max_len):
             trg_tensor = torch.tensor(out_indices).long().unsqueeze(1).to(input.device)
+
             output = self.decoder(trg_tensor)
             output = self.pos_decoder(output)
-            output = self.transformer.decoder(output, input)
+            output = self.transformer.decoder(output, input, memory_key_padding_mask=src_pad_mask)
             output = self.fc_out(output)
-            #output = self.fc_out(self.transformer.decoder(self.pos_decoder(self.decoder(trg_tensor)), input))
             out_token = output.argmax(2)[-1].item()
             out_indices.append(out_token)
             if out_token == self.decoder_end_index:

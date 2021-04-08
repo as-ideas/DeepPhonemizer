@@ -119,6 +119,7 @@ class Trainer:
         device = next(model.parameters()).device
         model.eval()
         total_generated = 0
+        gen_texts = []
         for batch in val_batches:
             batch = to_device(batch, device)
             for i in range(batch['text'].size(0)):
@@ -133,10 +134,13 @@ class Trainer:
                 gen_decoded = ''.join(gen_decoded)
                 target = phoneme_tokenizer.decode(target, remove_special_tokens=True)
                 target = ''.join(target)
-                string = f'     {text} | {target} | {gen_decoded}'
-                self.writer.add_text('Text | Target | Prediction', string, global_step=model.get_step())
-                if total_generated >= n_samples:
-                    model.train()
-                    return
+                string = f'     {text:<30} {gen_decoded:<30} {target:<30} '
+                gen_texts.append(string)
+                if len(gen_texts) >= n_samples:
+                    break
+            if len(gen_texts) >= n_samples:
+                break
+
+        self.writer.add_text('Text_Prediction_Target', '\n'.join(gen_texts), global_step=model.get_step())
         model.train()
         return
