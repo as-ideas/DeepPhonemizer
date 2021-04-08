@@ -52,7 +52,7 @@ if __name__ == '__main__':
         model = TransformerModel.from_config(checkpoint['config']['model'])
         print(f'Restored model with step {model.get_step()}')
         for key, val in config['training'].items():
-            val_orig = model['config']['training']
+            val_orig = checkpoint['config']['training']
             if val_orig != val:
                 print(f'Overwriting training config: {key} {val_orig} --> {val}')
                 model['config']['training'][key] = val
