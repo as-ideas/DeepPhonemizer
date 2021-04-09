@@ -6,7 +6,6 @@ import math
 
 
 # https://colab.research.google.com/drive/1g4ZFCGegOmD-xXL-Ggu7K5LVoJeXYJ75
-"""
 class PositionalEncoding(nn.Module):
     def __init__(self, d_model, dropout=0.1, max_len=5000):
         super(PositionalEncoding, self).__init__()
@@ -27,7 +26,6 @@ class PositionalEncoding(nn.Module):
         return self.dropout(x)
 
 """
-
 class PositionalEncoding(nn.Module):
 
     def __init__(self, d_model, dropout=0.1, max_len=5000):
@@ -45,7 +43,7 @@ class PositionalEncoding(nn.Module):
     def forward(self, x):
         x = x + self.pe[:x.size(0), :]
         return self.dropout(x)
-
+"""
 
 class TransformerModel(nn.Module):
 
@@ -126,13 +124,18 @@ class TransformerModel(nn.Module):
         with torch.no_grad():
             input = self.encoder(input)
             input = self.pos_encoder(input)
-            input = self.transformer.encoder(input, src_key_padding_mask=src_pad_mask)
+            input = self.transformer.encoder(input,
+                                             src_key_padding_mask=src_pad_mask)
             out_indices = [self.decoder_start_index]
             for i in range(max_len):
+                tgt_mask = self.generate_square_subsequent_mask(i + 1).to(input.device)
                 trg_tensor = torch.tensor(out_indices).long().unsqueeze(1).to(input.device)
                 output = self.decoder(trg_tensor)
                 output = self.pos_decoder(output)
-                output = self.transformer.decoder(output, input, memory_key_padding_mask=src_pad_mask)
+                output = self.transformer.decoder(output,
+                                                  input,
+                                                  memory_key_padding_mask=src_pad_mask,
+                                                  tgt_mask=tgt_mask)
                 output = self.fc_out(output)
                 out_token = output.argmax(2)[-1].item()
                 out_indices.append(out_token)
