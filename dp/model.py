@@ -122,9 +122,9 @@ class TransformerModel(nn.Module):
 
         input = input.transpose(0, 1)          # shape: [T, N]
         src_pad_mask = self.make_len_mask(input).to(input.device)
-        input = self.encoder(input)
-        input = self.pos_encoder(input)
         with torch.no_grad():
+            input = self.encoder(input)
+            input = self.pos_encoder(input)
             input = self.transformer.encoder(input, src_key_padding_mask=src_pad_mask)
 
         out_indices = [self.decoder_start_index]
