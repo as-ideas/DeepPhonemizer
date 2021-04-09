@@ -24,16 +24,15 @@ class Trainer:
 
     def train(self,
               model: TransformerModel,
-              checkpoint: dict,
-              data_dir: str) -> None:
-
-        data_dir = Path(data_dir)
-        device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
-        model = model.to(device)
-        ce_loss = self.ce_loss.to(device)
+              checkpoint: dict) -> None:
 
         config = checkpoint['config']
+        data_dir = Path(config['paths']['data_dir'])
 
+        device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
+        model = model.to(device)
+
+        ce_loss = self.ce_loss.to(device)
         optimizer = Adam(model.parameters())
         if 'optimizer' in checkpoint:
             optimizer.load_state_dict(checkpoint['optimizer'])

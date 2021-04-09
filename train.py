@@ -20,8 +20,6 @@ if __name__ == '__main__':
     parser.add_argument('--checkpoint', '-cp', default=None, help='Points to the a model file to restore.')
     args = parser.parse_args()
 
-    #raw_data = get_data('/home/sysgen/chris/data/heavily_cleaned_phoneme_dataset_DE.pkl')
-
     config = read_config(args.config)
 
     if args.checkpoint:
@@ -45,7 +43,5 @@ if __name__ == '__main__':
             'config': config,
         }
 
-    data_dir = config['paths']['data_dir']
-
     trainer = Trainer(checkpoint_dir=config['paths']['checkpoint_dir'])
-    trainer.train(model=model, checkpoint=checkpoint, data_dir=data_dir)
+    trainer.train(model=model, checkpoint=checkpoint)

@@ -15,7 +15,7 @@ from dp.utils import read_config
 
 if __name__ == '__main__':
 
-    checkpoint_path = 'checkpoints/model_step_300k.pt'
+    checkpoint_path = 'checkpoints/latest_model.pt'
     checkpoint = torch.load(checkpoint_path, map_location=torch.device('cpu'))
     model = TransformerModel.from_config(checkpoint['config'])
     model.load_state_dict(checkpoint['model'])
@@ -27,7 +27,7 @@ if __name__ == '__main__':
 
     print(f'Restored model with step {model.get_step()}')
 
-    text = 'richtig'
+    text = 'Außenministerkonferenz'
 
     tokens = text_tok(text)
     pred = model.generate(torch.tensor(tokens).unsqueeze(0))
