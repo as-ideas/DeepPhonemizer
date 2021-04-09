@@ -124,7 +124,8 @@ class TransformerModel(nn.Module):
         src_pad_mask = self.make_len_mask(input).to(input.device)
         input = self.encoder(input)
         input = self.pos_encoder(input)
-        input = self.transformer.encoder(input, src_key_padding_mask=src_pad_mask)
+        with torch.no_grad():
+            input = self.transformer.encoder(input, src_key_padding_mask=src_pad_mask)
 
         out_indices = [self.decoder_start_index]
         for i in range(max_len):
@@ -132,9 +133,10 @@ class TransformerModel(nn.Module):
 
             output = self.decoder(trg_tensor)
             output = self.pos_decoder(output)
-            output = self.transformer.decoder(output, input, memory_key_padding_mask=src_pad_mask)
-            output = self.fc_out(output)
-            out_token = output.argmax(2)[-1].item()
+            with torch.no_grad():
+                output = self.transformer.decoder(output, input, memory_key_padding_mask=src_pad_mask)
+                output = self.fc_out(output)
+                out_token = output.argmax(2)[-1].item()
             out_indices.append(out_token)
             if out_token == self.decoder_end_index:
                 break
