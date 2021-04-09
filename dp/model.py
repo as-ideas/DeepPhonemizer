@@ -128,18 +128,17 @@ class TransformerModel(nn.Module):
             input = self.transformer.encoder(input, src_key_padding_mask=src_pad_mask)
 
         out_indices = [self.decoder_start_index]
-        for i in range(max_len):
-            trg_tensor = torch.tensor(out_indices).long().unsqueeze(1).to(input.device)
-
-            output = self.decoder(trg_tensor)
-            output = self.pos_decoder(output)
-            with torch.no_grad():
+        with torch.no_grad():
+            for i in range(max_len):
+                trg_tensor = torch.tensor(out_indices).long().unsqueeze(1).to(input.device)
+                output = self.decoder(trg_tensor)
+                output = self.pos_decoder(output)
                 output = self.transformer.decoder(output, input, memory_key_padding_mask=src_pad_mask)
                 output = self.fc_out(output)
                 out_token = output.argmax(2)[-1].item()
-            out_indices.append(out_token)
-            if out_token == self.decoder_end_index:
-                break
+                out_indices.append(out_token)
+                if out_token == self.decoder_end_index:
+                    break
 
         return out_indices
 
