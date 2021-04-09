@@ -6,6 +6,7 @@ import math
 
 
 # https://colab.research.google.com/drive/1g4ZFCGegOmD-xXL-Ggu7K5LVoJeXYJ75
+"""
 class PositionalEncoding(nn.Module):
     def __init__(self, d_model, dropout=0.1, max_len=5000):
         super(PositionalEncoding, self).__init__()
@@ -24,6 +25,25 @@ class PositionalEncoding(nn.Module):
     def forward(self, x):         # shape: [T, N]
         x = x + self.scale * self.pe[:x.size(0), :]
         return self.dropout(x)
+"""
+
+class PositionalEncoding(nn.Module):
+
+    def __init__(self, d_model, dropout=0.1, max_len=5000):
+        super(PositionalEncoding, self).__init__()
+        self.dropout = nn.Dropout(p=dropout)
+
+        pe = torch.zeros(max_len, d_model)
+        position = torch.arange(0, max_len, dtype=torch.float).unsqueeze(1)
+        div_term = torch.exp(torch.arange(0, d_model, 2).float() * (-math.log(10000.0) / d_model))
+        pe[:, 0::2] = torch.sin(position * div_term)
+        pe[:, 1::2] = torch.cos(position * div_term)
+        pe = pe.unsqueeze(0).transpose(0, 1)
+        self.register_buffer('pe', pe)
+
+    def forward(self, x):
+        x = x + self.pe[:x.size(0), :]
+        return self.dropout(x)
 
 
 class TransformerModel(nn.Module):
@@ -40,6 +60,8 @@ class TransformerModel(nn.Module):
                  dropout=0.1,
                  heads=1):
         super(TransformerModel, self).__init__()
+
+        self.d_model = d_model
 
         self.decoder_start_index = decoder_start_index
         self.decoder_end_index = decoder_end_index
@@ -81,10 +103,10 @@ class TransformerModel(nn.Module):
         src_pad_mask = self.make_len_mask(src).to(trg.device)
         trg_pad_mask = self.make_len_mask(trg).to(trg.device)
 
-        src = self.encoder(src)
+        src = self.encoder(src) * math.sqrt(self.d_model)
         src = self.pos_encoder(src)
 
-        trg = self.decoder(trg)
+        trg = self.decoder(trg) * math.sqrt(self.d_model)
         trg = self.pos_decoder(trg)
 
         output = self.transformer(src, trg, src_mask=self.src_mask, tgt_mask=trg_mask,
@@ -100,7 +122,7 @@ class TransformerModel(nn.Module):
 
         input = input.transpose(0, 1)          # shape: [T, N]
         src_pad_mask = self.make_len_mask(input).to(input.device)
-        input = self.encoder(input)
+        input = self.encoder(input) * math.sqrt(self.d_model)
         input = self.pos_encoder(input)
         input = self.transformer.encoder(input, src_key_padding_mask=src_pad_mask)
 
@@ -108,7 +130,7 @@ class TransformerModel(nn.Module):
         for i in range(max_len):
             trg_tensor = torch.tensor(out_indices).long().unsqueeze(1).to(input.device)
 
-            output = self.decoder(trg_tensor)
+            output = self.decoder(trg_tensor) * math.sqrt(self.d_model)
             output = self.pos_decoder(output)
             output = self.transformer.decoder(output, input, memory_key_padding_mask=src_pad_mask)
             output = self.fc_out(output)
