@@ -10,7 +10,7 @@ from dp.dataset import new_dataloader
 from dp.model import TransformerModel
 from dp.text import Tokenizer, Preprocessor
 from dp.trainer import Trainer
-from dp.utils import read_config
+from dp.utils import read_config, pickle_binary
 
 
 # replace that later
@@ -79,11 +79,11 @@ if __name__ == '__main__':
     train_data_augmented = []
     for lang, text, phon in train_data:
         _, rand_text, rand_phon = random.choice(train_data)
+        train_data_augmented.append((lang, text, phon))
         train_data_augmented.append((lang, text + rand_text, phon + rand_phon))
 
     train_data_augmented = preprocessor(train_data_augmented)
     val_data = preprocessor(val_data)
-
     print('Training...')
     trainer = Trainer(checkpoint_dir=config['paths']['checkpoint_dir'])
     trainer.train(model=model, checkpoint=checkpoint,

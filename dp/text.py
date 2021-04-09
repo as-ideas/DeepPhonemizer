@@ -57,7 +57,7 @@ class Preprocessor:
         data_processed = []
         data_iter = tqdm.tqdm(data, total=len(data)) if progress else iter(data)
         for lang, text, phonemes in data_iter:
-            text_tokens = self.text_tokenizer(text)
+            text_tokens = self.text_tokenizer(text, append_start_end=False)
             phoneme_tokens = self.phoneme_tokenizer(phonemes)
             lang_index = self.lang_indices[lang]
             data_processed.append((lang_index, text_tokens, phoneme_tokens))
@@ -75,7 +75,7 @@ class Preprocessor:
         lang_symbols = sorted(list(lang_counter.keys()))
         lang_indices = {l: i for i, l in enumerate(lang_symbols)}
         text_tokenizer = Tokenizer(text_symbols, lowercase=lowercase)
-        phoneme_tokenizer = Tokenizer(phoneme_symbols, lowercase=lowercase)
+        phoneme_tokenizer = Tokenizer(phoneme_symbols, lowercase=False)
         return Preprocessor(lang_indices=lang_indices,
                             text_tokenizer=text_tokenizer,
                             phoneme_tokenizer=phoneme_tokenizer)
