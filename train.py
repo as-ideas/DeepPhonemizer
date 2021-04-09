@@ -76,7 +76,7 @@ if __name__ == '__main__':
         config = checkpoint['config']
     else:
         print('Initializing new model from config, build preprocessor...')
-        checkpoint = init_checkpoint(raw_data)
+        checkpoint = init_checkpoint(raw_data=raw_data, config=config)
         model = TransformerModel.from_config(config['model'])
 
     print('Preprocessing...')
