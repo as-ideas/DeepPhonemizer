@@ -126,9 +126,7 @@ class TransformerModel(nn.Module):
             input = self.encoder(input)
             input = self.pos_encoder(input)
             input = self.transformer.encoder(input, src_key_padding_mask=src_pad_mask)
-
-        out_indices = [self.decoder_start_index]
-        with torch.no_grad():
+            out_indices = [self.decoder_start_index]
             for i in range(max_len):
                 trg_tensor = torch.tensor(out_indices).long().unsqueeze(1).to(input.device)
                 output = self.decoder(trg_tensor)
