@@ -71,8 +71,12 @@ class Preprocessor:
         phoneme_symbols = config['preprocessing']['phoneme_symbols']
         lang_symbols = config['preprocessing']['languages']
         lang_indices = {l: i for i, l in enumerate(lang_symbols)}
-        text_tokenizer = Tokenizer(text_symbols, lowercase=config['preprocessing']['lowercase'])
-        phoneme_tokenizer = Tokenizer(phoneme_symbols, lowercase=False)
+        text_tokenizer = Tokenizer(text_symbols,
+                                   lowercase=config['preprocessing']['lowercase'],
+                                   append_start_end=False)
+        phoneme_tokenizer = Tokenizer(phoneme_symbols,
+                                      lowercase=False,
+                                      append_start_end=True)
         return Preprocessor(lang_indices=lang_indices,
                             text_tokenizer=text_tokenizer,
                             phoneme_tokenizer=phoneme_tokenizer)
