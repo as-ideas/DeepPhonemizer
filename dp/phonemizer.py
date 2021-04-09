@@ -4,7 +4,8 @@ from typing import Dict, Union
 
 from dp.model import TransformerModel
 
-# yeah some hard core regex warranted
+
+# yeah some hard core regex warranted in the future for special chars
 class Phonemizer:
 
     def __init__(self,
@@ -46,5 +47,5 @@ class Phonemizer:
 if __name__ == '__main__':
     checkpoint_path = '../checkpoints/latest_model.pt'
     phonemizer = Phonemizer(checkpoint_path=checkpoint_path)
-    phons = phonemizer('Ich gehe heute nach hause', lang='de')
+    phons = phonemizer('Der kleine Prinzenkönig Francesco Cardinale pillert an seinem Pillermann.', lang='de')
     print(phons)
