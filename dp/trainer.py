@@ -8,6 +8,7 @@ from torch.utils.tensorboard import SummaryWriter
 
 from dp.dataset import new_dataloader
 from dp.decorators import ignore_exception
+from dp.metrics import phoneme_error_rate
 from dp.model import TransformerModel
 from dp.text import Tokenizer, Preprocessor
 from dp.utils import to_device
@@ -78,7 +79,7 @@ class Trainer:
                     self.generate_samples(model=model,
                                           preprocessor=checkpoint['preprocessor'],
                                           val_batches=val_batches,
-                                          n_samples=config['training']['n_generate_samples'])
+                                          n_log_samples=config['training']['n_generate_samples'])
 
                 if model.get_step() % config['training']['checkpoint_steps'] == 0:
                     step = model.get_step() // 1000
@@ -114,28 +115,34 @@ class Trainer:
                          model: TransformerModel,
                          preprocessor: Preprocessor,
                          val_batches: List[dict],
-                         n_samples: int) -> None:
+                         n_log_samples: int) -> None:
         device = next(model.parameters()).device
         model.eval()
         text_tokenizer = preprocessor.text_tokenizer
         phoneme_tokenizer = preprocessor.phoneme_tokenizer
-        total_generated = 0
-        gen_texts = []
+        text_gen_target = []
+        per = 0
         for batch in val_batches:
             batch = to_device(batch, device)
-            total_generated += 1
-            text = batch['text'][0, :]
-            target = batch['phonemes'][0, :]
-            generated = model.generate(text.unsqueeze(0))
-            text, target = text.detach().cpu(), target.detach().cpu()
-            text = text_tokenizer.decode(text, remove_special_tokens=True)
-            gen_decoded = phoneme_tokenizer.decode(generated, remove_special_tokens=True)
-            target = phoneme_tokenizer.decode(target, remove_special_tokens=True)
-            text, gen_decoded, target = ''.join(text), ''.join(gen_decoded), ''.join(target)
-            gen_texts.append(f'     {text:<30} {gen_decoded:<30} {target:<30}')
-            if len(gen_texts) >= n_samples:
-                break
+            for i in range(batch['text'].size(0)):
+                text = batch['text'][i, :]
+                target = batch['phonemes'][i, :]
+                generated = model.generate(text.unsqueeze(0))
+                text, target = text.detach().cpu(), target.detach().cpu()
+                text = text_tokenizer.decode(text, remove_special_tokens=True)
+                generated = phoneme_tokenizer.decode(generated, remove_special_tokens=True)
+                target = phoneme_tokenizer.decode(target, remove_special_tokens=True)
+                text_gen_target.append((text, generated, target))
+                per += phoneme_error_rate(generated, target)
 
-        self.writer.add_text('Text_Prediction_Target', '\n'.join(gen_texts), global_step=model.get_step())
+        per /= len(text_gen_target)
+        print(f'per: {per}')
+        self.writer.add_scalar('Phoneme_Error_Rate', per, global_step=model.get_step())
+
+        # logging to tensorboard
+        log_texts = []
+        for text, generated, target in text_gen_target[:n_log_samples]:
+            text, gen_decoded, target = ''.join(text), ''.join(generated), ''.join(target)
+            log_texts.append(f'     {text:<30} {gen_decoded:<30} {target:<30}')
+        self.writer.add_text('Text_Prediction_Target', '\n'.join(log_texts), global_step=model.get_step())
         model.train()
-        return
