@@ -2,6 +2,7 @@ import pickle
 import argparse
 import random
 from collections import Counter
+from random import Random
 from typing import List, Tuple, Dict, Iterable, Any
 
 import tqdm
@@ -13,19 +14,28 @@ from dp.trainer import Trainer
 from dp.utils import read_config, pickle_binary
 
 
-# replace that later
-def get_data(file: str) -> List[Tuple[str, str, str]]:
-    data = []
+# replace that later, copied from headliner
+def get_data(file: str):
     with open(file, 'rb') as f:
         df = pickle.load(f)
     tuples = df[['title', 'pronunciation']]
-    for x in tuples.to_numpy():
-        data.append(('de', x[0], x[1]))
-    data_filtered = []
-    for lang, text, phon in data:
-        if 0 < len(phon) < 50 and ' ' not in text and 0 < len(text) <50:
-            data_filtered.append((lang, text, phon))
-    return data_filtered
+    tuples = [tuple(x) for x in tuples.to_numpy()]
+    data_set = {w for w, _ in tuples}
+    train_data = []
+    max_len = 50
+    all_phons = set()
+    for word, phon in tqdm.tqdm(tuples, total=len(tuples)):
+        all_phons.update(set(phon))
+        if 0 < len(phon) < max_len and ' ' not in word and 0 < len(word) < max_len:
+            train_data.append(('de', word, phon))
+            if word.lower() not in data_set:
+                word_ = word.lower()
+                train_data.append(('de', word_, phon))
+            if word.title() not in data_set:
+                word_ = word.title()
+                train_data.append(('de', word_, phon))
+
+    return train_data
 
 
 def init_checkpoint(raw_data: List[Tuple[str, Iterable[str], Iterable[str]]]) -> Dict[str, Any]:
@@ -47,6 +57,7 @@ if __name__ == '__main__':
     parser.add_argument('--checkpoint', '-cp', default=None, help='Points to the a model file to restore.')
     args = parser.parse_args()
 
+    #raw_data = get_data('/home/sysgen/chris/data/heavily_cleaned_phoneme_dataset_DE.pkl')
     raw_data = get_data('/Users/cschaefe/datasets/nlp/heavily_cleaned_phoneme_dataset_DE.pkl')
 
     config = read_config(args.config)
@@ -76,15 +87,14 @@ if __name__ == '__main__':
     train_data, val_data = raw_data[n_val:], raw_data[:n_val]
 
     # data augmentation, redo later
-    train_data_augmented = []
-    for lang, text, phon in train_data:
-        _, rand_text, rand_phon = random.choice(train_data)
-        train_data_augmented.append((lang, text, phon))
-        train_data_augmented.append((lang, text + rand_text, phon + rand_phon))
+    train_data_concat = []
+    for (l, w1, p1), (_, w2, p2) in zip(train_data[:-1], train_data[1:]):
+        train_data_concat.append((l, w1, p1))
+        train_data_concat.append((l, w1 + w2, p1 + p2))
 
-    train_data_augmented = preprocessor(train_data_augmented)
+    train_data_concat = preprocessor(train_data_concat)
     val_data = preprocessor(val_data)
     print('Training...')
     trainer = Trainer(checkpoint_dir=config['paths']['checkpoint_dir'])
     trainer.train(model=model, checkpoint=checkpoint,
-                  train_data=train_data_augmented, val_data=val_data)
+                  train_data=train_data_concat, val_data=val_data)

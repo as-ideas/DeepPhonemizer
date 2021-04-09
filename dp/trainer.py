@@ -20,7 +20,7 @@ class Trainer:
         self.checkpoint_dir = Path(checkpoint_dir)
         self.checkpoint_dir.mkdir(parents=True, exist_ok=True)
         self.writer = SummaryWriter(log_dir=self.checkpoint_dir / 'tensorboard')
-        self.ce_loss = torch.nn.CrossEntropyLoss(ignore_index=0, size_average=True)
+        self.ce_loss = torch.nn.CrossEntropyLoss(ignore_index=0)
 
     def train(self,
               model: TransformerModel,
