@@ -38,8 +38,8 @@ def get_data(file: str):
     return train_data
 
 
-def init_checkpoint(raw_data: List[Tuple[str, Iterable[str], Iterable[str]]]) -> Dict[str, Any]:
-    preprocessor = Preprocessor.build_from_data(data=raw_data)
+def init_checkpoint(raw_data: List[Tuple[str, Iterable[str], Iterable[str]]], config: Dict[str, Any]) -> Dict[str, Any]:
+    preprocessor = Preprocessor.build_from_data(data=raw_data, lowercase=config['preprocessing']['lowercase'])
     config['model']['encoder_vocab_size'] = preprocessor.text_tokenizer.vocab_size
     config['model']['decoder_vocab_size'] = preprocessor.phoneme_tokenizer.vocab_size
     config['model']['decoder_start_index'] = preprocessor.phoneme_tokenizer.start_index
@@ -57,8 +57,8 @@ if __name__ == '__main__':
     parser.add_argument('--checkpoint', '-cp', default=None, help='Points to the a model file to restore.')
     args = parser.parse_args()
 
-    #raw_data = get_data('/home/sysgen/chris/data/heavily_cleaned_phoneme_dataset_DE.pkl')
-    raw_data = get_data('/Users/cschaefe/datasets/nlp/heavily_cleaned_phoneme_dataset_DE.pkl')
+    raw_data = get_data('/home/sysgen/chris/data/heavily_cleaned_phoneme_dataset_DE.pkl')
+    #raw_data = get_data('/Users/cschaefe/datasets/nlp/heavily_cleaned_phoneme_dataset_DE.pkl')
 
     config = read_config(args.config)
 
