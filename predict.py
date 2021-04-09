@@ -31,6 +31,6 @@ if __name__ == '__main__':
 
     tokens = text_tok(text)
     pred = model.generate(torch.tensor(tokens).unsqueeze(0))
-    pred_decoded = phon_tok.decode(pred, remove_special_tokens=True)
+    pred_decoded = phon_tok.decode(pred, remove_special_tokens=False)
     pred_decoded = ''.join(pred_decoded)
     print(f'{text} | {pred_decoded}')

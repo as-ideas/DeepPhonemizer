@@ -14,7 +14,7 @@ from dp.trainer import Trainer
 from dp.utils import read_config, pickle_binary
 
 
-# replace that later, copied from headliner
+# replace that later, copied from headliner, yes its BS
 def get_data(file: str):
     with open(file, 'rb') as f:
         df = pickle.load(f)
