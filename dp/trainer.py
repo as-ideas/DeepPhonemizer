@@ -136,7 +136,6 @@ class Trainer:
                 per += phoneme_error_rate(generated, target)
 
         per /= len(text_gen_target)
-        print(f'per: {per}')
         self.writer.add_scalar('Phoneme_Error_Rate', per, global_step=model.get_step())
 
         # logging to tensorboard
