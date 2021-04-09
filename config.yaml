@@ -1,8 +1,14 @@
 
 paths:
   checkpoint_dir: checkpoints
+  data_dir: datasets # directory to store processed data
 
 preprocessing:
+  languages: ['de']
+  text_symbols: 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZäöüÄÖÜß'
+  phoneme_symbols: 'abdefhijklmnoprstuvwxyzæçøŋœɐɑɔəɛɡɪʁʃʊʏʒʔˈˌː̥̩̃̍ '
+  tokenizer_start_index: 1
+  tokenizer_end_index: 2
   lowercase: false
   n_val: 500
 

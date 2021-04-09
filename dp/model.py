@@ -6,6 +6,9 @@ import math
 
 
 # https://colab.research.google.com/drive/1g4ZFCGegOmD-xXL-Ggu7K5LVoJeXYJ75
+from dp.text import Preprocessor
+
+
 class PositionalEncoding(nn.Module):
     def __init__(self, d_model, dropout=0.1, max_len=5000):
         super(PositionalEncoding, self).__init__()
@@ -131,14 +134,14 @@ class TransformerModel(nn.Module):
     @classmethod
     def from_config(cls, config: dict) -> 'TransformerModel':
         return TransformerModel(
-            encoder_vocab_size=config['encoder_vocab_size'],
-            decoder_vocab_size=config['decoder_vocab_size'],
-            decoder_start_index=config['decoder_start_index'],
-            decoder_end_index=config['decoder_end_index'],
-            d_model=config['d_model'],
-            d_fft=config['d_fft'],
-            encoder_layers=config['encoder_layers'],
-            decoder_layers=config['decoder_layers'],
-            dropout=config['dropout'],
-            heads=config['heads']
+            encoder_vocab_size=len(config['preprocessing']['text_symbols']) + 3,     # +3 for special tokens
+            decoder_vocab_size=len(config['preprocessing']['phoneme_symbols']) + 3,
+            decoder_start_index=config['preprocessing']['tokenizer_start_index'],
+            decoder_end_index=config['preprocessing']['tokenizer_end_index'],
+            d_model=config['model']['d_model'],
+            d_fft=config['model']['d_fft'],
+            encoder_layers=config['model']['encoder_layers'],
+            decoder_layers=config['model']['decoder_layers'],
+            dropout=config['model']['dropout'],
+            heads=config['model']['heads']
         )

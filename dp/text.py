@@ -1,18 +1,24 @@
+import shutil
 from collections import Counter
-
+from pathlib import Path
+import torch
 import tqdm
-from typing import List, Iterable, Dict, Tuple
+from typing import List, Iterable, Dict, Tuple, Any
+
+from dp.utils import pickle_binary
 
 
 class Tokenizer:
 
     def __init__(self,
                  symbols: List[str],
-                 lowercase=True,
+                 lowercase=False,
+                 append_start_end=True,
                  pad_token='_',
                  start_token='<',
                  end_token='>') -> None:
         self.lowercase = lowercase
+        self.append_start_end = append_start_end
         self.pad_index = 0
         self.start_index = 1
         self.end_index = 2
@@ -25,11 +31,11 @@ class Tokenizer:
         self.idx_to_token = {i: s for s, i in self.token_to_idx.items()}
         self.vocab_size = len(self.idx_to_token)
 
-    def __call__(self, sentence: Iterable[str], append_start_end=True) -> List[int]:
+    def __call__(self, sentence: Iterable[str]) -> List[int]:
         if self.lowercase:
             sentence = [s.lower() for s in sentence]
         sequence = [self.token_to_idx[c] for c in sentence if c in self.token_to_idx]
-        if append_start_end:
+        if self.append_start_end:
             sequence = [self.start_index] + sequence + [self.end_index]
         return sequence
 
@@ -51,30 +57,21 @@ class Preprocessor:
         self.phoneme_tokenizer = phoneme_tokenizer
 
     def __call__(self,
-                 data: List[Tuple[str, Iterable[str], Iterable[str]]],
-                 progress=True) \
-            -> List[Tuple[int, List[int], List[int]]]:
-        data_processed = []
-        data_iter = tqdm.tqdm(data, total=len(data)) if progress else iter(data)
-        for lang, text, phonemes in data_iter:
-            text_tokens = self.text_tokenizer(text, append_start_end=False)
-            phoneme_tokens = self.phoneme_tokenizer(phonemes)
-            lang_index = self.lang_indices[lang]
-            data_processed.append((lang_index, text_tokens, phoneme_tokens))
-        return data_processed
+                 item: Tuple[str, Iterable[str], Iterable[str]]):
+
+        lang, text, phonemes = item
+        lang_index = self.lang_indices[lang]
+        text_tokens = self.text_tokenizer(text)
+        phoneme_tokens = self.phoneme_tokenizer(phonemes)
+        return lang_index, text_tokens, phoneme_tokens
 
     @classmethod
-    def build_from_data(cls, data: List[Tuple[str, Iterable[str], Iterable[str]]], lowercase=True) -> 'Preprocessor':
-        lang_counter, text_counter, phoneme_counter = Counter(), Counter(), Counter()
-        for lang, text, phonemes in data:
-            lang_counter.update([lang])
-            text_counter.update(text)
-            phoneme_counter.update(phonemes)
-        text_symbols = sorted((list(text_counter.keys())))
-        phoneme_symbols = sorted(list(phoneme_counter.keys()))
-        lang_symbols = sorted(list(lang_counter.keys()))
+    def from_config(cls, config: Dict[str, Any]) -> 'Preprocessor':
+        text_symbols = config['preprocessing']['text_symbols']
+        phoneme_symbols = config['preprocessing']['phoneme_symbols']
+        lang_symbols = config['preprocessing']['languages']
         lang_indices = {l: i for i, l in enumerate(lang_symbols)}
-        text_tokenizer = Tokenizer(text_symbols, lowercase=lowercase)
+        text_tokenizer = Tokenizer(text_symbols, lowercase=config['preprocessing']['lowercase'])
         phoneme_tokenizer = Tokenizer(phoneme_symbols, lowercase=False)
         return Preprocessor(lang_indices=lang_indices,
                             text_tokenizer=text_tokenizer,

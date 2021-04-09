@@ -25,9 +25,9 @@ class Trainer:
     def train(self,
               model: TransformerModel,
               checkpoint: dict,
-              train_data: List[tuple],
-              val_data: List[tuple]) -> None:
+              data_dir: str) -> None:
 
+        data_dir = Path(data_dir)
         device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
         model = model.to(device)
         ce_loss = self.ce_loss.to(device)
@@ -40,8 +40,10 @@ class Trainer:
         for g in optimizer.param_groups:
             g['lr'] = config['training']['learning_rate']
 
-        train_loader = new_dataloader(data=train_data)
-        val_loader = new_dataloader(data=val_data)
+        train_loader = new_dataloader(data_dir=data_dir,
+                                      dataset_file=data_dir / 'train_dataset.pkl')
+        val_loader = new_dataloader(data_dir=data_dir,
+                                    dataset_file=data_dir / 'val_dataset.pkl')
         val_batches = sorted([b for b in val_loader], key=lambda x: -x['text_len'][0])
 
         loss_sum = 0.

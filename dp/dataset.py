@@ -1,3 +1,4 @@
+from pathlib import Path
 from random import Random
 from random import Random
 from typing import List, Any, Dict, Tuple, Iterable
@@ -9,15 +10,22 @@ from torch.utils.data.dataloader import DataLoader
 from torch.utils.data.dataset import Dataset
 from torch.utils.data.sampler import Sampler
 
+from dp.utils import unpickle_binary
+
 
 class PhonemizerDataset(Dataset):
 
-    def __init__(self, items: List[Tuple[int, List[int], List[int]]]) -> None:
+    def __init__(self,
+                 token_dir: Path,
+                 dataset: List[Tuple[str, int]]) -> None:
         super().__init__()
-        self.items = items
+        self.token_dir = token_dir
+        self.dataset = dataset
 
     def __getitem__(self, index: int) -> Dict[str, Any]:
-        language, text, phonemes = self.items[index]
+        item_id, item_len = self.dataset[index]
+        item = unpickle_binary(self.token_dir / f'{item_id}.pkl')
+        language, text, phonemes = item
         text = torch.tensor(text, dtype=torch.long)
         phonemes = torch.tensor(phonemes, dtype=torch.long)
 
@@ -26,7 +34,7 @@ class PhonemizerDataset(Dataset):
                 'text_len': text.size(0), 'phonemes_len': phonemes.size(0)}
 
     def __len__(self):
-        return len(self.items)
+        return len(self.dataset)
 
 
 # From https://github.com/fatchord/WaveRNN/blob/master/utils/dataset.py
@@ -73,12 +81,13 @@ def collate_dataset(batch: List[dict]) -> torch.tensor:
             'phonemes_len': phonemes_len, 'item_id': item_ids, 'language': lang}
 
 
-def new_dataloader(data: List[Tuple[int, List[int], List[int]]],
+def new_dataloader(data_dir: Path,
+                   dataset_file: Path,
                    batch_size=32,
                    use_binning=True) -> DataLoader:
-
-    phonemizer_dataset = PhonemizerDataset(items=data)
-    phoneme_lens = [len(p) for _, _, p in data]
+    dataset = unpickle_binary(dataset_file)
+    phonemizer_dataset = PhonemizerDataset(token_dir=data_dir / 'tokens', dataset=dataset)
+    phoneme_lens = [l for _, l in dataset]
     if use_binning:
         sampler = BinnedLengthSampler(phoneme_lens=phoneme_lens,
                                       batch_size=batch_size,
