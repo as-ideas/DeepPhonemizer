@@ -8,10 +8,10 @@ preprocessing:
 
 model:
   d_model: 512
-  d_fft: 2048
+  d_fft: 1024
   encoder_layers: 4
   decoder_layers: 4
-  dropout: 0.1
+  dropout: 0.
   heads: 4
 
 training:
