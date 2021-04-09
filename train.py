@@ -45,10 +45,6 @@ if __name__ == '__main__':
             'config': config,
         }
 
-    print('Preprocessing...')
-    preprocessor = checkpoint['preprocessor']
-    random = random.Random(42)
-
     data_dir = config['paths']['data_dir']
 
     trainer = Trainer(checkpoint_dir=config['paths']['checkpoint_dir'])

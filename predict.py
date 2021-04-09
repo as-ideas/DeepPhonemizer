@@ -17,7 +17,7 @@ if __name__ == '__main__':
 
     checkpoint_path = 'checkpoints/model_step_300k.pt'
     checkpoint = torch.load(checkpoint_path, map_location=torch.device('cpu'))
-    model = TransformerModel.from_config(checkpoint['config']['model'])
+    model = TransformerModel.from_config(checkpoint['config'])
     model.load_state_dict(checkpoint['model'])
     model.eval()
 

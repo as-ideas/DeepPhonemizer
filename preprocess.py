@@ -1,6 +1,7 @@
 from multiprocessing.pool import Pool
 from pathlib import Path
 from random import Random
+from typing import Iterable, Tuple
 
 import tqdm
 import pickle
@@ -37,6 +38,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Preprocessing for DeepForcedAligner.')
     parser.add_argument('--config', '-c', default='config.yaml', help='Points to the config file.')
     parser.add_argument('--checkpoint', '-cp', default=None, help='Points to the a model file to restore.')
+    parser.add_argument('--path', '-p', help='Points to the a file with data.')
 
     args = parser.parse_args()
 
@@ -46,13 +48,12 @@ if __name__ == '__main__':
     data_dir.mkdir(parents=True, exist_ok=True)
     token_dir.mkdir(parents=True, exist_ok=True)
 
-    #raw_data = get_data('/Users/cschaefe/datasets/nlp/heavily_cleaned_phoneme_dataset_DE.pkl')
-    raw_data = get_data('/home/sysgen/chris/data/heavily_cleaned_phoneme_dataset_DE.pkl')
+    raw_data = get_data(args.path)
 
     random = Random(42)
     random.shuffle(raw_data)
 
-    train_data = raw_data[config['preprocessing']['n_val']:2000]
+    train_data = raw_data[config['preprocessing']['n_val']]
     val_data = raw_data[:config['preprocessing']['n_val']]
 
     preprocessor = Preprocessor.from_config(config)
