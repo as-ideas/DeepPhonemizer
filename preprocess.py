@@ -48,7 +48,7 @@ if __name__ == '__main__':
     data_dir.mkdir(parents=True, exist_ok=True)
     token_dir.mkdir(parents=True, exist_ok=True)
 
-    raw_data = get_data(args.path)
+    raw_data = get_data(args.path   )
 
     random = Random(42)
     random.shuffle(raw_data)

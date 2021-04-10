@@ -15,7 +15,7 @@ from dp.utils import read_config, pickle_binary
 
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description='Preprocessing for DeepForcedAligner.')
+    parser = argparse.ArgumentParser(description='Preprocessing for DeepPhonemizer.')
     parser.add_argument('--config', '-c', default='config.yaml', help='Points to the config file.')
     parser.add_argument('--checkpoint', '-cp', default=None, help='Points to the a model file to restore.')
     args = parser.parse_args()

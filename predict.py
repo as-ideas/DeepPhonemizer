@@ -27,7 +27,7 @@ if __name__ == '__main__':
 
     print(f'Restored model with step {model.get_step()}')
 
-    text = 'Außenministerkonferenz'
+    text = 'Signalrakete'
 
     tokens = text_tok(text)
     pred = model.generate(torch.tensor(tokens).unsqueeze(0))
