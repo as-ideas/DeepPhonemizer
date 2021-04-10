@@ -23,19 +23,29 @@ class Phonemizer:
 
     def __call__(self, text: str, lang: str) -> str:
         words = re.split(self.punc_pattern, text)
+
+        # collect dictionary phonemes for words and hyphenated words
         word_phonemes = {word: self.get_dict_entry(word, lang) for word in words}
+
+        # collect dictionary phonemes for subwords in hyphenated words
         word_splits = {w: w.split('-') for w in words if word_phonemes[w] is None}
         subwords = {w for values in word_splits.values() for w in values if len(w) > 0}
         for subword in subwords:
             if subword not in word_phonemes:
                 word_phonemes[subword] = self.get_dict_entry(subword, lang)
+
+        # predict all non-hyphenated words and all subwords of hyphenated words
         words_to_predict = []
         for word, phons in word_phonemes.items():
             if phons is None and '-' not in word:
                 words_to_predict.append(word)
+
+        # can be batched
         for word in words_to_predict:
             phons = self.predict_word(word, lang)
             word_phonemes[word] = phons
+
+        # collect all phonemes
         output = []
         for word in words:
             phons = word_phonemes[word]
