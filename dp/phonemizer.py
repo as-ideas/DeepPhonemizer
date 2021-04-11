@@ -11,18 +11,22 @@ class Phonemizer:
     def __init__(self,
                  checkpoint_path: str,
                  punctuation='().,:?!',
+                 expand_acronyms=True,
                  lang_phoneme_dict: Dict[str, Dict[str, str]] = None) -> None:
         checkpoint = torch.load(checkpoint_path, map_location=torch.device('cpu'))
         self.model = TransformerModel.from_config(checkpoint['config'])
         self.model.load_state_dict(checkpoint['model'])
         self.preprocessor = checkpoint['preprocessor']
         self.lang_phoneme_dict = lang_phoneme_dict
+        self.expand_acronyms = expand_acronyms
         punctuation += ' '
         self.punc_set = set(punctuation)
         self.punc_pattern=re.compile(f'([{punctuation}])')
 
     def __call__(self, text: str, lang: str) -> str:
         words = re.split(self.punc_pattern, text)
+        if self.expand_acronyms:
+            words = [self.expand_acronym(w) for w in words]
 
         # collect dictionary phonemes for words and hyphenated words
         word_phonemes = {word: self.get_dict_entry(word, lang) for word in words}
@@ -94,9 +98,16 @@ class Phonemizer:
                 break
         return word[:left], word[left:right], word[right:]
 
+    def expand_acronym(self, word: str) -> str:
+        if word.isupper():
+            return '-'.join(list(word))
+        else:
+            return word
+
+
 if __name__ == '__main__':
     checkpoint_path = '../checkpoints/latest_model.pt'
     lang_phoneme_dict = {'de': {'E-Mail': 'ˈiːmeɪ̯l'}}
     phonemizer = Phonemizer(checkpoint_path=checkpoint_path, lang_phoneme_dict=lang_phoneme_dict)
-    phons = phonemizer('Der E-Mail kleine AfD Prinzen-könig - Francesco Cardinale, pillert an seinem Pillermann.', lang='de')
+    phons = phonemizer('Der E-Mail kleine SPD Prinzen-könig - Francesco Cardinale, pillert an seinem Pillermann.', lang='de')
     print(phons)
