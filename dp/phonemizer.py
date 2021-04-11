@@ -22,8 +22,8 @@ class Phonemizer:
                  lang: str,
                  punctuation='().,:?!',
                  expand_acronyms=True) -> str:
-        punctuation += ' '
-        punc_set = set(punctuation)
+
+        punc_set = set(punctuation + ' ')
         punc_pattern=re.compile(f'([{punctuation}])')
 
         text = ''.join([t for t in text if t.isalnum() or t in punc_set])
