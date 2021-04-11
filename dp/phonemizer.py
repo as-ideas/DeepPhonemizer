@@ -23,19 +23,26 @@ class Phonemizer:
                  punctuation='().,:?!',
                  expand_acronyms=True) -> str:
 
-        punc_set = set(punctuation + ' ')
-        punc_pattern=re.compile(f'([{punctuation}])')
+        punctuation += ' '
+        punc_set = set(punctuation + '-')
+        punc_pattern = re.compile(f'([{punctuation}])')
 
         text = ''.join([t for t in text if t.isalnum() or t in punc_set])
         words = re.split(punc_pattern, text)
-        if expand_acronyms:
-            words = [self.expand_acronym(w) for w in words]
 
         # collect dictionary phonemes for words and hyphenated words
         word_phonemes = {word: self.get_dict_entry(word, lang, punc_set) for word in words}
 
         # collect dictionary phonemes for subwords in hyphenated words
-        word_splits = {w: w.split('-') for w in words if word_phonemes[w] is None}
+        words_to_split = [w for w in words if word_phonemes[w] is None]
+        word_splits = dict()
+        for word in words_to_split:
+            if expand_acronyms:
+                word_split = self.expand_acronym(word).split('-')
+            else:
+                word_split = word.split('-')
+            word_splits[word] = word_split
+
         subwords = {w for values in word_splits.values() for w in values if len(w) > 0}
         for subword in subwords:
             if subword not in word_phonemes:
@@ -82,27 +89,14 @@ class Phonemizer:
         if not self.lang_phoneme_dict or lang not in self.lang_phoneme_dict:
             return None
         phoneme_dict = self.lang_phoneme_dict[lang]
-        left, word, right = self.strip_left_right(word)
         if word in phoneme_dict:
-            return left + phoneme_dict[word] + right
+            return phoneme_dict[word]
         elif word.lower() in phoneme_dict:
-            return left + phoneme_dict[word.lower()] + right
+            return phoneme_dict[word.lower()]
         elif word.title() in phoneme_dict:
-            return left + phoneme_dict[word.title()] + right
+            return phoneme_dict[word.title()]
         else:
             return None
-
-    def strip_left_right(self, word: str) -> Tuple[str, str, str]:
-        left, right = 0, len(word)
-        for i in range(len(word)):
-            if word[i].isalnum():
-                left = i
-                break
-        for i in range(len(word), 1, -1):
-            if word[i - 1].isalnum():
-                right = i
-                break
-        return word[:left], word[left:right], word[right:]
 
     def expand_acronym(self, word: str) -> str:
         if word.isupper():
