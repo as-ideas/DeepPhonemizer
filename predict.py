@@ -3,7 +3,7 @@ import argparse
 import random
 from collections import Counter
 from typing import List, Tuple
-
+import math
 import tqdm
 import torch
 from dp.dataset import new_dataloader
@@ -27,10 +27,16 @@ if __name__ == '__main__':
 
     print(f'Restored model with step {model.get_step()}')
 
-    text = 'Cov'
+    text = 'Enineering'
 
     tokens = text_tok(text)
-    pred = model.generate(torch.tensor(tokens).unsqueeze(0))
+    pred, logits = model.generate(torch.tensor(tokens).unsqueeze(0))
+    norm_logits = logits.softmax(dim=2)
+    probs = [norm_logits[0, i, p] for i, p in enumerate(pred[1:])]
     pred_decoded = phon_tok.decode(pred, remove_special_tokens=False)
     pred_decoded = ''.join(pred_decoded)
-    print(f'{text} | {pred_decoded}')
+    prob = math.exp(sum([math.log(p) for p in probs]))
+    for o, p in zip(pred_decoded[1:], probs):
+        print(f'{o} {p}')
+    print(f'{text} | {pred_decoded} | {prob}')
+

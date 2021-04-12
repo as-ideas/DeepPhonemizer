@@ -5,7 +5,7 @@ from dp.text import Tokenizer
 
 class TestTokenizer(unittest.TestCase):
 
-    def test_tokenizer(self) -> None:
+    def test_call(self) -> None:
         symbols = list('abcde')
         tokenizer = Tokenizer(symbols=symbols, lowercase=True, start_index=1,  end_index=2,
                               start_token='<', end_token='>', append_start_end=True)

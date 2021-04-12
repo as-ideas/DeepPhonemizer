@@ -111,6 +111,7 @@ class TransformerModel(nn.Module):
             input = self.transformer.encoder(input,
                                              src_key_padding_mask=src_pad_mask)
             out_indices = [self.decoder_start_index]
+            out_logits = []
             for i in range(max_len):
                 tgt_mask = self.generate_square_subsequent_mask(i + 1).to(input.device)
                 trg_tensor = torch.tensor(out_indices).long().unsqueeze(1).to(input.device)
@@ -120,14 +121,16 @@ class TransformerModel(nn.Module):
                                                   input,
                                                   memory_key_padding_mask=src_pad_mask,
                                                   tgt_mask=tgt_mask)
-                output = self.fc_out(output)
+                output = self.fc_out(output)  # shape: [T, N, V]
+                out_logits.append(output[-1:, :, :])
                 out_token = output.argmax(2)[-1].item()
                 out_indices.append(out_token)
                 if out_token == self.decoder_end_index:
                     break
 
         out_indices = torch.tensor(out_indices).long()
-        return out_indices
+        out_logits = torch.cat(out_logits, dim=0).transpose(0, 1) # out shape [N, T, V]
+        return out_indices, out_logits
 
     def get_step(self):
         return self.step.data.item()

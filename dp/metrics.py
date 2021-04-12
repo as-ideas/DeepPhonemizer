@@ -2,20 +2,25 @@ import numpy
 from typing import List, Union
 
 
-def phoneme_error_rate(text: List[Union[str, int]], phonemes: List[Union[str, int]]) -> float:
-    d = numpy.zeros((len(phonemes) + 1) * (len(text) + 1),
+def word_error_rate(predicted: List[Union[str, int]], target: List[Union[str, int]]) -> float:
+    errors = [int(p != t) for p, t in zip(predicted, target)]
+    return sum(errors) / len(target)
+
+
+def phoneme_error_rate(predicted: List[Union[str, int]], target: List[Union[str, int]]) -> float:
+    d = numpy.zeros((len(target) + 1) * (len(predicted) + 1),
                     dtype=numpy.uint8)
-    d = d.reshape((len(phonemes) + 1, len(text) + 1))
-    for i in range(len(phonemes) + 1):
-        for j in range(len(text) + 1):
+    d = d.reshape((len(target) + 1, len(predicted) + 1))
+    for i in range(len(target) + 1):
+        for j in range(len(predicted) + 1):
             if i == 0:
                 d[0][j] = j
             elif j == 0:
                 d[i][0] = i
 
-    for i in range(1, len(phonemes) + 1):
-        for j in range(1, len(text) + 1):
-            if phonemes[i - 1] == text[j - 1]:
+    for i in range(1, len(target) + 1):
+        for j in range(1, len(predicted) + 1):
+            if target[i - 1] == predicted[j - 1]:
                 d[i][j] = d[i - 1][j - 1]
             else:
                 substitution = d[i - 1][j - 1] + 1
@@ -23,7 +28,7 @@ def phoneme_error_rate(text: List[Union[str, int]], phonemes: List[Union[str, in
                 deletion = d[i - 1][j] + 1
                 d[i][j] = min(substitution, insertion, deletion)
 
-    return d[len(phonemes)][len(text)] / float(len(phonemes))
+    return d[len(target)][len(predicted)] / float(len(target))
 
 
 if __name__ == '__main__':
