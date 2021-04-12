@@ -37,11 +37,11 @@ class Phonemizer:
         words_to_split = [w for w in words if word_phonemes[w] is None]
         word_splits = dict()
         for word in words_to_split:
+            key = word
             if expand_acronyms:
-                word_split = self.expand_acronym(word).split('-')
-            else:
-                word_split = word.split('-')
-            word_splits[word] = word_split
+                word = self.expand_acronym(word)
+            word_split = re.split(r'([-])', word)
+            word_splits[key] = word_split
 
         subwords = {w for values in word_splits.values() for w in values if len(w) > 0}
         for subword in subwords:
@@ -51,7 +51,7 @@ class Phonemizer:
         # predict all non-hyphenated words and all subwords of hyphenated words
         words_to_predict = []
         for word, phons in word_phonemes.items():
-            if phons is None and '-' not in word:
+            if phons is None and len(word_splits.get(word, [])) <= 1:
                 words_to_predict.append(word)
 
         # can be batched
@@ -66,7 +66,7 @@ class Phonemizer:
             if phons is None:
                 subwords = word_splits[word]
                 subphons = [word_phonemes[w] for w in subwords]
-                phons = '-'.join(subphons)
+                phons = ''.join(subphons)
             output.append(phons)
         return ''.join(output)
 
