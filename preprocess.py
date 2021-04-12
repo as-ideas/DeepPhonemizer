@@ -44,9 +44,7 @@ if __name__ == '__main__':
 
     config = read_config(args.config)
     data_dir = Path(config['paths']['data_dir'])
-    token_dir = data_dir / 'tokens'
     data_dir.mkdir(parents=True, exist_ok=True)
-    token_dir.mkdir(parents=True, exist_ok=True)
 
     raw_data = get_data(args.path)
 
