@@ -99,16 +99,18 @@ class Phonemizer:
             return None
 
     def expand_acronym(self, word: str) -> str:
-        if word.isupper():
-            return '-'.join(list(word))
-        else:
-            return word
-
+        subwords = []
+        for subword in word.split('-'):
+            if subword.isupper():
+                subwords.append('-'.join(list(subword)))
+            else:
+                subwords.append(subword)
+        return '-'.join(subwords)
 
 if __name__ == '__main__':
     checkpoint_path = '../checkpoints/latest_model.pt'
     lang_phoneme_dict = {'de': {'E-Mail': 'ˈiːmeɪ̯l'}}
     phonemizer = Phonemizer(checkpoint_path=checkpoint_path,
                             lang_phoneme_dict=lang_phoneme_dict)
-    phons = phonemizer('Der E-Mail kleine <SPD Prinzen-könig - Francesco Cardinale, pillert an seinem Pillermann.', lang='de')
+    phons = phonemizer('Der E-Mail kleine <SPD-Prinzen-könig - Francesco Cardinale, pillert an seinem Pillermann.', lang='de')
     print(phons)
