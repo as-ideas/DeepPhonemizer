@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Tuple
 
 import torch
 import torch.nn as nn
@@ -101,7 +101,9 @@ class TransformerModel(nn.Module):
 
     def generate(self,
                  input: torch.tensor,          # shape: [N, T]
-                 max_len=100) -> torch.tensor:
+                 max_len=100) -> Tuple[torch.tensor, torch.tensor]:
+
+        """ Returns indices and logits """
 
         input = input.transpose(0, 1)          # shape: [T, N]
         src_pad_mask = self.make_len_mask(input).to(input.device)

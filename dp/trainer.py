@@ -3,6 +3,7 @@ from typing import List
 
 import torch
 import tqdm
+import math
 from torch.optim import Adam
 from torch.utils.tensorboard import SummaryWriter
 
@@ -10,7 +11,7 @@ from dp.dataset import new_dataloader
 from dp.decorators import ignore_exception
 from dp.metrics import phoneme_error_rate, word_error_rate
 from dp.model import TransformerModel
-from dp.text import Tokenizer, Preprocessor
+from dp.text import Preprocessor
 from dp.utils import to_device
 
 
@@ -42,7 +43,7 @@ class Trainer:
         train_loader = new_dataloader(dataset_file=data_dir / 'train_dataset.pkl')
         val_loader = new_dataloader(dataset_file=data_dir / 'val_dataset.pkl')
         val_batches = sorted([b for b in val_loader], key=lambda x: -x['text_len'][0])
-        best_per = float('inf')
+        best_per = math.inf
 
         loss_sum = 0.
         start_epoch = model.get_step() // len(train_loader)
@@ -130,7 +131,7 @@ class Trainer:
             for i in range(batch['text'].size(0)):
                 text = batch['text'][i, :]
                 target = batch['phonemes'][i, :]
-                generated = model.generate(text.unsqueeze(0))
+                generated, _ = model.generate(text.unsqueeze(0))
                 text, target = text.detach().cpu(), target.detach().cpu()
                 text = text_tokenizer.decode(text, remove_special_tokens=True)
                 generated = phoneme_tokenizer.decode(generated, remove_special_tokens=True)
