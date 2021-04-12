@@ -39,10 +39,8 @@ class Trainer:
         for g in optimizer.param_groups:
             g['lr'] = config['training']['learning_rate']
 
-        train_loader = new_dataloader(data_dir=data_dir,
-                                      dataset_file=data_dir / 'train_dataset.pkl')
-        val_loader = new_dataloader(data_dir=data_dir,
-                                    dataset_file=data_dir / 'val_dataset.pkl')
+        train_loader = new_dataloader(dataset_file=data_dir / 'train_dataset.pkl')
+        val_loader = new_dataloader(dataset_file=data_dir / 'val_dataset.pkl')
         val_batches = sorted([b for b in val_loader], key=lambda x: -x['text_len'][0])
 
         loss_sum = 0.

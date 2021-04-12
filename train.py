@@ -18,6 +18,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Preprocessing for DeepPhonemizer.')
     parser.add_argument('--config', '-c', default='config.yaml', help='Points to the config file.')
     parser.add_argument('--checkpoint', '-cp', default=None, help='Points to the a model file to restore.')
+    parser.add_argument('--path', '-p', help='Points to the a file with data.')
     args = parser.parse_args()
 
     config = read_config(args.config)
