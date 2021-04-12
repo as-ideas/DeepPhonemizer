@@ -8,7 +8,7 @@ from torch.utils.tensorboard import SummaryWriter
 
 from dp.dataset import new_dataloader
 from dp.decorators import ignore_exception
-from dp.metrics import phoneme_error_rate
+from dp.metrics import phoneme_error_rate, word_error_rate
 from dp.model import TransformerModel
 from dp.text import Tokenizer, Preprocessor
 from dp.utils import to_device
@@ -122,7 +122,7 @@ class Trainer:
         text_tokenizer = preprocessor.text_tokenizer
         phoneme_tokenizer = preprocessor.phoneme_tokenizer
         text_gen_target = []
-        per = 0
+        per, wer = 0., 0.
         for batch in val_batches:
             batch = to_device(batch, device)
             for i in range(batch['text'].size(0)):
@@ -135,11 +135,12 @@ class Trainer:
                 target = phoneme_tokenizer.decode(target, remove_special_tokens=True)
                 text_gen_target.append((text, generated, target))
                 per += phoneme_error_rate(generated, target)
+                wer += word_error_rate(generated, target)
 
-        per /= len(text_gen_target)
+        per, wer = per / len(text_gen_target), wer / len(text_gen_target)
         self.writer.add_scalar('Phoneme_Error_Rate', per, global_step=model.get_step())
+        self.writer.add_scalar('Word_Error_Rate', wer, global_step=model.get_step())
 
-        # logging to tensorboard
         log_texts = []
         for text, generated, target in text_gen_target[:n_log_samples]:
             text, gen_decoded, target = ''.join(text), ''.join(generated), ''.join(target)
