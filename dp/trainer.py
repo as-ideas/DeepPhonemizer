@@ -42,6 +42,7 @@ class Trainer:
         train_loader = new_dataloader(dataset_file=data_dir / 'train_dataset.pkl')
         val_loader = new_dataloader(dataset_file=data_dir / 'val_dataset.pkl')
         val_batches = sorted([b for b in val_loader], key=lambda x: -x['text_len'][0])
+        best_per = float('inf')
 
         loss_sum = 0.
         start_epoch = model.get_step() // len(train_loader)
@@ -75,21 +76,22 @@ class Trainer:
                     self.writer.add_scalar('Loss/val', val_loss, global_step=model.get_step())
 
                 if model.get_step() % config['training']['generate_steps'] == 0:
-                    self.generate_samples(model=model,
-                                          preprocessor=checkpoint['preprocessor'],
-                                          val_batches=val_batches,
-                                          n_log_samples=config['training']['n_generate_samples'])
+                    per = self.generate_samples(model=model,
+                                                preprocessor=checkpoint['preprocessor'],
+                                                val_batches=val_batches,
+                                                n_log_samples=config['training']['n_generate_samples'])
+                    if per < best_per:
+                        self.save_model(model=model, optimizer=optimizer, checkpoint=checkpoint,
+                                        path=self.checkpoint_dir / f'best_model.pt')
 
                 if model.get_step() % config['training']['checkpoint_steps'] == 0:
                     step = model.get_step() // 1000
-                    checkpoint['model'] = model.state_dict()
-                    checkpoint['optimizer'] = optimizer.state_dict()
-                    torch.save(checkpoint, self.checkpoint_dir / f'model_step_{step}k.pt')
+                    self.save_model(model=model, optimizer=optimizer, checkpoint=checkpoint,
+                                    path=self.checkpoint_dir / f'model_step_{step}k.pt')
 
             loss_sum = 0
-            checkpoint['model'] = model.state_dict()
-            checkpoint['optimizer'] = optimizer.state_dict()
-            torch.save(checkpoint, self.checkpoint_dir / 'latest_model.pt')
+            self.save_model(model=model, optimizer=optimizer, checkpoint=checkpoint,
+                            path=self.checkpoint_dir / 'latest_model.pt')
 
     def validate(self, model: TransformerModel, val_batches: List[dict]) -> float:
         device = next(model.parameters()).device
@@ -114,7 +116,9 @@ class Trainer:
                          model: TransformerModel,
                          preprocessor: Preprocessor,
                          val_batches: List[dict],
-                         n_log_samples: int) -> None:
+                         n_log_samples: int) -> float:
+        """ Generates samples and calculates some metrics. Returns phoneme error rate. """
+
         device = next(model.parameters()).device
         model.eval()
         text_tokenizer = preprocessor.text_tokenizer
@@ -145,3 +149,15 @@ class Trainer:
             log_texts.append(f'     {text:<30} {gen_decoded:<30} {target:<30}')
         self.writer.add_text('Text_Prediction_Target', '\n'.join(log_texts), global_step=model.get_step())
         model.train()
+
+        return per
+
+    def save_model(self,
+                   model: TransformerModel,
+                   optimizer: torch.optim,
+                   checkpoint: dict,
+                   path: Path) -> None:
+        checkpoint['model'] = model.state_dict()
+        checkpoint['optimizer'] = optimizer.state_dict()
+        torch.save(checkpoint, str(path))
+
