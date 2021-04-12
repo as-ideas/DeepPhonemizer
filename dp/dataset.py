@@ -16,15 +16,12 @@ from dp.utils import unpickle_binary
 class PhonemizerDataset(Dataset):
 
     def __init__(self,
-                 token_dir: Path,
-                 dataset: List[Tuple[str, int]]) -> None:
+                 items: List[Tuple[str, List[int], List[int]]]) -> None:
         super().__init__()
-        self.token_dir = token_dir
-        self.dataset = dataset
+        self.items = items
 
     def __getitem__(self, index: int) -> Dict[str, Any]:
-        item_id, item_len = self.dataset[index]
-        item = unpickle_binary(self.token_dir / f'{item_id}.pkl')
+        item = self.items[index]
         language, text, phonemes = item
         text = torch.tensor(text, dtype=torch.long)
         phonemes = torch.tensor(phonemes, dtype=torch.long)
@@ -34,7 +31,7 @@ class PhonemizerDataset(Dataset):
                 'text_len': text.size(0), 'phonemes_len': phonemes.size(0)}
 
     def __len__(self):
-        return len(self.dataset)
+        return len(self.items)
 
 
 # From https://github.com/fatchord/WaveRNN/blob/master/utils/dataset.py
@@ -81,13 +78,12 @@ def collate_dataset(batch: List[dict]) -> torch.tensor:
             'phonemes_len': phonemes_len, 'item_id': item_ids, 'language': lang}
 
 
-def new_dataloader(data_dir: Path,
-                   dataset_file: Path,
+def new_dataloader(dataset_file: Path,
                    batch_size=32,
                    use_binning=True) -> DataLoader:
     dataset = unpickle_binary(dataset_file)
-    phonemizer_dataset = PhonemizerDataset(token_dir=data_dir / 'tokens', dataset=dataset)
-    phoneme_lens = [l for _, l in dataset]
+    phonemizer_dataset = PhonemizerDataset(dataset)
+    phoneme_lens = [len(p) for _, _, p in dataset]
     if use_binning:
         sampler = BinnedLengthSampler(phoneme_lens=phoneme_lens,
                                       batch_size=batch_size,

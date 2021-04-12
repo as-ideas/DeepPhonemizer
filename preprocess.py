@@ -48,29 +48,26 @@ if __name__ == '__main__':
     data_dir.mkdir(parents=True, exist_ok=True)
     token_dir.mkdir(parents=True, exist_ok=True)
 
-    raw_data = get_data(args.path   )
+    raw_data = get_data(args.path)
 
     random = Random(42)
     random.shuffle(raw_data)
 
-    train_data = raw_data[config['preprocessing']['n_val']]
+    train_data = raw_data[config['preprocessing']['n_val']:]
     val_data = raw_data[:config['preprocessing']['n_val']]
 
     preprocessor = Preprocessor.from_config(config)
 
     train_dataset = []
-    for i, (lang, text, phonemes) in enumerate(tqdm.tqdm(train_data, total=len(raw_data))):
+    for i, (lang, text, phonemes) in enumerate(tqdm.tqdm(train_data, total=len(train_data))):
         tokens = preprocessor((lang, text, phonemes))
-        item_id = f'{i}_{lang}_train'
-        train_dataset.append((item_id, len(phonemes)))
-        pickle_binary(tokens, token_dir / f'{item_id}.pkl')
+        train_dataset.append(tokens)
 
     val_dataset = []
-    for i, (lang, text, phonemes) in enumerate(tqdm.tqdm(val_data, total=len(raw_data))):
+    for i, (lang, text, phonemes) in enumerate(tqdm.tqdm(val_data, total=len(val_data))):
         tokens = preprocessor((lang, text, phonemes))
-        item_id = f'{i}_{lang}_val'
-        val_dataset.append((item_id, len(phonemes)))
-        pickle_binary(tokens, token_dir / f'{item_id}.pkl')
+        val_dataset.append(tokens)
 
+    print('saving datasets...')
     pickle_binary(train_dataset, data_dir / 'train_dataset.pkl')
     pickle_binary(val_dataset, data_dir / 'val_dataset.pkl')
