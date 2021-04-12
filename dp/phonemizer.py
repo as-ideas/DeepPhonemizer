@@ -5,7 +5,6 @@ from typing import Dict, Union, Tuple
 from dp.model import TransformerModel
 
 
-# yeah some hard core regex warranted in the future for special chars
 class Phonemizer:
 
     def __init__(self,
@@ -106,6 +105,7 @@ class Phonemizer:
             else:
                 subwords.append(subword)
         return '-'.join(subwords)
+
 
 if __name__ == '__main__':
     checkpoint_path = '../checkpoints/latest_model.pt'

@@ -1,11 +1,4 @@
-import shutil
-from collections import Counter
-from pathlib import Path
-import torch
-import tqdm
 from typing import List, Iterable, Dict, Tuple, Any
-
-from dp.utils import pickle_binary
 
 
 class Tokenizer:
@@ -14,14 +7,16 @@ class Tokenizer:
                  symbols: List[str],
                  lowercase=False,
                  append_start_end=True,
+                 start_index=1,
+                 end_index=2,
                  pad_token='_',
                  start_token='<',
                  end_token='>') -> None:
         self.lowercase = lowercase
         self.append_start_end = append_start_end
         self.pad_index = 0
-        self.start_index = 1
-        self.end_index = 2
+        self.start_index = start_index
+        self.end_index = end_index
         self.token_to_idx = {pad_token: self.pad_index,
                              start_token: self.start_index,
                              end_token: self.end_index}
@@ -70,12 +65,19 @@ class Preprocessor:
         text_symbols = config['preprocessing']['text_symbols']
         phoneme_symbols = config['preprocessing']['phoneme_symbols']
         lang_symbols = config['preprocessing']['languages']
+        start_index = config['preprocessing']['tokenizer_start_index']
+        end_index = config['preprocessing']['tokenizer_end_index']
+        lowercase = config['preprocessing']['lowercase']
         lang_indices = {l: i for i, l in enumerate(lang_symbols)}
         text_tokenizer = Tokenizer(text_symbols,
-                                   lowercase=config['preprocessing']['lowercase'],
+                                   lowercase=lowercase,
+                                   start_index=start_index,
+                                   end_index=end_index,
                                    append_start_end=False)
         phoneme_tokenizer = Tokenizer(phoneme_symbols,
                                       lowercase=False,
+                                      start_index=start_index,
+                                      end_index=end_index,
                                       append_start_end=True)
         return Preprocessor(lang_indices=lang_indices,
                             text_tokenizer=text_tokenizer,
