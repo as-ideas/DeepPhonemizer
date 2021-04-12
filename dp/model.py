@@ -126,6 +126,7 @@ class TransformerModel(nn.Module):
                 if out_token == self.decoder_end_index:
                     break
 
+        out_indices = torch.tensor(out_indices).long()
         return out_indices
 
     def get_step(self):

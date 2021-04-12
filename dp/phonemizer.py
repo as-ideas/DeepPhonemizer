@@ -74,7 +74,7 @@ class Phonemizer:
         decoded = self.preprocessor.text_tokenizer.decode(tokens, remove_special_tokens=True)
         if len(decoded) == 0:
             return ''
-        pred = self.model.generate(torch.tensor(tokens).unsqueeze(0))
+        pred = self.model.generate(torch.tensor(tokens).unsqueeze(0)).tolist()
         pred_decoded = self.preprocessor.phoneme_tokenizer.decode(pred, remove_special_tokens=True)
         phons = ''.join(pred_decoded)
         return phons
