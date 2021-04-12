@@ -27,7 +27,7 @@ if __name__ == '__main__':
 
     print(f'Restored model with step {model.get_step()}')
 
-    text = 'Enineering'
+    text = 'AM'
 
     tokens = text_tok(text)
     pred, logits = model.generate(torch.tensor(tokens).unsqueeze(0))
