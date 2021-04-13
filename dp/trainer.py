@@ -40,8 +40,10 @@ class Trainer:
         for g in optimizer.param_groups:
             g['lr'] = config['training']['learning_rate']
 
-        train_loader = new_dataloader(dataset_file=data_dir / 'train_dataset.pkl')
-        val_loader = new_dataloader(dataset_file=data_dir / 'val_dataset.pkl')
+        train_loader = new_dataloader(dataset_file=data_dir / 'train_dataset.pkl',
+                                      drop_last=True)
+        val_loader = new_dataloader(dataset_file=data_dir / 'val_dataset.pkl',
+                                    drop_last=False)
         val_batches = sorted([b for b in val_loader], key=lambda x: -x['text_len'][0])
         best_per = math.inf
 
@@ -81,7 +83,7 @@ class Trainer:
                                                 preprocessor=checkpoint['preprocessor'],
                                                 val_batches=val_batches,
                                                 n_log_samples=config['training']['n_generate_samples'])
-                    if per < best_per:
+                    if per is not None and per < best_per:
                         self.save_model(model=model, optimizer=optimizer, checkpoint=checkpoint,
                                         path=self.checkpoint_dir / f'best_model.pt')
 
@@ -124,31 +126,38 @@ class Trainer:
         model.eval()
         text_tokenizer = preprocessor.text_tokenizer
         phoneme_tokenizer = preprocessor.phoneme_tokenizer
-        text_gen_target = []
+        lang_tokenizer = preprocessor.lang_tokenizer
+        lang_prediction_result = dict()
         per, wer = 0., 0.
         for batch in val_batches:
             batch = to_device(batch, device)
             for i in range(batch['text'].size(0)):
                 text = batch['text'][i, :]
                 target = batch['phonemes'][i, :]
+                lang = batch['language'][i]
                 generated, _ = model.generate(text.unsqueeze(0))
-                text, target = text.detach().cpu(), target.detach().cpu()
+                text, target, lang = text.detach().cpu(), target.detach().cpu(), lang.detach().cpu()
+                lang = lang_tokenizer.decode([lang])[0]
                 text = text_tokenizer.decode(text, remove_special_tokens=True)
                 generated = phoneme_tokenizer.decode(generated, remove_special_tokens=True)
                 target = phoneme_tokenizer.decode(target, remove_special_tokens=True)
-                text_gen_target.append((text, generated, target))
+                print(f'{lang} {text} {generated} {target}')
+                lang_prediction_result[lang] = lang_prediction_result.get(lang, []) + [(text, generated, target)]
                 per += phoneme_error_rate(generated, target)
                 wer += word_error_rate(generated, target)
 
-        per, wer = per / len(text_gen_target), wer / len(text_gen_target)
+        per, wer = per / len(lang_prediction_result), wer / len(lang_prediction_result)
+        print(f'per {per}')
         self.writer.add_scalar('Phoneme_Error_Rate', per, global_step=model.get_step())
         self.writer.add_scalar('Word_Error_Rate', wer, global_step=model.get_step())
 
-        log_texts = []
-        for text, generated, target in text_gen_target[:n_log_samples]:
-            text, gen_decoded, target = ''.join(text), ''.join(generated), ''.join(target)
-            log_texts.append(f'     {text:<30} {gen_decoded:<30} {target:<30}')
-        self.writer.add_text('Text_Prediction_Target', '\n'.join(log_texts), global_step=model.get_step())
+        for lang in sorted(lang_prediction_result.keys()):
+            log_texts = []
+            for text, generated, target in lang_prediction_result[lang]:
+                text, gen_decoded, target = ''.join(text), ''.join(generated), ''.join(target)
+                log_texts.append(f'     {text:<30} {gen_decoded:<30} {target:<30}')
+            self.writer.add_text(f'Text_Prediction_Target/{lang}',
+                                 '\n'.join(log_texts[:n_log_samples]), global_step=model.get_step())
         model.train()
 
         return per

@@ -80,6 +80,7 @@ def collate_dataset(batch: List[dict]) -> torch.tensor:
 
 def new_dataloader(dataset_file: Path,
                    batch_size=32,
+                   drop_last=False,
                    use_binning=True) -> DataLoader:
     dataset = unpickle_binary(dataset_file)
     phonemizer_dataset = PhonemizerDataset(dataset)
@@ -97,4 +98,5 @@ def new_dataloader(dataset_file: Path,
                       sampler=sampler,
                       num_workers=0,
                       shuffle=False,
+                      drop_last=drop_last,
                       pin_memory=True)
