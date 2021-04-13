@@ -141,13 +141,11 @@ class Trainer:
                 text = text_tokenizer.decode(text, remove_special_tokens=True)
                 generated = phoneme_tokenizer.decode(generated, remove_special_tokens=True)
                 target = phoneme_tokenizer.decode(target, remove_special_tokens=True)
-                print(f'{lang} {text} {generated} {target}')
                 lang_prediction_result[lang] = lang_prediction_result.get(lang, []) + [(text, generated, target)]
                 per += phoneme_error_rate(generated, target)
                 wer += word_error_rate(generated, target)
 
         per, wer = per / len(lang_prediction_result), wer / len(lang_prediction_result)
-        print(f'per {per}')
         self.writer.add_scalar('Phoneme_Error_Rate', per, global_step=model.get_step())
         self.writer.add_scalar('Word_Error_Rate', wer, global_step=model.get_step())
 
