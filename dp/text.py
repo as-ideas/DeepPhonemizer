@@ -44,10 +44,10 @@ class Tokenizer:
 class Preprocessor:
 
     def __init__(self,
-                 lang_indices: Dict[str, int],
+                 lang_tokenizer: Tokenizer,
                  text_tokenizer: Tokenizer,
                  phoneme_tokenizer: Tokenizer) -> None:
-        self.lang_indices = lang_indices
+        self.lang_tokenizer = lang_tokenizer
         self.text_tokenizer = text_tokenizer
         self.phoneme_tokenizer = phoneme_tokenizer
 
@@ -55,10 +55,10 @@ class Preprocessor:
                  item: Tuple[str, Iterable[str], Iterable[str]]):
 
         lang, text, phonemes = item
-        lang_index = self.lang_indices[lang]
+        lang_token = self.lang_tokenizer([lang])[0]
         text_tokens = self.text_tokenizer(text)
         phoneme_tokens = self.phoneme_tokenizer(phonemes)
-        return lang_index, text_tokens, phoneme_tokens
+        return lang_token, text_tokens, phoneme_tokens
 
     @classmethod
     def from_config(cls, config: Dict[str, Any]) -> 'Preprocessor':
@@ -68,7 +68,9 @@ class Preprocessor:
         start_index = config['preprocessing']['tokenizer_start_index']
         end_index = config['preprocessing']['tokenizer_end_index']
         lowercase = config['preprocessing']['lowercase']
-        lang_indices = {l: i for i, l in enumerate(lang_symbols)}
+        lang_tokenizer = Tokenizer(lang_symbols,
+                                   lowercase=False,
+                                   append_start_end=False)
         text_tokenizer = Tokenizer(text_symbols,
                                    lowercase=lowercase,
                                    start_index=start_index,
@@ -79,6 +81,6 @@ class Preprocessor:
                                       start_index=start_index,
                                       end_index=end_index,
                                       append_start_end=True)
-        return Preprocessor(lang_indices=lang_indices,
+        return Preprocessor(lang_tokenizer=lang_tokenizer,
                             text_tokenizer=text_tokenizer,
                             phoneme_tokenizer=phoneme_tokenizer)

@@ -48,8 +48,9 @@ if __name__ == '__main__':
 
     raw_data = get_data(args.path)
 
-    random = Random(42)
-    random.shuffle(raw_data)
+    #random = Random(42)
+    #random.shuffle(raw_data)
+
 
     train_data = raw_data[config['preprocessing']['n_val']:]
     val_data = raw_data[:config['preprocessing']['n_val']]
