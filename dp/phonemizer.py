@@ -18,6 +18,8 @@ class Phonemizer:
             self.lang_phoneme_dict = lang_phoneme_dict
         elif 'phoneme_dict' in self.checkpoint:
             self.lang_phoneme_dict = self.checkpoint['phoneme_dict']
+        else:
+            self.lang_phoneme_dict = None
 
     def __call__(self,
                  text: str,

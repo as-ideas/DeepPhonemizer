@@ -3,8 +3,7 @@ from typing import List, Union
 
 
 def word_error_rate(predicted: List[Union[str, int]], target: List[Union[str, int]]) -> float:
-    errors = [int(p != t) for p, t in zip(predicted, target)]
-    return sum(errors) / len(target)
+    return int(predicted != target)
 
 
 def phoneme_error_rate(predicted: List[Union[str, int]], target: List[Union[str, int]]) -> float:

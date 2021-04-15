@@ -135,6 +135,7 @@ class Trainer:
         phoneme_tokenizer = preprocessor.phoneme_tokenizer
         lang_tokenizer = preprocessor.lang_tokenizer
         lang_prediction_result = dict()
+
         per, wer = 0., 0.
         for batch in val_batches:
             batch = to_device(batch, device)
@@ -152,24 +153,42 @@ class Trainer:
                 per += phoneme_error_rate(generated, target)
                 wer += word_error_rate(generated, target)
 
-        per, wer = per / len(lang_prediction_result), wer / len(lang_prediction_result)
-        self.writer.add_scalar('Phoneme_Error_Rate', per, global_step=model.get_step())
-        self.writer.add_scalar('Word_Error_Rate', wer, global_step=model.get_step())
-
-        for lang in sorted(lang_prediction_result.keys()):
+        # calculate error rates per language
+        lang_per, lang_wer = dict(), dict()
+        languages = sorted(lang_prediction_result.keys())
+        for lang in languages:
             log_texts = []
             for text, generated, target in lang_prediction_result[lang]:
+                per = phoneme_error_rate(generated, target)
+                wer = word_error_rate(generated, target)
+                lang_per[lang] = lang_per.get(lang, []) + [per]
+                lang_wer[lang] = lang_wer.get(lang, []) + [wer]
+                print(lang_per)
                 text, gen_decoded, target = ''.join(text), ''.join(generated), ''.join(target)
                 log_texts.append(f'     {text:<30} {gen_decoded:<30} {target:<30}')
+
             self.writer.add_text(f'Text_Prediction_Target/{lang}',
                                  '\n'.join(log_texts[:n_log_samples]), global_step=model.get_step())
+
+        sum_wer, sum_per, count = 0., 0., 0
+        for lang in languages:
+            count += len(lang_per[lang])
+            sum_per = sum_per + sum(lang_per[lang])
+            sum_wer = sum_wer + sum(lang_wer[lang])
+            per = sum(lang_per[lang]) / len(lang_per[lang])
+            wer = sum(lang_wer[lang]) / len(lang_wer[lang])
+            self.writer.add_scalar(f'Phoneme_Error_Rate/{lang}', per, global_step=model.get_step())
+            self.writer.add_scalar(f'Word_Error_Rate/{lang}', wer, global_step=model.get_step())
+        self.writer.add_scalar(f'Phoneme_Error_Rate/mean', sum_per / count, global_step=model.get_step())
+        self.writer.add_scalar(f'Word_Error_Rate/mean', sum_wer / count, global_step=model.get_step())
+
         model.train()
 
-        return per
+        return sum_per / count
 
     def save_model(self,
                    model: TransformerModel,
-                   optimizer: Union[torch.optim, None],
+                   optimizer: torch.optim,
                    checkpoint: dict,
                    path: Path) -> None:
         checkpoint['model'] = model.state_dict()
