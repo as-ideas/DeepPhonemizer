@@ -163,7 +163,6 @@ class Trainer:
                 wer = word_error_rate(generated, target)
                 lang_per[lang] = lang_per.get(lang, []) + [per]
                 lang_wer[lang] = lang_wer.get(lang, []) + [wer]
-                print(lang_per)
                 text, gen_decoded, target = ''.join(text), ''.join(generated), ''.join(target)
                 log_texts.append(f'     {text:<30} {gen_decoded:<30} {target:<30}')
 
