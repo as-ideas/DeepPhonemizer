@@ -4,7 +4,7 @@ paths:
   data_dir: datasets # directory to store processed data
 
 preprocessing:
-  languages: ['de', 'en']
+  languages: ['en_us']
   text_symbols: 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZäöüÄÖÜß'
   phoneme_symbols: 'abdefhijklmnoprstuvwxyzæçøŋœɐɑɔəɛɡɪʁʃʊʏʒʔˈˌː̥̩̃̍ '
   tokenizer_start_index: 1
@@ -24,7 +24,7 @@ training:
   learning_rate: 0.0001
   batch_size: 32
   epochs: 100
-  generate_steps: 10
+  generate_steps: 10000
   validate_steps: 1000
   checkpoint_steps: 100000
   n_generate_samples: 10
