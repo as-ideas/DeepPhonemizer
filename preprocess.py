@@ -47,6 +47,9 @@ if __name__ == '__main__':
     data_dir.mkdir(parents=True, exist_ok=True)
 
     raw_data = get_data(args.path)
+    languages = set(config['preprocessing']['languages'])
+    raw_data = [r for r in raw_data if r[0] in languages]
+
     raw_data.sort()
 
     random = Random(42)

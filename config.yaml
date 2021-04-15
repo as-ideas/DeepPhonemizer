@@ -4,7 +4,7 @@ paths:
   data_dir: datasets # directory to store processed data
 
 preprocessing:
-  languages: ['de']
+  languages: ['de', 'en']
   text_symbols: 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZäöüÄÖÜß'
   phoneme_symbols: 'abdefhijklmnoprstuvwxyzæçøŋœɐɑɔəɛɡɪʁʃʊʏʒʔˈˌː̥̩̃̍ '
   tokenizer_start_index: 1
