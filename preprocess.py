@@ -26,10 +26,10 @@ def get_data(file: str):
             train_data.append(('de', word, phon))
             if word.lower() not in data_set:
                 word_ = word.lower()
-                train_data.append(('de', word_, phon))
+                #train_data.append(('de', word_, phon))
             if word.title() not in data_set:
                 word_ = word.title()
-                train_data.append(('de', word_, phon))
+                #train_data.append(('de', word_, phon))
 
     return train_data
 
@@ -47,10 +47,10 @@ if __name__ == '__main__':
     data_dir.mkdir(parents=True, exist_ok=True)
 
     raw_data = get_data(args.path)
+    raw_data.sort()
 
-    #random = Random(42)
-    #random.shuffle(raw_data)
-
+    random = Random(42)
+    random.shuffle(raw_data)
 
     train_data = raw_data[config['preprocessing']['n_val']:]
     val_data = raw_data[:config['preprocessing']['n_val']]
@@ -70,3 +70,16 @@ if __name__ == '__main__':
     print('saving datasets...')
     pickle_binary(train_dataset, data_dir / 'train_dataset.pkl')
     pickle_binary(val_dataset, data_dir / 'val_dataset.pkl')
+
+    phoneme_dictionary = dict()
+    for lang, text, phoneme in raw_data:
+        lang_dict = phoneme_dictionary.get(lang, {lang: {}})
+        lang_dict[text] = phoneme
+        phoneme_dictionary[lang] = lang_dict
+
+    pickle_binary(phoneme_dictionary, data_dir / 'phoneme_dict.pkl')
+
+    with open(data_dir / 'phoneme_list.txt', 'w+', encoding='utf-8') as f:
+        for lang, text, phoneme in raw_data:
+            f.write(f'{lang}\t{text}\t{phoneme}\n')
+

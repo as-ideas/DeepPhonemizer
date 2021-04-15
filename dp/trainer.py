@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import List
+from typing import List, Union
 
 import torch
 import tqdm
@@ -12,7 +12,7 @@ from dp.decorators import ignore_exception
 from dp.metrics import phoneme_error_rate, word_error_rate
 from dp.model import TransformerModel
 from dp.text import Preprocessor
-from dp.utils import to_device
+from dp.utils import to_device, unpickle_binary
 
 
 class Trainer:
@@ -25,7 +25,8 @@ class Trainer:
 
     def train(self,
               model: TransformerModel,
-              checkpoint: dict) -> None:
+              checkpoint: dict,
+              store_phoneme_dict_in_model=True) -> None:
 
         config = checkpoint['config']
         data_dir = Path(config['paths']['data_dir'])
@@ -44,6 +45,10 @@ class Trainer:
                                       drop_last=True)
         val_loader = new_dataloader(dataset_file=data_dir / 'val_dataset.pkl',
                                     drop_last=False)
+        if store_phoneme_dict_in_model:
+            phoneme_dict = unpickle_binary(data_dir / 'phoneme_dict.pkl')
+            checkpoint['phoneme_dict'] = phoneme_dict
+
         val_batches = sorted([b for b in val_loader], key=lambda x: -x['text_len'][0])
         best_per = math.inf
 
@@ -86,6 +91,8 @@ class Trainer:
                     if per is not None and per < best_per:
                         self.save_model(model=model, optimizer=optimizer, checkpoint=checkpoint,
                                         path=self.checkpoint_dir / f'best_model.pt')
+                        self.save_model(model=model, optimizer=None, checkpoint=checkpoint,
+                                        path=self.checkpoint_dir / f'best_model_no_optim.pt')
 
                 if model.get_step() % config['training']['checkpoint_steps'] == 0:
                     step = model.get_step() // 1000
@@ -162,10 +169,13 @@ class Trainer:
 
     def save_model(self,
                    model: TransformerModel,
-                   optimizer: torch.optim,
+                   optimizer: Union[torch.optim, None],
                    checkpoint: dict,
                    path: Path) -> None:
         checkpoint['model'] = model.state_dict()
-        checkpoint['optimizer'] = optimizer.state_dict()
+        if optimizer is not None:
+            checkpoint['optimizer'] = optimizer.state_dict()
+        else:
+            checkpoint['optimizer'] = None
         torch.save(checkpoint, str(path))
 
