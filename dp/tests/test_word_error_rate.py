@@ -9,7 +9,7 @@ class TestWordErrorRate(unittest.TestCase):
         predicted = ['a', 'b', 'c', 'd']
         target = ['a', 'k', 'c', 'a']
         wer = word_error_rate(predicted, target)
-        self.assertEqual(0.5, wer)
+        self.assertEqual(1, wer)
 
         predicted = ['r', 'r', 'r', 'r']
         target = ['a', 'k', 'c', 'a']
