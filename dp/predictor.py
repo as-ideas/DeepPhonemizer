@@ -19,7 +19,7 @@ class Predictor:
         """
         :param texts: List of texts to predict.
         :param language: Language of texts.
-        :return: Tuple of predicted phonemes and additional info per prediction such as logits, probability etc.
+        :return: Predicted phonemes and additional info per prediction such as logits, probability etc.
         """
 
         predictions = dict()

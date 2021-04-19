@@ -24,13 +24,56 @@ class Phonemizer:
                  punctuation='().,:?!',
                  expand_acronyms=True) -> Union[str, List[str]]:
 
-        punctuation += ' '
-        punc_set = set(punctuation + '-')
-        punc_pattern = re.compile(f'([{punctuation}])')
-
         single_input_string = isinstance(text, str)
-
         texts = [text] if single_input_string else text
+        output = self._phonemise_list(texts=texts, lang=lang,
+                                      punctuation=punctuation, expand_acronyms=expand_acronyms)
+
+        if single_input_string:
+            output = output[0]
+
+        return output
+
+    def predict_words(self, words: List[str], lang: str) -> List[str]:
+        pred, _ = self.predictor(words, language=lang)
+        pred = [''.join(p) for p in pred]
+        return pred
+
+    def get_dict_entry(self,
+                       word: str,
+                       lang: str,
+                       punc_set: set) -> Union[str, None]:
+        if word in punc_set:
+            return word
+        if not self.lang_phoneme_dict or lang not in self.lang_phoneme_dict:
+            return None
+        phoneme_dict = self.lang_phoneme_dict[lang]
+        if word in phoneme_dict:
+            return phoneme_dict[word]
+        elif word.lower() in phoneme_dict:
+            return phoneme_dict[word.lower()]
+        elif word.title() in phoneme_dict:
+            return phoneme_dict[word.title()]
+        else:
+            return None
+
+    def expand_acronym(self, word: str) -> str:
+        subwords = []
+        for subword in word.split('-'):
+            if subword.isupper():
+                subwords.append('-'.join(list(subword)))
+            else:
+                subwords.append(subword)
+        return '-'.join(subwords)
+
+    def _phonemise_list(self,
+                        texts: List[str],
+                        lang: str,
+                        punctuation: str,
+                        expand_acronyms: bool) -> List[str]:
+
+        punc_set = set(punctuation + '- ')
+        punc_pattern = re.compile(f'([{punctuation + " "}])')
 
         cleaned_texts = []
         cleaned_words = set()
@@ -82,42 +125,7 @@ class Phonemizer:
                 out_phons.append(phons)
             output.append(''.join(out_phons))
 
-        if single_input_string:
-            output = output[0]
-
         return output
-
-    def predict_words(self, words: List[str], lang: str) -> List[str]:
-        pred, _ = self.predictor(words, language=lang)
-        pred = [''.join(p) for p in pred]
-        return pred
-
-    def get_dict_entry(self,
-                       word: str,
-                       lang: str,
-                       punc_set: set) -> Union[str, None]:
-        if word in punc_set:
-            return word
-        if not self.lang_phoneme_dict or lang not in self.lang_phoneme_dict:
-            return None
-        phoneme_dict = self.lang_phoneme_dict[lang]
-        if word in phoneme_dict:
-            return phoneme_dict[word]
-        elif word.lower() in phoneme_dict:
-            return phoneme_dict[word.lower()]
-        elif word.title() in phoneme_dict:
-            return phoneme_dict[word.title()]
-        else:
-            return None
-
-    def expand_acronym(self, word: str) -> str:
-        subwords = []
-        for subword in word.split('-'):
-            if subword.isupper():
-                subwords.append('-'.join(list(subword)))
-            else:
-                subwords.append(subword)
-        return '-'.join(subwords)
 
     @classmethod
     def from_checkpoint(cls,
