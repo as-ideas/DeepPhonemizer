@@ -34,8 +34,6 @@ class TransformerModel(nn.Module):
     def __init__(self,
                  encoder_vocab_size: int,
                  decoder_vocab_size: int,
-                 decoder_start_index: int,
-                 decoder_end_index: int,
                  d_model=512,
                  d_fft=1024,
                  encoder_layers=4,
@@ -45,9 +43,6 @@ class TransformerModel(nn.Module):
         super(TransformerModel, self).__init__()
 
         self.d_model = d_model
-
-        self.decoder_start_index = decoder_start_index
-        self.decoder_end_index = decoder_end_index
 
         self.encoder = nn.Embedding(encoder_vocab_size, d_model)
         self.pos_encoder = PositionalEncoding(d_model, dropout)
@@ -100,7 +95,9 @@ class TransformerModel(nn.Module):
         return output
 
     def generate(self,
-                 input: torch.tensor,          # shape: [N, T]
+                 input: torch.tensor,           # shape: [N, T]
+                 start_index: int,
+                 end_index: int,
                  max_len=100) -> Tuple[torch.tensor, torch.tensor]:
 
         """ Returns indices and logits """
@@ -112,7 +109,7 @@ class TransformerModel(nn.Module):
             input = self.pos_encoder(input)
             input = self.transformer.encoder(input,
                                              src_key_padding_mask=src_pad_mask)
-            out_indices = [self.decoder_start_index]
+            out_indices = [start_index]
             out_logits = []
             for i in range(max_len):
                 tgt_mask = self.generate_square_subsequent_mask(i + 1).to(input.device)
@@ -127,7 +124,7 @@ class TransformerModel(nn.Module):
                 out_logits.append(output[-1:, :, :])
                 out_token = output.argmax(2)[-1].item()
                 out_indices.append(out_token)
-                if out_token == self.decoder_end_index:
+                if out_token == end_index:
                     break
 
         out_indices = torch.tensor(out_indices).long()
@@ -139,11 +136,10 @@ class TransformerModel(nn.Module):
 
     @classmethod
     def from_config(cls, config: dict) -> 'TransformerModel':
+        preprocessor = Preprocessor.from_config(config)
         return TransformerModel(
-            encoder_vocab_size=len(config['preprocessing']['text_symbols']) + 3,     # +3 for special tokens
-            decoder_vocab_size=len(config['preprocessing']['phoneme_symbols']) + 3,
-            decoder_start_index=config['preprocessing']['tokenizer_start_index'],
-            decoder_end_index=config['preprocessing']['tokenizer_end_index'],
+            encoder_vocab_size=preprocessor.text_tokenizer.vocab_size,
+            decoder_vocab_size=preprocessor.phoneme_tokenizer.vocab_size,
             d_model=config['model']['d_model'],
             d_fft=config['model']['d_fft'],
             encoder_layers=config['model']['encoder_layers'],

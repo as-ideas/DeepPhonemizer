@@ -3,23 +3,20 @@ import re
 from typing import Dict, Union, Tuple
 
 from dp.model import TransformerModel
+from dp.predictor import Predictor
+from dp.text import Preprocessor
 
 
 class Phonemizer:
 
     def __init__(self,
-                 checkpoint_path: str,
+                 predictor: Predictor,
+                 preprocessor: Preprocessor,
                  lang_phoneme_dict: Dict[str, Dict[str, str]] = None) -> None:
-        self.checkpoint = torch.load(checkpoint_path, map_location=torch.device('cpu'))
-        self.model = TransformerModel.from_config(self.checkpoint['config'])
-        self.model.load_state_dict(self.checkpoint['model'])
-        self.preprocessor = self.checkpoint['preprocessor']
-        if lang_phoneme_dict is not None:
-            self.lang_phoneme_dict = lang_phoneme_dict
-        elif 'phoneme_dict' in self.checkpoint:
-            self.lang_phoneme_dict = self.checkpoint['phoneme_dict']
-        else:
-            self.lang_phoneme_dict = None
+
+        self.predictor = predictor
+        self.preprocessor = preprocessor
+        self.lang_phoneme_dict = lang_phoneme_dict
 
     def __call__(self,
                  text: str,
@@ -79,9 +76,8 @@ class Phonemizer:
         decoded = self.preprocessor.text_tokenizer.decode(tokens, remove_special_tokens=True)
         if len(decoded) == 0:
             return ''
-        pred, _ = self.model.generate(torch.tensor(tokens).unsqueeze(0))
-        pred_decoded = self.preprocessor.phoneme_tokenizer.decode(pred, remove_special_tokens=True)
-        phons = ''.join(pred_decoded)
+        pred, _ = self.predictor([word], language=lang)
+        phons = ''.join(pred[0])
         return phons
 
     def get_dict_entry(self,
@@ -111,9 +107,30 @@ class Phonemizer:
                 subwords.append(subword)
         return '-'.join(subwords)
 
+    @classmethod
+    def from_checkpoint(cls,
+                        checkpoint_path: str,
+                        device='cpu',
+                        lang_phoneme_dict: Dict[str, Dict[str, str]] = None) -> 'Phonemizer':
+        device = torch.device(device)
+        checkpoint = torch.load(checkpoint_path, map_location=device)
+        model = TransformerModel.from_config(checkpoint['config']).to(device)
+        model.load_state_dict(checkpoint['model'])
+        applied_phoneme_dict = None
+        if lang_phoneme_dict is not None:
+            applied_phoneme_dict = lang_phoneme_dict
+        elif 'phoneme_dict' in checkpoint:
+            applied_phoneme_dict = checkpoint['phoneme_dict']
+        preprocessor = checkpoint['preprocessor']
+        predictor = Predictor(model=model, preprocessor=preprocessor)
+        return Phonemizer(predictor=predictor,
+                          preprocessor=preprocessor,
+                          lang_phoneme_dict=applied_phoneme_dict)
+
+
 
 if __name__ == '__main__':
     checkpoint_path = '../checkpoints/best_model.pt'
-    phonemizer = Phonemizer(checkpoint_path=checkpoint_path)
+    phonemizer = Phonemizer.from_checkpoint(checkpoint_path)
     phons = phonemizer('Der E-Mail kleine <SPD-Prinzen-könig - Francesco Cardinale, pillert an seinem Pillermann.', lang='de')
     print(phons)
