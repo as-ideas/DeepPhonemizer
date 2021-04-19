@@ -5,6 +5,10 @@ from typing import Dict, Union, Tuple, List
 from dp.model import TransformerModel
 from dp.predictor import Predictor
 from dp.text import Preprocessor
+from dp.utils import get_sequence_prob
+
+
+DEFAULT_PUNCTUATION = '().,:?!'
 
 
 class Phonemizer:
@@ -21,56 +25,32 @@ class Phonemizer:
     def __call__(self,
                  text: Union[str, List[str]],
                  lang: str,
-                 punctuation='().,:?!',
+                 punctuation=DEFAULT_PUNCTUATION,
                  expand_acronyms=True) -> Union[str, List[str]]:
 
         single_input_string = isinstance(text, str)
         texts = [text] if single_input_string else text
-        output = self._phonemise_list(texts=texts, lang=lang,
-                                      punctuation=punctuation, expand_acronyms=expand_acronyms)
+        output, _ = self.phonemise_list(texts=texts, lang=lang,
+                                        punctuation=punctuation, expand_acronyms=expand_acronyms)
 
         if single_input_string:
             output = output[0]
 
         return output
 
-    def predict_words(self, words: List[str], lang: str) -> List[str]:
-        pred, _ = self.predictor(words, language=lang)
-        pred = [''.join(p) for p in pred]
-        return pred
-
-    def get_dict_entry(self,
-                       word: str,
-                       lang: str,
-                       punc_set: set) -> Union[str, None]:
-        if word in punc_set:
-            return word
-        if not self.lang_phoneme_dict or lang not in self.lang_phoneme_dict:
-            return None
-        phoneme_dict = self.lang_phoneme_dict[lang]
-        if word in phoneme_dict:
-            return phoneme_dict[word]
-        elif word.lower() in phoneme_dict:
-            return phoneme_dict[word.lower()]
-        elif word.title() in phoneme_dict:
-            return phoneme_dict[word.title()]
-        else:
-            return None
-
-    def expand_acronym(self, word: str) -> str:
-        subwords = []
-        for subword in word.split('-'):
-            if subword.isupper():
-                subwords.append('-'.join(list(subword)))
-            else:
-                subwords.append(subword)
-        return '-'.join(subwords)
-
-    def _phonemise_list(self,
+    def phonemise_list(self,
                         texts: List[str],
                         lang: str,
-                        punctuation: str,
-                        expand_acronyms: bool) -> List[str]:
+                        punctuation=DEFAULT_PUNCTUATION,
+                        expand_acronyms=True) -> Tuple[List[str], Dict[str, Tuple[str, float]]]:
+
+        """
+        :param texts: List texts to phonemize.
+        :param lang: Language used for phonemization.
+        :param punctuation: Punctuation symbols by which the texts are split.
+        :param expand_acronyms: Whether to expand an acronym, e.g. DIY -> D-I-Y
+        :return: Phonemized texts and dictionary of model predictions as mapping of word to (phonemes, probability)
+        """
 
         punc_set = set(punctuation + '- ')
         punc_pattern = re.compile(f'([{punctuation + " "}])')
@@ -108,9 +88,11 @@ class Phonemizer:
             if phons is None and len(word_splits.get(word, [])) <= 1:
                 words_to_predict.append(word)
 
-        predicted_phons = self.predict_words(words=words_to_predict, lang=lang)
-        for word, phons in zip(words_to_predict, predicted_phons):
+        pred_phons, pred_probs = self.predict_words(words=words_to_predict, lang=lang)
+        for word, phons in zip(words_to_predict, pred_phons):
             word_phonemes[word] = phons
+        pred_word_probs = {word: (phon, prob) for word, phon, prob
+                           in zip(words_to_predict, pred_phons, pred_probs)}
 
         # collect all phonemes
         output = []
@@ -125,7 +107,40 @@ class Phonemizer:
                 out_phons.append(phons)
             output.append(''.join(out_phons))
 
-        return output
+        return output, pred_word_probs
+
+    def predict_words(self, words: List[str], lang: str) -> Tuple[List[str], List[float]]:
+        tokens, metas = self.predictor(words, language=lang)
+        pred = [''.join(t) for t in tokens]
+        probs = [get_sequence_prob(m['tokens'], m['logits']) for m in metas]
+        return pred, probs
+
+    def get_dict_entry(self,
+                       word: str,
+                       lang: str,
+                       punc_set: set) -> Union[str, None]:
+        if word in punc_set:
+            return word
+        if not self.lang_phoneme_dict or lang not in self.lang_phoneme_dict:
+            return None
+        phoneme_dict = self.lang_phoneme_dict[lang]
+        if word in phoneme_dict:
+            return phoneme_dict[word]
+        elif word.lower() in phoneme_dict:
+            return phoneme_dict[word.lower()]
+        elif word.title() in phoneme_dict:
+            return phoneme_dict[word.title()]
+        else:
+            return None
+
+    def expand_acronym(self, word: str) -> str:
+        subwords = []
+        for subword in word.split('-'):
+            if subword.isupper():
+                subwords.append('-'.join(list(subword)))
+            else:
+                subwords.append(subword)
+        return '-'.join(subwords)
 
     @classmethod
     def from_checkpoint(cls,
@@ -148,11 +163,11 @@ class Phonemizer:
                           lang_phoneme_dict=applied_phoneme_dict)
 
 
-
 if __name__ == '__main__':
     checkpoint_path = '../checkpoints/best_model.pt'
     phonemizer = Phonemizer.from_checkpoint(checkpoint_path)
 
     input = 'Der E-Mail kleine <SPD-Prinzen-könig - Francesco Cardinale, pillert an seinem Pillermann.'
-    phons = phonemizer(input, lang='de')
+    phons, preds = phonemizer.phonemise_list([input], lang='de')
     print(phons)
+    print(preds)

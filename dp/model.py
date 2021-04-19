@@ -5,7 +5,6 @@ import torch.nn as nn
 import math
 
 
-# https://colab.research.google.com/drive/1g4ZFCGegOmD-xXL-Ggu7K5LVoJeXYJ75
 from dp.text import Preprocessor
 
 

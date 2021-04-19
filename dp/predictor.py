@@ -44,7 +44,7 @@ class Predictor:
             output, logits = self.model.generate(input=input,
                                                  start_index=self.phoneme_tokenizer.get_start_index(language),
                                                  end_index=self.phoneme_tokenizer.end_index)
-            predictions[text] = (output, logits)
+            predictions[text] = (output, logits[0])
 
         out_phonemes, out_meta = [], []
         for text in texts:
@@ -52,7 +52,10 @@ class Predictor:
             out_phons = self.phoneme_tokenizer.decode(output,
                                                       remove_special_tokens=True)
             out_phonemes.append(out_phons)
-            out_meta.append({'phonemes': out_phons, 'logits': logits, 'tokens': output})
+            if len(logits) > 0:
+                out_meta.append({'phonemes': out_phons, 'logits': logits, 'tokens': output})
+            else:
+                out_meta.append({'phonemes': out_phons, 'logits': None, 'tokens': output})
 
         return out_phonemes, out_meta
 
