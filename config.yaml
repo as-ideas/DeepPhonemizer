@@ -6,8 +6,10 @@ paths:
 preprocessing:
   languages: ['de', 'en_us']
   text_symbols: 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZäöüÄÖÜß'
-  phoneme_symbols: 'abdefhijklmnoprstuvwxyzæçøŋœɐɑɔəɛɡɪʁʃʊʏʒʔˈˌː̥̩̃̍ '
-  lowercase: true
+  phoneme_symbols: ['a', 'b', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z', 'æ', 'ç', 'ð', 'ø', 'ŋ', 'œ', 'ɐ', 'ɑ', 'ɔ', 'ə', 'ɛ', 'ɝ', 'ɡ', 'ɪ', 'ʁ', 'ʃ', 'ʊ', 'ʌ', 'ʏ', 'ʒ', 'ʔ', 'ˈ', 'ˌ', 'ː', '̃', '̍', '̥', '̩', '̯', '͡', 'θ']
+  tokenizer_start_index: 1
+  tokenizer_end_index: 2
+  lowercase: false
   n_val: 500
 
 model:
