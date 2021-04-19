@@ -12,6 +12,8 @@ class Predictor:
                  preprocessor: Preprocessor) -> None:
         self.model = model
         self.preprocessor = preprocessor
+        self.text_tokenizer = preprocessor.text_tokenizer
+        self.phoneme_tokenizer = preprocessor.phoneme_tokenizer
 
     def __call__(self,
                  texts: List[Iterable[str]],
@@ -27,9 +29,9 @@ class Predictor:
 
         # handle texts that result in an empty input to the model
         for text in texts:
-            input = self.preprocessor.text_tokenizer(text)
-            decoded = self.preprocessor.text_tokenizer.decode(input,
-                                                              remove_special_tokens=True)
+            input = self.text_tokenizer(text, language=language)
+            decoded = self.text_tokenizer.decode(input,
+                                                 remove_special_tokens=True)
             if len(decoded) == 0:
                 predictions[text] = ([], [])
             else:
@@ -40,15 +42,15 @@ class Predictor:
             input = self.preprocessor.text_tokenizer(text)
             input = torch.tensor(input).unsqueeze(0)
             output, logits = self.model.generate(input=input,
-                                                 start_index=self.preprocessor.phoneme_tokenizer.start_index,
-                                                 end_index=self.preprocessor.phoneme_tokenizer.end_index)
+                                                 start_index=self.phoneme_tokenizer.get_start_index(language),
+                                                 end_index=self.phoneme_tokenizer.end_index)
             predictions[text] = (output, logits)
 
         out_phonemes, out_meta = [], []
         for text in texts:
             output, logits = predictions[text]
-            out_phons = self.preprocessor.phoneme_tokenizer.decode(output,
-                                                                   remove_special_tokens=True)
+            out_phons = self.phoneme_tokenizer.decode(output,
+                                                      remove_special_tokens=True)
             out_phonemes.append(out_phons)
             out_meta.append({'phonemes': out_phons, 'logits': logits, 'tokens': output})
 

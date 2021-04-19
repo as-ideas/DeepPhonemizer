@@ -1,39 +1,59 @@
 import unittest
 
-from dp.text import Tokenizer
+from dp.text import SequenceTokenizer
 
 
 class TestTokenizer(unittest.TestCase):
 
-    def test_call(self) -> None:
-        symbols = list('abcde')
-        tokenizer = Tokenizer(symbols=symbols, lowercase=True, start_index=1,  end_index=2,
-                              start_token='<', end_token='>', append_start_end=True)
+    def test_call_standard(self) -> None:
+        symbols = ['a', 'b', 'c', 'd', 'e']
+        languages = ['de', 'en']
 
-        tokens = tokenizer('aBk')
-        self.assertEqual([1, 3, 4, 2], tokens)
+        tokenizer = SequenceTokenizer(symbols=symbols, languages=languages,  lowercase=True,
+                                      append_start_end=True, end_token='<end>')
 
+        tokens = tokenizer(['a', 'b'], language='de')
         decoded = tokenizer.decode(tokens)
-        self.assertEqual(['<', 'a', 'b', '>'], decoded)
 
-        decoded = tokenizer.decode(tokens, remove_special_tokens=True)
-        self.assertEqual(['a', 'b'], decoded)
+        self.assertEqual(4, len(tokens))
+        self.assertEqual(['<de>', 'a', 'b', '<end>'], decoded)
 
-        symbols = list('abcde')
-        tokenizer = Tokenizer(symbols=symbols, lowercase=False, start_index=1,  end_index=2,
-                              start_token='<', end_token='>', append_start_end=True)
+        tokens = tokenizer(['a', 'b'], language='en')
+        decoded = tokenizer.decode(tokens)
 
-        tokens = tokenizer('aBk')
-        self.assertEqual([1, 3, 2], tokens)
+        self.assertEqual(4, len(tokens))
+        self.assertEqual(['<en>', 'a', 'b', '<end>'], decoded)
 
-        decoded = tokenizer.decode(tokens, remove_special_tokens=True)
-        self.assertEqual(['a'], decoded)
+    def test_call_missing_symbols(self) -> None:
+        symbols = ['a', 'b']
+        languages = ['de', 'en']
 
-        tokenizer = Tokenizer(symbols=symbols, lowercase=True, start_index=1,  end_index=2,
-                              start_token='<', end_token='>', append_start_end=False)
+        tokenizer = SequenceTokenizer(symbols=symbols, languages=languages,  lowercase=False,
+                                      append_start_end=True, end_token='<end>')
 
-        tokens = tokenizer('aBk')
-        self.assertEqual([3, 4], tokens)
+        tokens = tokenizer(['A', 'b', 'F'], language='en')
+        decoded = tokenizer.decode(tokens)
 
-        decoded = tokenizer.decode(tokens, remove_special_tokens=False)
-        self.assertEqual(['a', 'b'], decoded)
+        self.assertEqual(3, len(tokens))
+        self.assertEqual(['<en>', 'b', '<end>'], decoded)
+
+    def test_call_edge_cases(self) -> None:
+        symbols = ['a', 'b', 'c', 'd', 'e']
+        languages = ['de', 'en']
+
+        tokenizer = SequenceTokenizer(symbols=symbols, languages=languages,  lowercase=True,
+                                      append_start_end=True, end_token='<end>')
+
+        tokens = tokenizer([], language='en')
+        decoded = tokenizer.decode(tokens)
+
+        self.assertEqual(2, len(tokens))
+        self.assertEqual(['<en>', '<end>'], decoded)
+
+        tokens = tokenizer(['z'], language='en')
+        decoded = tokenizer.decode(tokens)
+
+        self.assertEqual(2, len(tokens))
+        self.assertEqual(['<en>', '<end>'], decoded)
+
+

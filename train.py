@@ -9,7 +9,7 @@ import tqdm
 import torch
 from dp.dataset import new_dataloader
 from dp.model import TransformerModel
-from dp.text import Tokenizer, Preprocessor
+from dp.text import SequenceTokenizer, Preprocessor
 from dp.trainer import Trainer
 from dp.utils import read_config, pickle_binary
 

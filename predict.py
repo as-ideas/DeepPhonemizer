@@ -9,7 +9,7 @@ import torch
 from dp.dataset import new_dataloader
 from dp.model import TransformerModel
 from dp.predictor import Predictor
-from dp.text import Tokenizer
+from dp.text import SequenceTokenizer
 from dp.trainer import Trainer
 from dp.utils import read_config
 

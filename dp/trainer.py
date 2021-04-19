@@ -143,14 +143,14 @@ class Trainer:
                 text = batch['text'][i, :]
                 target = batch['phonemes'][i, :]
                 lang = batch['language'][i]
+                lang = lang_tokenizer.decode(lang.detach().cpu().item())
                 generated, _ = model.generate(input=text.unsqueeze(0),
-                                              start_index=phoneme_tokenizer.start_index,
+                                              start_index=phoneme_tokenizer.get_start_index(lang),
                                               end_index=phoneme_tokenizer.end_index)
-                text, target, lang = text.detach().cpu(), target.detach().cpu(), lang.detach().cpu()
-                lang = lang_tokenizer.decode([lang])[0]
-                text = text_tokenizer.decode(text, remove_special_tokens=True)
-                generated = phoneme_tokenizer.decode(generated, remove_special_tokens=True)
-                target = phoneme_tokenizer.decode(target, remove_special_tokens=True)
+                text, target = text.detach().cpu(), target.detach().cpu()
+                text = text_tokenizer.decode(text, remove_special_tokens=False)
+                generated = phoneme_tokenizer.decode(generated, remove_special_tokens=False)
+                target = phoneme_tokenizer.decode(target, remove_special_tokens=False)
                 lang_prediction_result[lang] = lang_prediction_result.get(lang, []) + [(text, generated, target)]
                 per += phoneme_error_rate(generated, target)
                 wer += word_error_rate(generated, target)
