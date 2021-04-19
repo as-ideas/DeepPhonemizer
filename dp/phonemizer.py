@@ -28,6 +28,8 @@ class Phonemizer:
                  punctuation=DEFAULT_PUNCTUATION,
                  expand_acronyms=True) -> Union[str, List[str]]:
         """
+        Phonemizes a single text or list of texts.
+
         :param texts: List texts to phonemize.
         :param lang: Language used for phonemization.
         :param punctuation: Punctuation symbols by which the texts are split.
@@ -37,26 +39,32 @@ class Phonemizer:
 
         single_input_string = isinstance(text, str)
         texts = [text] if single_input_string else text
-        output, _ = self.phonemise_list(texts=texts, lang=lang,
+        _, phoneme_lists, _ = self.phonemise_list(texts=texts, lang=lang,
                                         punctuation=punctuation, expand_acronyms=expand_acronyms)
 
-        if single_input_string:
-            output = output[0]
+        phoneme_lists = [''.join(phoneme_list) for phoneme_list in phoneme_lists]
 
-        return output
+        if single_input_string:
+            return phoneme_lists[0]
+        else:
+            return phoneme_lists
 
     def phonemise_list(self,
-                        texts: List[str],
-                        lang: str,
-                        punctuation=DEFAULT_PUNCTUATION,
-                        expand_acronyms=True) -> Tuple[List[str], Dict[str, Tuple[str, float]]]:
+                       texts: List[str],
+                       lang: str,
+                       punctuation=DEFAULT_PUNCTUATION,
+                       expand_acronyms=True) -> Tuple[List[List[str]], List[List[str]],
+                                                      Dict[str, Tuple[str, float]]]:
 
         """
+        Phonemizes a list of texts and returns tokenized text and predictions with probabilities.
+
         :param texts: List texts to phonemize.
         :param lang: Language used for phonemization.
         :param punctuation: Punctuation symbols by which the texts are split.
         :param expand_acronyms: Whether to expand an acronym, e.g. DIY -> D-I-Y.
-        :return: Phonemized texts and dictionary of model predictions as mapping of word to (phonemes, probability).
+        :return: Tokenized input texts, phonemized input texts,
+                 and model predictions as mapping of word to tuple (phonemes, probability).
         """
 
         punc_set = set(punctuation + '- ')
@@ -112,9 +120,9 @@ class Phonemizer:
                     subphons = [word_phonemes[w] for w in subwords]
                     phons = ''.join(subphons)
                 out_phons.append(phons)
-            output.append(''.join(out_phons))
+            output.append(out_phons)
 
-        return output, pred_word_probs
+        return cleaned_texts, output, pred_word_probs
 
     def predict_words(self, words: List[str], lang: str) -> Tuple[List[str], List[float]]:
         tokens, metas = self.predictor(words, language=lang)
@@ -174,12 +182,15 @@ if __name__ == '__main__':
     checkpoint_path = '../checkpoints/best_model_no_optim.pt'
     phonemizer = Phonemizer.from_checkpoint(checkpoint_path)
 
-    input = 'Der E-Mail kleine <SPD-Prinzen-könig - Francesco Cardinale, pillert an seinem Pillermann.'
-    phons, preds = phonemizer.phonemise_list([input], lang='de')
+    input = 'YMCA die Waldfee.'
+    words, phons, preds = phonemizer.phonemise_list([input], lang='de')
+    print(words)
+    print(phons)
 
     pred_words = sorted(list(preds.keys()), key=lambda x: -preds[x][1])
     for word in pred_words:
         pred, prob = preds[word]
         print(f'{word} {pred} {prob}')
 
+    phons = [''.join(p) for p in phons]
     print(phons)

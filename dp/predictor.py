@@ -65,5 +65,6 @@ class Predictor:
         checkpoint = torch.load(checkpoint_path, map_location=device)
         model = TransformerModel.from_config(checkpoint['config']).to(device)
         model.load_state_dict(checkpoint['model'])
+        model.eval()
         preprocessor = checkpoint['preprocessor']
         return Predictor(model=model, preprocessor=preprocessor)
