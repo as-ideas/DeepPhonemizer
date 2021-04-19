@@ -27,6 +27,13 @@ class Phonemizer:
                  lang: str,
                  punctuation=DEFAULT_PUNCTUATION,
                  expand_acronyms=True) -> Union[str, List[str]]:
+        """
+        :param texts: List texts to phonemize.
+        :param lang: Language used for phonemization.
+        :param punctuation: Punctuation symbols by which the texts are split.
+        :param expand_acronyms: Whether to expand an acronym, e.g. DIY -> D-I-Y.
+        :return: Phonemized texts.
+        """
 
         single_input_string = isinstance(text, str)
         texts = [text] if single_input_string else text
@@ -48,8 +55,8 @@ class Phonemizer:
         :param texts: List texts to phonemize.
         :param lang: Language used for phonemization.
         :param punctuation: Punctuation symbols by which the texts are split.
-        :param expand_acronyms: Whether to expand an acronym, e.g. DIY -> D-I-Y
-        :return: Phonemized texts and dictionary of model predictions as mapping of word to (phonemes, probability)
+        :param expand_acronyms: Whether to expand an acronym, e.g. DIY -> D-I-Y.
+        :return: Phonemized texts and dictionary of model predictions as mapping of word to (phonemes, probability).
         """
 
         punc_set = set(punctuation + '- ')
@@ -164,7 +171,7 @@ class Phonemizer:
 
 
 if __name__ == '__main__':
-    checkpoint_path = '../checkpoints/best_model.pt'
+    checkpoint_path = '../checkpoints/best_model_no_optim.pt'
     phonemizer = Phonemizer.from_checkpoint(checkpoint_path)
 
     input = 'Der E-Mail kleine <SPD-Prinzen-könig - Francesco Cardinale, pillert an seinem Pillermann.'
