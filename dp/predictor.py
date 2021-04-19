@@ -22,9 +22,21 @@ class Predictor:
         :return: Tuple of predicted phonemes and additional info per prediction such as logits, probability etc.
         """
 
-        text_set = set(texts)
         predictions = dict()
-        for text in text_set:
+        valid_texts = set()
+
+        # handle texts that result in an empty input to the model
+        for text in texts:
+            input = self.preprocessor.text_tokenizer(text)
+            decoded = self.preprocessor.text_tokenizer.decode(input,
+                                                              remove_special_tokens=True)
+            if len(decoded) == 0:
+                predictions[text] = ([], [])
+            else:
+                valid_texts.add(text)
+
+        # can be batched
+        for text in valid_texts:
             input = self.preprocessor.text_tokenizer(text)
             input = torch.tensor(input).unsqueeze(0)
             output, logits = self.model.generate(input=input,
@@ -35,10 +47,10 @@ class Predictor:
         out_phonemes, out_meta = [], []
         for text in texts:
             output, logits = predictions[text]
-            out_phon = self.preprocessor.phoneme_tokenizer.decode(output,
-                                                                  remove_special_tokens=True)
-            out_phonemes.append(out_phon)
-            out_meta.append({'phonemes': out_phon, 'logits': logits, 'tokens': output})
+            out_phons = self.preprocessor.phoneme_tokenizer.decode(output,
+                                                                   remove_special_tokens=True)
+            out_phonemes.append(out_phons)
+            out_meta.append({'phonemes': out_phons, 'logits': logits, 'tokens': output})
 
         return out_phonemes, out_meta
 
