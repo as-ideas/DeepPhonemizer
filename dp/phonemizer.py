@@ -92,7 +92,7 @@ class Phonemizer:
         for word, phons in zip(words_to_predict, pred_phons):
             word_phonemes[word] = phons
         pred_word_probs = {word: (phon, prob) for word, phon, prob
-                           in zip(words_to_predict, pred_phons, pred_probs)}
+                           in zip(words_to_predict, pred_phons, pred_probs) if len(word) > 0}
 
         # collect all phonemes
         output = []
@@ -169,5 +169,10 @@ if __name__ == '__main__':
 
     input = 'Der E-Mail kleine <SPD-Prinzen-könig - Francesco Cardinale, pillert an seinem Pillermann.'
     phons, preds = phonemizer.phonemise_list([input], lang='de')
+
+    pred_words = sorted(list(preds.keys()), key=lambda x: -preds[x][1])
+    for word in pred_words:
+        pred, prob = preds[word]
+        print(f'{word} {pred} {prob}')
+
     print(phons)
-    print(preds)
