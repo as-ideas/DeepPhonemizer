@@ -29,11 +29,11 @@ class Phonemizer:
         """
         Phonemizes a single text or list of texts.
 
-        :param texts: List texts to phonemize.
+        :param texts: Text to phonemize as single string or list of strings.
         :param lang: Language used for phonemization.
         :param punctuation: Punctuation symbols by which the texts are split.
         :param expand_acronyms: Whether to expand an acronym, e.g. DIY -> D-I-Y.
-        :return: Phonemized texts.
+        :return: Phonemized text as string, or list of strings, respectively.
         """
 
         single_input_string = isinstance(text, str)
@@ -56,14 +56,14 @@ class Phonemizer:
                                                       Dict[str, Tuple[str, float]]]:
 
         """
-        Phonemizes a list of texts and returns tokenized text and predictions with probabilities.
+        Phonemizes a list of texts and returns tokenized texts, phonemes and word predictions with probabilities.
 
         :param texts: List texts to phonemize.
         :param lang: Language used for phonemization.
         :param punctuation: Punctuation symbols by which the texts are split.
         :param expand_acronyms: Whether to expand an acronym, e.g. DIY -> D-I-Y.
-        :return: Tokenized input texts, phonemized input texts,
-                 and model predictions as mapping of word to tuple (phonemes, probability).
+        :return: A tuple containing a nested list (tokenized input texts), a nested list (phonemized input texts),
+                 and a dictionary (model predictions as mapping of word to tuple (phonemes, probability)).
         """
 
         punc_set = set(punctuation + '- ')
@@ -178,7 +178,8 @@ if __name__ == '__main__':
     checkpoint_path = '../checkpoints/best_model_no_optim.pt'
     phonemizer = Phonemizer.from_checkpoint(checkpoint_path)
 
-    input = 'YMCA die Waldfee.'
+    input = 'Verfickte mistsau! (sagte er) einhundertviertausend'
+
     words, phons, preds = phonemizer.phonemise_list([input], lang='de')
     print(words)
     print(phons)
