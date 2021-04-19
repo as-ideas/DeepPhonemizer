@@ -78,8 +78,8 @@ class Phonemizer:
         cleaned_texts = []
         cleaned_words = set()
         for text in texts:
-            cleaned = ''.join([t for t in text if t.isalnum() or t in punc_set])
-            split = re.split(punc_pattern, cleaned)
+            cleaned_text = ''.join([t for t in text if t.isalnum() or t in punc_set])
+            split = re.split(punc_pattern, cleaned_text)
             cleaned_texts.append(split)
             cleaned_words.update(split)
 
