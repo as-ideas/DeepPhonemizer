@@ -56,6 +56,15 @@ class TestSequenceTokenizer(unittest.TestCase):
         self.assertEqual(2, len(tokens))
         self.assertEqual(['<en>', '<end>'], decoded)
 
+        tokenizer = SequenceTokenizer(symbols=['a'], languages=['de'],  lowercase=True,
+                                      append_start_end=False, end_token=None)
+
+        tokens = tokenizer(['a'], language='de')
+        decoded = tokenizer.decode(tokens)
+
+        self.assertEqual(1, len(tokens))
+        self.assertEqual(['a'], decoded)
+
     def test_exception(self) -> None:
         tokenizer = SequenceTokenizer(symbols=['a'], languages=['de'],  lowercase=True,
                                       append_start_end=True, end_token='<end>')
