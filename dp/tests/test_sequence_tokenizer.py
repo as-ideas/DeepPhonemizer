@@ -3,9 +3,9 @@ import unittest
 from dp.text import SequenceTokenizer
 
 
-class TestTokenizer(unittest.TestCase):
+class TestSequenceTokenizer(unittest.TestCase):
 
-    def test_call_standard(self) -> None:
+    def test_call_happy_path(self) -> None:
         symbols = ['a', 'b', 'c', 'd', 'e']
         languages = ['de', 'en']
 

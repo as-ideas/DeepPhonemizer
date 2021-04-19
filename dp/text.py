@@ -3,6 +3,8 @@ from typing import List, Iterable, Dict, Tuple, Any
 
 class LanguageTokenizer:
 
+    """ Simple tokenizer for language to index mapping. """
+
     def __init__(self, languages: List[str]) -> None:
         self.lang_index = {l: i for i, l in enumerate(languages)}
         self.index_lang = {i: l for i, l in enumerate(languages)}
@@ -16,6 +18,8 @@ class LanguageTokenizer:
 
 class SequenceTokenizer:
 
+    """ Tokenizes text and attached language-specific start index (and non-specific end index). """
+
     def __init__(self,
                  symbols: List[str],
                  languages: List[str],
@@ -23,6 +27,7 @@ class SequenceTokenizer:
                  append_start_end=True,
                  pad_token='_',
                  end_token='<end>') -> None:
+
         self.lowercase = lowercase
         self.append_start_end = append_start_end
         self.pad_index = 0
