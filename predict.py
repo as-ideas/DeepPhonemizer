@@ -16,7 +16,7 @@ from dp.utils import read_config
 
 if __name__ == '__main__':
 
-    checkpoint_path = 'checkpoints/latest_model.pt'
+    checkpoint_path = 'checkpoints/best_model.pt'
     checkpoint = torch.load(checkpoint_path, map_location=torch.device('cpu'))
     model = TransformerModel.from_config(checkpoint['config'])
     model.load_state_dict(checkpoint['model'])
@@ -29,7 +29,7 @@ if __name__ == '__main__':
 
     text = 'Bleiben'
 
-    pred, meta = predictor([text], language='de')
+    pred, meta = predictor([text], language='en')
     pred = pred[0]
     pred_decoded = ''.join(pred)
 

@@ -148,9 +148,9 @@ class Trainer:
                                               start_index=phoneme_tokenizer.get_start_index(lang),
                                               end_index=phoneme_tokenizer.end_index)
                 text, target = text.detach().cpu(), target.detach().cpu()
-                text = text_tokenizer.decode(text, remove_special_tokens=False)
-                generated = phoneme_tokenizer.decode(generated, remove_special_tokens=False)
-                target = phoneme_tokenizer.decode(target, remove_special_tokens=False)
+                text = text_tokenizer.decode(text, remove_special_tokens=True)
+                generated = phoneme_tokenizer.decode(generated, remove_special_tokens=True)
+                target = phoneme_tokenizer.decode(target, remove_special_tokens=True)
                 lang_prediction_result[lang] = lang_prediction_result.get(lang, []) + [(text, generated, target)]
                 per += phoneme_error_rate(generated, target)
                 wer += word_error_rate(generated, target)

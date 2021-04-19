@@ -17,5 +17,9 @@ class TestSequenceTokenizer(unittest.TestCase):
         self.assertEqual('de', tokenizer.decode(de_tok))
         self.assertEqual('en', tokenizer.decode(en_tok))
 
+    def test_exception(self) -> None:
+        tokenizer = LanguageTokenizer(languages=['de', 'en'])
 
+        with self.assertRaises(ValueError):
+            tokenizer('not_existent')
 

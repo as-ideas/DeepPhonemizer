@@ -39,7 +39,7 @@ class Predictor:
 
         # can be batched
         for text in valid_texts:
-            input = self.preprocessor.text_tokenizer(text)
+            input = self.preprocessor.text_tokenizer(text, language)
             input = torch.tensor(input).unsqueeze(0)
             output, logits = self.model.generate(input=input,
                                                  start_index=self.phoneme_tokenizer.get_start_index(language),

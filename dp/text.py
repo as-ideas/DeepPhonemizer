@@ -10,6 +10,10 @@ class LanguageTokenizer:
         self.index_lang = {i: l for i, l in enumerate(languages)}
 
     def __call__(self, lang: str) -> int:
+        if lang not in self.lang_index:
+            raise ValueError(f'Language not supported: {lang}. '
+                             f'Supported languages: {self.lang_index.keys()}')
+
         return self.lang_index[lang]
 
     def decode(self, index: int) -> str:
@@ -28,13 +32,14 @@ class SequenceTokenizer:
                  pad_token='_',
                  end_token='<end>') -> None:
 
+        self.languages = languages
         self.lowercase = lowercase
         self.append_start_end = append_start_end
         self.pad_index = 0
         self.token_to_idx = {pad_token: self.pad_index}
         self.special_tokens = {pad_token, end_token}
         for lang in languages:
-            lang_token = '<' + lang + '>'
+            lang_token = self._make_start_token(lang)
             self.token_to_idx[lang_token] = len(self.token_to_idx)
             self.special_tokens.add(lang_token)
         self.token_to_idx[end_token] = len(self.token_to_idx)
@@ -45,6 +50,8 @@ class SequenceTokenizer:
         self.vocab_size = len(self.idx_to_token)
 
     def __call__(self, sentence: Iterable[str], language: str) -> List[int]:
+        if language not in self.languages:
+            raise ValueError(f'Language not supported: {language}. Supported languages: {self.languages}')
         if self.lowercase:
             sentence = [s.lower() for s in sentence]
         sequence = [self.token_to_idx[c] for c in sentence if c in self.token_to_idx]
@@ -59,7 +66,11 @@ class SequenceTokenizer:
         return decoded
 
     def get_start_index(self, language: str) -> int:
-        return self.token_to_idx['<' + language + '>']
+        lang_token = self._make_start_token(language)
+        return self.token_to_idx[lang_token]
+
+    def _make_start_token(self, language: str) -> str:
+        return '<' + language + '>'
 
 
 class Preprocessor:
