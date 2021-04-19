@@ -9,7 +9,7 @@ from torch.utils.tensorboard import SummaryWriter
 
 from dp.dataset import new_dataloader
 from dp.decorators import ignore_exception
-from dp.metrics import phoneme_error_rate, word_error_rate
+from dp.metrics import phoneme_error_rate, word_error
 from dp.model import TransformerModel
 from dp.text import Preprocessor
 from dp.utils import to_device, unpickle_binary
@@ -153,7 +153,7 @@ class Trainer:
                 target = phoneme_tokenizer.decode(target, remove_special_tokens=True)
                 lang_prediction_result[lang] = lang_prediction_result.get(lang, []) + [(text, generated, target)]
                 per += phoneme_error_rate(generated, target)
-                wer += word_error_rate(generated, target)
+                wer += word_error(generated, target)
 
         # calculate error rates per language
         lang_per, lang_wer = dict(), dict()
@@ -162,7 +162,7 @@ class Trainer:
             log_texts = []
             for text, generated, target in lang_prediction_result[lang]:
                 per = phoneme_error_rate(generated, target)
-                wer = word_error_rate(generated, target)
+                wer = word_error(generated, target)
                 lang_per[lang] = lang_per.get(lang, []) + [per]
                 lang_wer[lang] = lang_wer.get(lang, []) + [wer]
                 text, gen_decoded, target = ''.join(text), ''.join(generated), ''.join(target)

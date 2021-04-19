@@ -2,7 +2,7 @@ import numpy
 from typing import List, Union
 
 
-def word_error_rate(predicted: List[Union[str, int]], target: List[Union[str, int]]) -> float:
+def word_error(predicted: List[Union[str, int]], target: List[Union[str, int]]) -> float:
     return int(predicted != target)
 
 
