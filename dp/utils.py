@@ -1,10 +1,13 @@
 import pickle
 from pathlib import Path
-from typing import Dict, List, Any, Union
+from typing import Dict, List, Any, Union, Tuple
 
 import torch
 import yaml
 import math
+
+from dp.model import TransformerModel
+from dp.text import Preprocessor
 
 
 def read_config(path: str) -> Dict[str, Any]:
@@ -43,3 +46,12 @@ def get_sequence_prob(tokens: List[int], logits: torch.tensor) -> float:
     probs = [norm_logits[i, p] for i, p in enumerate(tokens[1:])]
     prob = math.exp(sum([math.log(p) for p in probs]))
     return prob
+
+
+def load_checkpoint(checkpoint_path: str, device='cpu') -> Tuple[TransformerModel, Dict[str, Any]]:
+    device = torch.device(device)
+    checkpoint = torch.load(checkpoint_path, map_location=device)
+    model = TransformerModel.from_config(checkpoint['config']).to(device)
+    model.load_state_dict(checkpoint['model'])
+    model.eval()
+    return model, checkpoint

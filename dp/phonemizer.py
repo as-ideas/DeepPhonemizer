@@ -5,8 +5,7 @@ from typing import Dict, Union, Tuple, List
 from dp.model import TransformerModel
 from dp.predictor import Predictor
 from dp.text import Preprocessor
-from dp.utils import get_sequence_prob
-
+from dp.utils import get_sequence_prob, load_checkpoint
 
 DEFAULT_PUNCTUATION = '().,:?!'
 
@@ -162,10 +161,7 @@ class Phonemizer:
                         checkpoint_path: str,
                         device='cpu',
                         lang_phoneme_dict: Dict[str, Dict[str, str]] = None) -> 'Phonemizer':
-        device = torch.device(device)
-        checkpoint = torch.load(checkpoint_path, map_location=device)
-        model = TransformerModel.from_config(checkpoint['config']).to(device)
-        model.load_state_dict(checkpoint['model'])
+        model, checkpoint = load_checkpoint(checkpoint_path, device=device)
         applied_phoneme_dict = None
         if lang_phoneme_dict is not None:
             applied_phoneme_dict = lang_phoneme_dict

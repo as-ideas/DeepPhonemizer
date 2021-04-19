@@ -33,6 +33,7 @@ class Trainer:
 
         device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
         model = model.to(device)
+        model.train()
 
         ce_loss = self.ce_loss.to(device)
         optimizer = Adam(model.parameters())

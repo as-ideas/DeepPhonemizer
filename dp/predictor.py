@@ -3,6 +3,7 @@ from typing import Dict, Any, List, Tuple, Iterable
 
 from dp.model import TransformerModel
 from dp.text import Preprocessor
+from dp.utils import load_checkpoint
 
 
 class Predictor:
@@ -61,10 +62,6 @@ class Predictor:
 
     @classmethod
     def from_checkpoint(cls, checkpoint_path: str, device='cpu') -> 'Predictor':
-        device = torch.device(device)
-        checkpoint = torch.load(checkpoint_path, map_location=device)
-        model = TransformerModel.from_config(checkpoint['config']).to(device)
-        model.load_state_dict(checkpoint['model'])
-        model.eval()
+        model, checkpoint = load_checkpoint(checkpoint_path, device=device)
         preprocessor = checkpoint['preprocessor']
         return Predictor(model=model, preprocessor=preprocessor)
