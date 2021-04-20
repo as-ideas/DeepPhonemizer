@@ -2,6 +2,7 @@ import torch
 import re
 from typing import Dict, Union, Tuple, List
 
+from dp.decorators import time_it
 from dp.model import TransformerModel
 from dp.predictor import Predictor
 from dp.text import Preprocessor
@@ -25,7 +26,8 @@ class Phonemizer:
                  text: Union[str, List[str]],
                  lang: str,
                  punctuation=DEFAULT_PUNCTUATION,
-                 expand_acronyms=True) -> Union[str, List[str]]:
+                 expand_acronyms=True,
+                 batch_size=8) -> Union[str, List[str]]:
         """
         Phonemizes a single text or list of texts.
 
@@ -33,6 +35,7 @@ class Phonemizer:
         :param lang: Language used for phonemization.
         :param punctuation: Punctuation symbols by which the texts are split.
         :param expand_acronyms: Whether to expand an acronym, e.g. DIY -> D-I-Y.
+        :param batch_size: Batch size of model to speed up inference.
         :return: Phonemized text as string, or list of strings, respectively.
         """
 
@@ -48,11 +51,13 @@ class Phonemizer:
         else:
             return phoneme_lists
 
+    @time_it
     def phonemise_list(self,
                        texts: List[str],
                        lang: str,
                        punctuation=DEFAULT_PUNCTUATION,
-                       expand_acronyms=True) -> Tuple[List[List[str]], List[List[str]],
+                       expand_acronyms=True,
+                       batch_size=8) -> Tuple[List[List[str]], List[List[str]],
                                                       Dict[str, Tuple[str, float]]]:
 
         """
@@ -62,6 +67,7 @@ class Phonemizer:
         :param lang: Language used for phonemization.
         :param punctuation: Punctuation symbols by which the texts are split.
         :param expand_acronyms: Whether to expand an acronym, e.g. DIY -> D-I-Y.
+        :param batch_size: Batch size of model to speed up inference.
         :return: A tuple containing a nested list (tokenized input texts), a nested list (phonemized input texts),
                  and a dictionary (model predictions as mapping of word to tuple (phonemes, probability)).
         """
@@ -102,7 +108,8 @@ class Phonemizer:
             if phons is None and len(word_splits.get(word, [])) <= 1:
                 words_to_predict.append(word)
 
-        pred_phons, pred_probs = self.predict_words(words=words_to_predict, lang=lang)
+        pred_phons, pred_probs = self.predict_words(words=words_to_predict,
+                                                    lang=lang, batch_size=batch_size)
         for word, phons in zip(words_to_predict, pred_phons):
             word_phonemes[word] = phons
         pred_word_probs = {word: (phon, prob) for word, phon, prob
@@ -123,8 +130,11 @@ class Phonemizer:
 
         return cleaned_texts, output, pred_word_probs
 
-    def predict_words(self, words: List[str], lang: str) -> Tuple[List[str], List[float]]:
-        tokens, metas = self.predictor(words, language=lang)
+    def predict_words(self,
+                      words: List[str],
+                      lang: str,
+                      batch_size: int) -> Tuple[List[str], List[float]]:
+        tokens, metas = self.predictor(words, language=lang, batch_size=batch_size)
         pred = [''.join(t) for t in tokens]
         probs = [get_sequence_prob(m['tokens'], m['logits']) for m in metas]
         return pred, probs
@@ -178,11 +188,9 @@ if __name__ == '__main__':
     checkpoint_path = '../checkpoints/best_model_no_optim.pt'
     phonemizer = Phonemizer.from_checkpoint(checkpoint_path)
 
-    input = 'Verfickte mistsau! (sagte er) einhundertviertausend'
-
-    words, phons, preds = phonemizer.phonemise_list([input], lang='de')
-    print(words)
-    print(phons)
+    input = open('/Users/cschaefe/single_article.txt', 'r', encoding='utf-8').readlines()
+    input = [input[0].replace('de ', 'der ')]
+    words, phons, preds = phonemizer.phonemise_list(input, lang='de', batch_size=8)
 
     pred_words = sorted(list(preds.keys()), key=lambda x: -preds[x][1])
     for word in pred_words:

@@ -1,6 +1,6 @@
 import pickle
 from pathlib import Path
-from typing import Dict, List, Any, Union, Tuple
+from typing import Dict, List, Any, Union, Tuple, Iterable, Sized
 
 import torch
 import yaml
@@ -55,3 +55,13 @@ def load_checkpoint(checkpoint_path: str, device='cpu') -> Tuple[TransformerMode
     model.load_state_dict(checkpoint['model'])
     model.eval()
     return model, checkpoint
+
+
+def batchify(input: list, batch_size: int) -> List[list]:
+    l = len(input)
+    output = []
+    for i in range(0, l, batch_size):
+        batch = input[i:min(i + batch_size, l)]
+        output.append(batch)
+    return output
+

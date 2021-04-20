@@ -5,7 +5,7 @@ from torch.nn.utils.rnn import pad_sequence
 
 from dp.model import TransformerModel
 from dp.text import Preprocessor
-from dp.utils import load_checkpoint
+from dp.utils import load_checkpoint, batchify
 
 
 class Predictor:
@@ -18,8 +18,9 @@ class Predictor:
         self.phoneme_tokenizer = preprocessor.phoneme_tokenizer
 
     def __call__(self,
-                 texts: List[Iterable[str]],
-                 language: str) -> Tuple[List[Iterable[str]], List[Dict[str, Any]]]:
+                 texts: List[str],
+                 language: str,
+                 batch_size=8) -> Tuple[List[Iterable[str]], List[Dict[str, Any]]]:
         """
         :param texts: List of texts to predict.
         :param language: Language of texts.
@@ -39,18 +40,10 @@ class Predictor:
             else:
                 valid_texts.add(text)
 
-        # can be batched
-        input_batch = []
-        for text in valid_texts:
-            input = self.text_tokenizer(text, language)
-            input_batch.append(torch.tensor(input).long())
-        input_batch = pad_sequence(input_batch, batch_first=True, padding_value=0)
-        output_batch, logits_batch = self.model.generate(input=input_batch,
-                                             start_index=self.phoneme_tokenizer.get_start_index(language),
-                                             end_index=self.phoneme_tokenizer.end_index)
-        for text, output, logits in zip(valid_texts, output_batch, logits_batch):
-            seq_len = self._get_len_util_stop(output, self.phoneme_tokenizer.end_index)
-            predictions[text] = (output[:seq_len], logits[:seq_len])
+        valid_texts = sorted(list(valid_texts), key=lambda x: len(x))
+        pred = self.predict_list(valid_texts,
+                                 batch_size=batch_size, language=language)
+        predictions.update(pred)
 
         out_phonemes, out_meta = [], []
         for text in texts:
@@ -64,6 +57,26 @@ class Predictor:
                 out_meta.append({'phonemes': out_phons, 'logits': None, 'tokens': output})
 
         return out_phonemes, out_meta
+
+    def predict_list(self, texts: List[str], batch_size: int, language: str) \
+            -> Dict[str, Tuple[torch.tensor, list]]:
+        predictions = dict()
+        text_batches = batchify(texts, batch_size)
+        for text_batch in text_batches:
+            input_batch = []
+            for text in text_batch:
+                input = self.text_tokenizer(text, language)
+                input_batch.append(torch.tensor(input).long())
+            input_batch = pad_sequence(input_batch, batch_first=True, padding_value=0)
+            output_batch, logits_batch = self.model.generate(input=input_batch,
+                                                             start_index=self.phoneme_tokenizer.get_start_index(
+                                                                 language),
+                                                             end_index=self.phoneme_tokenizer.end_index)
+            for text, output, logits in zip(text_batch, output_batch, logits_batch):
+                seq_len = self._get_len_util_stop(output, self.phoneme_tokenizer.end_index)
+                predictions[text] = (output[:seq_len], logits[:seq_len])
+
+        return predictions
 
     def _get_len_util_stop(self, sequence: torch.tensor, end_index: int) -> torch.tensor:
         for i, val in enumerate(sequence):
