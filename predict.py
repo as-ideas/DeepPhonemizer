@@ -13,18 +13,17 @@ if __name__ == '__main__':
     checkpoint = torch.load(checkpoint_path, map_location=torch.device('cpu'))
     predictor = Predictor.from_checkpoint(checkpoint_path)
 
-    text = 'hallo'
+    text = ['hallo', 'bedeuten']
 
-    pred, meta = predictor([text], language='de')
-    pred = pred[0]
-    pred_decoded = ''.join(pred)
+    pred_batch, meta = predictor(text, language='de')
+    for i, pred in enumerate(pred_batch):
+        pred_decoded = ''.join(pred)
+        tokens, logits = meta[i]['tokens'], meta[i]['logits']
+        norm_logits = logits.softmax(dim=1)
+        probs = [norm_logits[i, p] for i, p in enumerate(tokens[1:])]
+        prob = math.exp(sum([math.log(p) for p in probs]))
 
-    tokens, logits = meta[0]['tokens'], meta[0]['logits']
-    norm_logits = logits.softmax(dim=1)
-    probs = [norm_logits[i, p] for i, p in enumerate(tokens[1:])]
-    prob = math.exp(sum([math.log(p) for p in probs]))
-
-    for o, p in zip(pred_decoded[1:], probs):
-        print(f'{o} {p}')
-    print(f'{text} | {pred_decoded} | {prob}')
+        for o, p in zip(pred_decoded[1:], probs):
+            print(f'{o} {p}')
+        print(f'{text[i]} | {pred_decoded} | {prob}')
 

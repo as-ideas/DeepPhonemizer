@@ -123,14 +123,13 @@ class TransformerModel(nn.Module):
                 out_logits.append(output[-1:, :, :])
                 out_tokens = output.argmax(2)[-1:, :]
                 out_indices = torch.cat([out_indices, out_tokens], dim=0)
-                stop_rows, _ = torch.max(out_indices == end_index, dim=1)
+                stop_rows, _ = torch.max(out_indices == end_index, dim=0)
                 if torch.sum(stop_rows) == batch_size:
                     break
 
                 #if out_token == end_index:
                 #    break
-
-        out_indices = torch.tensor(out_indices).long()
+        out_indices = out_indices.transpose(0, 1) # out shape [N, T]
         out_logits = torch.cat(out_logits, dim=0).transpose(0, 1) # out shape [N, T, V]
         return out_indices, out_logits
 

@@ -1,6 +1,8 @@
 import torch
 from typing import Dict, Any, List, Tuple, Iterable
 
+from torch.nn.utils.rnn import pad_sequence
+
 from dp.model import TransformerModel
 from dp.text import Preprocessor
 from dp.utils import load_checkpoint
@@ -12,7 +14,6 @@ class Predictor:
                  model: TransformerModel,
                  preprocessor: Preprocessor) -> None:
         self.model = model
-        self.preprocessor = preprocessor
         self.text_tokenizer = preprocessor.text_tokenizer
         self.phoneme_tokenizer = preprocessor.phoneme_tokenizer
 
@@ -39,13 +40,17 @@ class Predictor:
                 valid_texts.add(text)
 
         # can be batched
+        input_batch = []
         for text in valid_texts:
-            input = self.preprocessor.text_tokenizer(text, language)
-            input = torch.tensor(input).unsqueeze(0)
-            output, logits = self.model.generate(input=input,
-                                                 start_index=self.phoneme_tokenizer.get_start_index(language),
-                                                 end_index=self.phoneme_tokenizer.end_index)
-            predictions[text] = (output, logits[0])
+            input = self.text_tokenizer(text, language)
+            input_batch.append(torch.tensor(input).long())
+        input_batch = pad_sequence(input_batch, batch_first=True, padding_value=0)
+        output_batch, logits_batch = self.model.generate(input=input_batch,
+                                             start_index=self.phoneme_tokenizer.get_start_index(language),
+                                             end_index=self.phoneme_tokenizer.end_index)
+        for text, output, logits in zip(valid_texts, output_batch, logits_batch):
+            seq_len = self._get_len_util_stop(output, self.phoneme_tokenizer.end_index)
+            predictions[text] = (output[:seq_len], logits[:seq_len])
 
         out_phonemes, out_meta = [], []
         for text in texts:
@@ -59,6 +64,12 @@ class Predictor:
                 out_meta.append({'phonemes': out_phons, 'logits': None, 'tokens': output})
 
         return out_phonemes, out_meta
+
+    def _get_len_util_stop(self, sequence: torch.tensor, end_index: int) -> torch.tensor:
+        for i, val in enumerate(sequence):
+            if val == end_index:
+                return i + 1
+        return len(sequence)
 
     @classmethod
     def from_checkpoint(cls, checkpoint_path: str, device='cpu') -> 'Predictor':
