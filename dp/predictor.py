@@ -67,11 +67,12 @@ class Predictor:
             for text in text_batch:
                 input = self.text_tokenizer(text, language)
                 input_batch.append(torch.tensor(input).long())
-            input_batch = pad_sequence(input_batch, batch_first=True, padding_value=0)
-            output_batch, logits_batch = self.model.generate(input=input_batch,
-                                                             start_index=self.phoneme_tokenizer.get_start_index(
-                                                                 language),
-                                                             end_index=self.phoneme_tokenizer.end_index)
+            input_batch = pad_sequence(sequences=input_batch,
+                                       batch_first=True, padding_value=0)
+            output_batch, logits_batch = self.model.generate(
+                input=input_batch,
+                start_index=self.phoneme_tokenizer.get_start_index(language),
+                end_index=self.phoneme_tokenizer.end_index)
             for text, output, logits in zip(text_batch, output_batch, logits_batch):
                 seq_len = self._get_len_util_stop(output, self.phoneme_tokenizer.end_index)
                 predictions[text] = (output[:seq_len], logits[:seq_len])
