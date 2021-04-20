@@ -8,7 +8,7 @@ from typing import List, Tuple, Dict, Iterable, Any
 import tqdm
 import torch
 from dp.dataset import new_dataloader
-from dp.model import TransformerModel
+from dp.model import Aligner
 from dp.text import SequenceTokenizer, Preprocessor
 from dp.trainer import Trainer
 from dp.utils import read_config, pickle_binary
@@ -26,7 +26,7 @@ if __name__ == '__main__':
     if args.checkpoint:
         print(f'Restoring model from checkpoint: {args.checkpoint}')
         checkpoint = torch.load(args.checkpoint, map_location=torch.device('cpu'))
-        model = TransformerModel.from_config(checkpoint['config'])
+        model = Aligner.from_config(checkpoint['config'])
         model.load_state_dict(checkpoint['model'])
         print(f'Loaded model with step: {model.get_step()}')
         for key, val in config['training'].items():
@@ -38,7 +38,7 @@ if __name__ == '__main__':
     else:
         print('Initializing new model from config...')
         preprocessor = Preprocessor.from_config(config)
-        model = TransformerModel.from_config(config)
+        model = Aligner.from_config(config)
         checkpoint = {
             'preprocessor': preprocessor,
             'config': config,

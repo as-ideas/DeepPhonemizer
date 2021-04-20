@@ -30,10 +30,12 @@ class SequenceTokenizer:
                  lowercase=True,
                  append_start_end=True,
                  pad_token='_',
+                 expand=True,
                  end_token='<end>') -> None:
 
         self.languages = languages
         self.lowercase = lowercase
+        self.expand = expand
         self.append_start_end = append_start_end
         self.pad_index = 0
         self.token_to_idx = {pad_token: self.pad_index}
@@ -50,6 +52,9 @@ class SequenceTokenizer:
         self.vocab_size = len(self.idx_to_token)
 
     def __call__(self, sentence: Iterable[str], language: str) -> List[int]:
+        if self.expand:
+            sentence = [item for item in sentence for i in range(3)]
+
         if language not in self.languages:
             raise ValueError(f'Language not supported: {language}. Supported languages: {self.languages}')
         if self.lowercase:
@@ -102,10 +107,12 @@ class Preprocessor:
         text_tokenizer = SequenceTokenizer(symbols=text_symbols,
                                            languages=lang_symbols,
                                            lowercase=lowercase,
+                                           expand=True,
                                            append_start_end=True)
         phoneme_tokenizer = SequenceTokenizer(phoneme_symbols,
                                               languages=lang_symbols,
                                               lowercase=lowercase,
+                                              expand=False,
                                               append_start_end=True)
         return Preprocessor(lang_tokenizer=lang_tokenizer,
                             text_tokenizer=text_tokenizer,

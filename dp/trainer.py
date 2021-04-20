@@ -10,7 +10,7 @@ from torch.utils.tensorboard import SummaryWriter
 from dp.dataset import new_dataloader
 from dp.decorators import ignore_exception
 from dp.metrics import phoneme_error_rate, word_error
-from dp.model import TransformerModel
+from dp.model import Aligner
 from dp.text import Preprocessor
 from dp.utils import to_device, unpickle_binary
 
@@ -21,10 +21,10 @@ class Trainer:
         self.checkpoint_dir = Path(checkpoint_dir)
         self.checkpoint_dir.mkdir(parents=True, exist_ok=True)
         self.writer = SummaryWriter(log_dir=self.checkpoint_dir / 'tensorboard')
-        self.ce_loss = torch.nn.CrossEntropyLoss(ignore_index=0)
+        self.ctc_loss = torch.nn.CTCLoss()
 
     def train(self,
-              model: TransformerModel,
+              model: Aligner,
               checkpoint: dict,
               store_phoneme_dict_in_model=True) -> None:
 
@@ -35,7 +35,7 @@ class Trainer:
         model = model.to(device)
         model.train()
 
-        ce_loss = self.ce_loss.to(device)
+        ctc_loss = self.ctc_loss.to(device)
         optimizer = Adam(model.parameters())
         if 'optimizer' in checkpoint:
             optimizer.load_state_dict(checkpoint['optimizer'])
@@ -64,9 +64,11 @@ class Trainer:
                                           f'| Loss: {loss_sum / i:#.4}', refresh=True)
                 text = batch['text']
                 phonemes = batch['phonemes']
-                phonemes_in, phonemes_tar = phonemes[:, :-1], phonemes[:, 1:]
-                pred = model.forward(text, phonemes_in)
-                loss = ce_loss(pred.transpose(1, 2), phonemes_tar)
+                text_len = batch['text_len']
+                phon_len = batch['phonemes_len']
+                pred = model(text)
+                pred = pred.transpose(0, 1).log_softmax(2)
+                loss = ctc_loss(pred, phonemes, text_len, phon_len)
                 optimizer.zero_grad()
                 loss.backward()
                 torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
@@ -104,27 +106,28 @@ class Trainer:
             self.save_model(model=model, optimizer=optimizer, checkpoint=checkpoint,
                             path=self.checkpoint_dir / 'latest_model.pt')
 
-    def validate(self, model: TransformerModel, val_batches: List[dict]) -> float:
+    def validate(self, model: Aligner, val_batches: List[dict]) -> float:
         device = next(model.parameters()).device
-        ce_loss = self.ce_loss.to(device)
+        ctc_loss = self.ctc_loss.to(device)
 
         model.eval()
         val_loss = 0.
         for batch in val_batches:
-            batch = to_device(batch, device)
             text = batch['text']
             phonemes = batch['phonemes']
-            phonemes_in, phonemes_tar = phonemes[:, :-1], phonemes[:, 1:]
+            text_len = batch['text_len']
+            phon_len = batch['phonemes_len']
             with torch.no_grad():
-                pred = model.forward(text, phonemes_in)
-                loss = ce_loss(pred.transpose(1, 2), phonemes_tar)
+                pred = model(text)
+                pred = pred.transpose(0, 1).log_softmax(2)
+                loss = ctc_loss(pred, phonemes, text_len, phon_len)
                 val_loss += loss.item()
         model.train()
         return val_loss / len(val_batches)
 
     @ignore_exception
     def generate_samples(self,
-                         model: TransformerModel,
+                         model: Aligner,
                          preprocessor: Preprocessor,
                          val_batches: List[dict],
                          n_log_samples: int) -> float:
@@ -145,9 +148,8 @@ class Trainer:
                 target = batch['phonemes'][i, :]
                 lang = batch['language'][i]
                 lang = lang_tokenizer.decode(lang.detach().cpu().item())
-                generated, _ = model.generate(input=text.unsqueeze(0),
-                                              start_index=phoneme_tokenizer.get_start_index(lang),
-                                              end_index=phoneme_tokenizer.end_index)
+                generated, _ = model.generate(text.unsqueeze(0))
+                generated = generated[0]
                 text, target = text.detach().cpu(), target.detach().cpu()
                 text = text_tokenizer.decode(text, remove_special_tokens=True)
                 generated = phoneme_tokenizer.decode(generated, remove_special_tokens=True)
@@ -189,7 +191,7 @@ class Trainer:
         return sum_per / count
 
     def save_model(self,
-                   model: TransformerModel,
+                   model: Aligner,
                    optimizer: torch.optim,
                    checkpoint: dict,
                    path: Path) -> None:
