@@ -147,9 +147,3 @@ class TransformerModel(nn.Module):
             dropout=config['model']['dropout'],
             heads=config['model']['heads']
         )
-
-if __name__ == '__main__':
-    tens = torch.rand((5, 2, 10))
-    amax = tens.argmax(2)
-    print(tens)
-    print(amax.shape)
