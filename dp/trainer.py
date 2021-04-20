@@ -157,7 +157,7 @@ class Trainer:
                 generated = generated[0]
                 generated = [k for k, g in groupby(generated) if k != 0]
                 text, target = text.detach().cpu(), target.detach().cpu()
-                text = [k for k, g in groupby(text) if k != 0]
+                #text = [k for k, g in groupby(text) if k != 0]
                 text = text_tokenizer.decode(text, remove_special_tokens=True)
                 generated = phoneme_tokenizer.decode(generated, remove_special_tokens=True)
                 target = phoneme_tokenizer.decode(target, remove_special_tokens=True)
