@@ -187,8 +187,8 @@ if __name__ == '__main__':
     checkpoint_path = '../checkpoints/best_model_no_optim.pt'
     phonemizer = Phonemizer.from_checkpoint(checkpoint_path)
 
-    input = open('/Users/cschaefe/single_article.txt', 'r', encoding='utf-8').readlines()
-    input = [input[0].replace('de ', 'der ')]
+    input = ['Wir sind tollehechte', 'Bringmeister']
+
     words, phons, preds = phonemizer.phonemise_list(input, lang='de', batch_size=8)
 
     pred_words = sorted(list(preds.keys()), key=lambda x: -preds[x][1])
