@@ -77,7 +77,7 @@ if __name__ == '__main__':
 
     phoneme_dictionary = dict()
     for lang, text, phoneme in raw_data:
-        lang_dict = phoneme_dictionary.get(lang, {lang: {}})
+        lang_dict = phoneme_dictionary.get(lang, {})
         lang_dict[text] = phoneme
         phoneme_dictionary[lang] = lang_dict
 
