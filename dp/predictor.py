@@ -79,7 +79,8 @@ class Predictor:
 
         return predictions
 
-    def _get_len_util_stop(self, sequence: torch.tensor, end_index: int) -> torch.tensor:
+    @staticmethod
+    def _get_len_util_stop(sequence: torch.tensor, end_index: int) -> torch.tensor:
         for i, val in enumerate(sequence):
             if val == end_index:
                 return i + 1
