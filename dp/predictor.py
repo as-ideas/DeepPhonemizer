@@ -39,7 +39,7 @@ class Predictor:
             decoded = self.text_tokenizer.decode(
                 sequence=input, remove_special_tokens=True)
             if len(decoded) == 0:
-                predictions[text] = ([], [])
+                predictions[text] = ([], None)
             else:
                 valid_texts.add(text)
 
@@ -54,10 +54,7 @@ class Predictor:
             out_phons = self.phoneme_tokenizer.decode(
                 sequence=output, remove_special_tokens=True)
             out_phonemes.append(out_phons)
-            if len(logits) > 0:
-                out_meta.append({'phonemes': out_phons, 'logits': logits, 'tokens': output})
-            else:
-                out_meta.append({'phonemes': out_phons, 'logits': None, 'tokens': output})
+            out_meta.append({'phonemes': out_phons, 'logits': logits, 'tokens': output})
 
         return out_phonemes, out_meta
 
