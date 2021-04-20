@@ -18,30 +18,31 @@ class Predictor:
         self.phoneme_tokenizer = preprocessor.phoneme_tokenizer
 
     def __call__(self,
-                 texts: List[str],
+                 words: List[str],
                  language: str,
                  batch_size=8) -> Tuple[List[Iterable[str]], List[Dict[str, Any]]]:
         """
-        Predicts phonemes for a list of texts.
+        Predicts phonemes for a list of words.
 
-        :param texts: List of texts to predict.
+        :param words: List of words to predict.
         :param language: Language of texts.
         :param batch_size: Size of batch for model input to speed up inference.
-        :return: Predicted phonemes and additional info per prediction such as logits, probability etc.
+        :return: A tuple containing a list (predicted phonemes)
+                 and a list (additional info per prediction such as logits, probability etc.)
         """
 
         predictions = dict()
         valid_texts = set()
 
-        # handle texts that result in an empty input to the model
-        for text in texts:
-            input = self.text_tokenizer(sentence=text, language=language)
+        # handle words that result in an empty input to the model
+        for word in words:
+            input = self.text_tokenizer(sentence=word, language=language)
             decoded = self.text_tokenizer.decode(
                 sequence=input, remove_special_tokens=True)
             if len(decoded) == 0:
-                predictions[text] = ([], None)
+                predictions[word] = ([], None)
             else:
-                valid_texts.add(text)
+                valid_texts.add(word)
 
         valid_texts = sorted(list(valid_texts), key=lambda x: len(x))
         batch_pred = self._batch_predict(texts=valid_texts, batch_size=batch_size,
@@ -49,8 +50,8 @@ class Predictor:
         predictions.update(batch_pred)
 
         out_phonemes, out_meta = [], []
-        for text in texts:
-            output, logits = predictions[text]
+        for word in words:
+            output, logits = predictions[word]
             out_phons = self.phoneme_tokenizer.decode(
                 sequence=output, remove_special_tokens=True)
             out_phonemes.append(out_phons)
