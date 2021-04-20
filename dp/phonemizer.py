@@ -51,7 +51,6 @@ class Phonemizer:
         else:
             return phoneme_lists
 
-    @time_it
     def phonemise_list(self,
                        texts: List[str],
                        lang: str,
