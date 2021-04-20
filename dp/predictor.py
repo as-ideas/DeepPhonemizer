@@ -59,7 +59,7 @@ class Predictor:
         return out_phonemes, out_meta
 
     def _batch_predict(self, texts: List[str], batch_size: int, language: str) \
-            -> Dict[str, Tuple[torch.tensor, list]]:
+            -> Dict[str, Tuple[torch.tensor, torch.tensor]]:
         predictions = dict()
         text_batches = batchify(texts, batch_size)
         for text_batch in text_batches:
