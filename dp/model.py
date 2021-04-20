@@ -127,10 +127,8 @@ class TransformerModel(nn.Module):
                 if torch.sum(stop_rows) == batch_size:
                     break
 
-                #if out_token == end_index:
-                #    break
-        out_indices = out_indices.transpose(0, 1) # out shape [N, T]
-        out_logits = torch.cat(out_logits, dim=0).transpose(0, 1) # out shape [N, T, V]
+        out_indices = out_indices.transpose(0, 1)  # out shape [N, T]
+        out_logits = torch.cat(out_logits, dim=0).transpose(0, 1)  # out shape [N, T, V]
         return out_indices, out_logits
 
     def get_step(self):
