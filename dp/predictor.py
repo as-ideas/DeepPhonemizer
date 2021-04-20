@@ -53,7 +53,7 @@ class Predictor:
         for word in words:
             output, logits = predictions[word]
             out_phons = self.phoneme_tokenizer.decode(
-                sequence=output, remove_special_tokens=True)
+                sequence=output, remove_special_tokens=False)
             out_phonemes.append(out_phons)
             out_meta.append({'phonemes': out_phons, 'logits': logits, 'tokens': output})
 

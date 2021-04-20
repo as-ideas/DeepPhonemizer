@@ -53,7 +53,7 @@ class SequenceTokenizer:
 
     def __call__(self, sentence: Iterable[str], language: str) -> List[int]:
         if self.expand:
-            sentence = [item for item in sentence for i in range(3)]
+            sentence = [item for item in sentence for i in range(2)]
 
         if language not in self.languages:
             raise ValueError(f'Language not supported: {language}. Supported languages: {self.languages}')
