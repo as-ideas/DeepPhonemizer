@@ -22,8 +22,11 @@ class Predictor:
                  language: str,
                  batch_size=8) -> Tuple[List[Iterable[str]], List[Dict[str, Any]]]:
         """
+        Predicts phonemes for a list of texts.
+
         :param texts: List of texts to predict.
         :param language: Language of texts.
+        :param batch_size: Size of batch for model input to speed up inference.
         :return: Predicted phonemes and additional info per prediction such as logits, probability etc.
         """
 
@@ -32,24 +35,24 @@ class Predictor:
 
         # handle texts that result in an empty input to the model
         for text in texts:
-            input = self.text_tokenizer(text, language=language)
-            decoded = self.text_tokenizer.decode(input,
-                                                 remove_special_tokens=True)
+            input = self.text_tokenizer(sentence=text, language=language)
+            decoded = self.text_tokenizer.decode(
+                sequence=input, remove_special_tokens=True)
             if len(decoded) == 0:
                 predictions[text] = ([], [])
             else:
                 valid_texts.add(text)
 
         valid_texts = sorted(list(valid_texts), key=lambda x: len(x))
-        pred = self.predict_list(valid_texts,
-                                 batch_size=batch_size, language=language)
-        predictions.update(pred)
+        batch_pred = self._batch_predict(texts=valid_texts, batch_size=batch_size,
+                                         language=language)
+        predictions.update(batch_pred)
 
         out_phonemes, out_meta = [], []
         for text in texts:
             output, logits = predictions[text]
-            out_phons = self.phoneme_tokenizer.decode(output,
-                                                      remove_special_tokens=True)
+            out_phons = self.phoneme_tokenizer.decode(
+                sequence=output, remove_special_tokens=True)
             out_phonemes.append(out_phons)
             if len(logits) > 0:
                 out_meta.append({'phonemes': out_phons, 'logits': logits, 'tokens': output})
@@ -58,7 +61,7 @@ class Predictor:
 
         return out_phonemes, out_meta
 
-    def predict_list(self, texts: List[str], batch_size: int, language: str) \
+    def _batch_predict(self, texts: List[str], batch_size: int, language: str) \
             -> Dict[str, Tuple[torch.tensor, list]]:
         predictions = dict()
         text_batches = batchify(texts, batch_size)
