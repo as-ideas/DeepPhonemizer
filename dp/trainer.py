@@ -148,7 +148,8 @@ class Trainer:
         for batch in val_batches:
             batch = to_device(batch, device)
             for i in range(batch['text'].size(0)):
-                text = batch['text'][i, :]
+                text_len = batch['text_len'][i]
+                text = batch['text'][i, :text_len]
                 target = batch['phonemes'][i, :]
                 lang = batch['language'][i]
                 lang = lang_tokenizer.decode(lang.detach().cpu().item())
