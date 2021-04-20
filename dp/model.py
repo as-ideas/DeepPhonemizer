@@ -37,24 +37,33 @@ class Aligner(torch.nn.Module):
         super().__init__()
         self.register_buffer('step', torch.tensor(1, dtype=torch.int))
         self.embedding = nn.Embedding(num_embeddings=num_symbols_in, embedding_dim=conv_dim)
+        self.convs = nn.ModuleList([
+            BatchNormConv(conv_dim, conv_dim, 5),
+            BatchNormConv(conv_dim, conv_dim, 5),
+            BatchNormConv(conv_dim, conv_dim, 5),
+        ])
         self.rnn = torch.nn.LSTM(conv_dim, lstm_dim, batch_first=True, bidirectional=True)
         self.lin = torch.nn.Linear(2 * lstm_dim, num_symbols_out)
 
     def forward(self, x):
-        if self.train:
+        if self.training:
             self.step += 1
         x = self.embedding(x)
+        for conv in self.convs:
+            x = conv(x)
         x, _ = self.rnn(x)
         x = self.lin(x)
         return x
 
     def generate(self, x):
         x = self.embedding(x)
+        for conv in self.convs:
+            x = conv(x)
         x, _ = self.rnn(x)
         x = self.lin(x)
-        x = x.argmax(2)
+        x_out = x.argmax(2)
 
-        return x, None
+        return x_out, x
 
     def get_step(self):
         return self.step.data.item()

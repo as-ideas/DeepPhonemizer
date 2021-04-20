@@ -1,3 +1,4 @@
+from itertools import groupby
 from pathlib import Path
 from typing import List, Union
 
@@ -20,7 +21,7 @@ class Trainer:
     def __init__(self, checkpoint_dir: str) -> None:
         self.checkpoint_dir = Path(checkpoint_dir)
         self.checkpoint_dir.mkdir(parents=True, exist_ok=True)
-        self.writer = SummaryWriter(log_dir=self.checkpoint_dir / 'tensorboard')
+        self.writer = SummaryWriter(log_dir=self.checkpoint_dir / 'tensorboard_conv')
         self.ctc_loss = torch.nn.CTCLoss()
 
     def train(self,
@@ -69,6 +70,8 @@ class Trainer:
                 pred = model(text)
                 pred = pred.transpose(0, 1).log_softmax(2)
                 loss = ctc_loss(pred, phonemes, text_len, phon_len)
+                if torch.isnan(loss) or torch.isinf(loss):
+                    continue
                 optimizer.zero_grad()
                 loss.backward()
                 torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
@@ -150,7 +153,9 @@ class Trainer:
                 lang = lang_tokenizer.decode(lang.detach().cpu().item())
                 generated, _ = model.generate(text.unsqueeze(0))
                 generated = generated[0]
+                generated = [k for k, g in groupby(generated) if k != 0]
                 text, target = text.detach().cpu(), target.detach().cpu()
+                text = [k for k, g in groupby(text) if k != 0]
                 text = text_tokenizer.decode(text, remove_special_tokens=True)
                 generated = phoneme_tokenizer.decode(generated, remove_special_tokens=True)
                 target = phoneme_tokenizer.decode(target, remove_special_tokens=True)

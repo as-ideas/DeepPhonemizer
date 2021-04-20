@@ -3,7 +3,7 @@ from typing import Dict, Any, List, Tuple, Iterable
 
 from torch.nn.utils.rnn import pad_sequence
 
-from dp.model import TransformerModel
+from dp.model import Aligner
 from dp.text import Preprocessor
 from dp.utils import load_checkpoint, batchify
 
@@ -11,7 +11,7 @@ from dp.utils import load_checkpoint, batchify
 class Predictor:
 
     def __init__(self,
-                 model: TransformerModel,
+                 model: Aligner,
                  preprocessor: Preprocessor) -> None:
         self.model = model
         self.text_tokenizer = preprocessor.text_tokenizer
@@ -70,10 +70,7 @@ class Predictor:
                 input_batch.append(torch.tensor(input).long())
             input_batch = pad_sequence(sequences=input_batch,
                                        batch_first=True, padding_value=0)
-            output_batch, logits_batch = self.model.generate(
-                input=input_batch,
-                start_index=self.phoneme_tokenizer.get_start_index(language),
-                end_index=self.phoneme_tokenizer.end_index)
+            output_batch, logits_batch = self.model.generate(input_batch)
             for text, output, logits in zip(text_batch, output_batch, logits_batch):
                 seq_len = self._get_len_util_stop(output, self.phoneme_tokenizer.end_index)
                 predictions[text] = (output[:seq_len], logits[:seq_len])
