@@ -13,9 +13,9 @@ if __name__ == '__main__':
     checkpoint = torch.load(checkpoint_path, map_location=torch.device('cpu'))
     predictor = Predictor.from_checkpoint(checkpoint_path)
 
-    text = 'think'
+    text = 'hallo'
 
-    pred, meta = predictor([text], language='en_us')
+    pred, meta = predictor([text], language='de')
     pred = pred[0]
     pred_decoded = ''.join(pred)
 

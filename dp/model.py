@@ -100,7 +100,7 @@ class TransformerModel(nn.Module):
                  max_len=100) -> Tuple[torch.tensor, torch.tensor]:
 
         """ Returns indices and logits """
-
+        batch_size = input.size(0)
         input = input.transpose(0, 1)          # shape: [T, N]
         src_pad_mask = self.make_len_mask(input).to(input.device)
         with torch.no_grad():
@@ -108,12 +108,12 @@ class TransformerModel(nn.Module):
             input = self.pos_encoder(input)
             input = self.transformer.encoder(input,
                                              src_key_padding_mask=src_pad_mask)
-            out_indices = [start_index]
+            out_indices = torch.full((1, batch_size),
+                                     fill_value=start_index, dtype=torch.long).to(input.device)
             out_logits = []
             for i in range(max_len):
                 tgt_mask = self.generate_square_subsequent_mask(i + 1).to(input.device)
-                trg_tensor = torch.tensor(out_indices).long().unsqueeze(1).to(input.device)
-                output = self.decoder(trg_tensor)
+                output = self.decoder(out_indices)
                 output = self.pos_decoder(output)
                 output = self.transformer.decoder(output,
                                                   input,
@@ -121,10 +121,14 @@ class TransformerModel(nn.Module):
                                                   tgt_mask=tgt_mask)
                 output = self.fc_out(output)  # shape: [T, N, V]
                 out_logits.append(output[-1:, :, :])
-                out_token = output.argmax(2)[-1].item()
-                out_indices.append(out_token)
-                if out_token == end_index:
+                out_tokens = output.argmax(2)[-1:, :]
+                out_indices = torch.cat([out_indices, out_tokens], dim=0)
+                stop_rows, _ = torch.max(out_indices == end_index, dim=1)
+                if torch.sum(stop_rows) == batch_size:
                     break
+
+                #if out_token == end_index:
+                #    break
 
         out_indices = torch.tensor(out_indices).long()
         out_logits = torch.cat(out_logits, dim=0).transpose(0, 1) # out shape [N, T, V]
@@ -146,3 +150,9 @@ class TransformerModel(nn.Module):
             dropout=config['model']['dropout'],
             heads=config['model']['heads']
         )
+
+if __name__ == '__main__':
+    tens = torch.rand((5, 2, 10))
+    amax = tens.argmax(2)
+    print(tens)
+    print(amax.shape)
