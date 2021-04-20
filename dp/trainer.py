@@ -148,6 +148,7 @@ class Trainer:
                 generated, _ = model.generate(input=text.unsqueeze(0),
                                               start_index=phoneme_tokenizer.get_start_index(lang),
                                               end_index=phoneme_tokenizer.end_index)
+                generated = generated[0]
                 text, target = text.detach().cpu(), target.detach().cpu()
                 text = text_tokenizer.decode(text, remove_special_tokens=True)
                 generated = phoneme_tokenizer.decode(generated, remove_special_tokens=True)
