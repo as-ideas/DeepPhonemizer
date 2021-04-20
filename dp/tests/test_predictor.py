@@ -50,3 +50,9 @@ class TestPredictor(unittest.TestCase):
         self.assertEqual(2, len(meta))
         self.assertEqual(['a', 'b'], phonemes[0])
         self.assertEqual(['c', 'd'], phonemes[1])
+
+        texts = ['/']
+        phonemes, meta = predictor(texts, language='de', batch_size=1)
+        self.assertEqual(1, len(phonemes))
+        self.assertEqual(1, len(meta))
+        self.assertEqual([], phonemes[0])
