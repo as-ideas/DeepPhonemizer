@@ -116,6 +116,7 @@ class Trainer:
         model.eval()
         val_loss = 0.
         for batch in val_batches:
+            batch = to_device(batch)
             text = batch['text']
             phonemes = batch['phonemes']
             text_len = batch['text_len']
