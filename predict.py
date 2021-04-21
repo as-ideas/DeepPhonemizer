@@ -11,11 +11,11 @@ from dp.predictor import Predictor
 
 if __name__ == '__main__':
 
-    checkpoint_path = 'checkpoints/best_model_no_optim.pt'
+    checkpoint_path = 'checkpoints/model_step_1700k.pt'
     checkpoint = torch.load(checkpoint_path, map_location=torch.device('cpu'))
     predictor = Predictor.from_checkpoint(checkpoint_path)
 
-    text = ['zweitausendzweitausendzweitausend']
+    text = ['sechshundert']
 
     pred_batch, meta = predictor(text, language='de')
     for i, pred in enumerate(pred_batch):

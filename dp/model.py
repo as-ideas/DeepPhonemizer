@@ -28,21 +28,18 @@ class BatchNormConv(nn.Module):
         return x
 
 
-class AlignerLstm(torch.nn.Module):
+class Aligner(torch.nn.Module):
 
     def __init__(self,
                  num_symbols_in: int,
                  num_symbols_out: int,
                  lstm_dim: int,
-                 conv_dim: int) -> None:
+                 conv_dim: int,
+                 lang_embed_dim) -> None:
         super().__init__()
         self.register_buffer('step', torch.tensor(1, dtype=torch.int))
-        self.embedding = nn.Embedding(num_embeddings=num_symbols_in, embedding_dim=conv_dim)
-        self.convs = nn.ModuleList([
-            BatchNormConv(conv_dim, conv_dim, 5),
-            BatchNormConv(conv_dim, conv_dim, 5),
-            BatchNormConv(conv_dim, conv_dim, 5),
-        ])
+        self.embedding = nn.Embedding(num_embeddings=num_symbols_in, embedding_dim=conv_dim-lang_embed_dim)
+        self.lang_embedding = nn.Embedding(num_embeddings=num_symbols_in, embedding_dim=lang_embed_dim)
         self.rnn = torch.nn.LSTM(conv_dim, lstm_dim, batch_first=True, bidirectional=True)
         self.rnn_2 = torch.nn.LSTM(2*conv_dim, lstm_dim, batch_first=True, bidirectional=True)
         self.lin = torch.nn.Linear(2 * lstm_dim, num_symbols_out)
@@ -50,18 +47,20 @@ class AlignerLstm(torch.nn.Module):
     def forward(self, x):
         if self.training:
             self.step += 1
+        x_lang = self.lang_embedding(x[:, :1])
+        x_lang = x_lang.repeat(1, x.size(1), 1)
         x = self.embedding(x)
-        #for conv in self.convs:
-        #    x = conv(x)
+        x = torch.cat([x, x_lang], dim=-1)
         x, _ = self.rnn(x)
         x, _ = self.rnn_2(x)
         x = self.lin(x)
         return x
 
     def generate(self, x):
+        x_lang = self.lang_embedding(x[:, :1])
+        x_lang = x_lang.repeat(1, x.size(1), 1)
         x = self.embedding(x)
-        #for conv in self.convs:
-        #    x = conv(x)
+        x = torch.cat([x, x_lang], dim=-1)
         x, _ = self.rnn(x)
         x, _ = self.rnn_2(x)
         x = self.lin(x)
@@ -78,6 +77,7 @@ class AlignerLstm(torch.nn.Module):
         model = Aligner(
             num_symbols_in=preprocessor.text_tokenizer.vocab_size,
             num_symbols_out=preprocessor.phoneme_tokenizer.vocab_size,
+            lang_embed_dim=config['model']['lang_dim'],
             lstm_dim=config['model']['lstm_dim'],
             conv_dim=config['model']['conv_dim']
         )
@@ -107,7 +107,7 @@ class PositionalEncoding(nn.Module):
         return self.dropout(x)
 
 
-class Aligner(nn.Module):
+class AlignerTrans(nn.Module):
 
     def __init__(self,
                  encoder_vocab_size: int,
