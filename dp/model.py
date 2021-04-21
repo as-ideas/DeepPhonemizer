@@ -107,7 +107,7 @@ class PositionalEncoding(nn.Module):
         return self.dropout(x)
 
 
-class AlignerTrans(nn.Module):
+class Aligner(nn.Module):
 
     def __init__(self,
                  encoder_vocab_size: int,

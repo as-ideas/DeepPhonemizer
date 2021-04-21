@@ -17,15 +17,15 @@ model:
   lang_dim: 32
   d_model: 512
   d_fft: 1024
-  layers: 4
+  layers: 8
   dropout: 0.1
-  heads: 4
+  heads: 8
 
 training:
   learning_rate: 0.0001
   batch_size: 32
   epochs: 100
-  generate_steps: 1000
+  generate_steps: 10000
   validate_steps: 1000
   checkpoint_steps: 100000
   n_generate_samples: 10
