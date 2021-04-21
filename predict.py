@@ -15,7 +15,7 @@ if __name__ == '__main__':
     checkpoint = torch.load(checkpoint_path, map_location=torch.device('cpu'))
     predictor = Predictor.from_checkpoint(checkpoint_path)
 
-    text = ['Mützenich']
+    text = ['covid']
 
     pred_batch, meta = predictor(text, language='de')
     for i, pred in enumerate(pred_batch):
