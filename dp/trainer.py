@@ -112,7 +112,7 @@ class Trainer:
         ctc_loss = self.ctc_loss.to(device)
 
         model.eval()
-        val_loss = 0.
+        val_losses = []
         for batch in val_batches:
             batch = to_device(batch, device)
             text = batch['text']
@@ -123,9 +123,10 @@ class Trainer:
                 pred = model(text)
                 pred = pred.transpose(0, 1).log_softmax(2)
                 loss = ctc_loss(pred, phonemes, text_len, phon_len)
-                val_loss += loss.item()
+                if not (torch.isnan(loss) or torch.isinf(loss)):
+                    val_losses.append(loss.item())
         model.train()
-        return val_loss / len(val_batches)
+        return sum(val_losses) / len(val_losses)
 
     @ignore_exception
     def generate_samples(self,
