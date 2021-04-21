@@ -123,7 +123,6 @@ class Aligner(nn.Module):
 
         self.embedding = nn.Embedding(encoder_vocab_size, d_model)
         self.pos_encoder = PositionalEncoding(d_model, dropout)
-        self.rnn = torch.nn.LSTM(d_model, d_model // 2, batch_first=True, bidirectional=True)
 
         encoder_layer = TransformerEncoderLayer(d_model=d_model,
                                                 nhead=heads,
@@ -160,7 +159,6 @@ class Aligner(nn.Module):
         x = self.embedding(x)
         x = self.pos_encoder(x)
         x = self.encoder(x, src_key_padding_mask=src_pad_mask)
-        x, _ = self.rnn(x)
         x = self.fc_out(x)
         x = x.transpose(0, 1)
         return x
@@ -179,7 +177,6 @@ class Aligner(nn.Module):
         x = self.embedding(x)
         x = self.pos_encoder(x)
         x = self.encoder(x, src_key_padding_mask=src_pad_mask)
-        x, _ = self.rnn(x)
         x = self.fc_out(x)
         x = x.transpose(0, 1)
         x_out = x.argmax(2)

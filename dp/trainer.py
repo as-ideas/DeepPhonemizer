@@ -21,7 +21,7 @@ class Trainer:
     def __init__(self, checkpoint_dir: str) -> None:
         self.checkpoint_dir = Path(checkpoint_dir)
         self.checkpoint_dir.mkdir(parents=True, exist_ok=True)
-        self.writer = SummaryWriter(log_dir=self.checkpoint_dir / 'tensorboard_trans_rnn')
+        self.writer = SummaryWriter(log_dir=self.checkpoint_dir / 'tensorboard_trans_new')
         self.ctc_loss = torch.nn.CTCLoss()
 
     def train(self,

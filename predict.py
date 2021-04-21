@@ -17,7 +17,7 @@ if __name__ == '__main__':
 
     text = ['zweitausendzweitausendzweitausend']
 
-    pred_batch, meta = predictor(text, language='en_us')
+    pred_batch, meta = predictor(text, language='de')
     for i, pred in enumerate(pred_batch):
         pred_decoded = ''.join(pred)
         tokens, logits = meta[i]['tokens'], meta[i]['logits']
