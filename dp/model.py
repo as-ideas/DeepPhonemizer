@@ -28,7 +28,7 @@ class BatchNormConv(nn.Module):
         return x
 
 
-class Aligner(torch.nn.Module):
+class AlignerLstm(torch.nn.Module):
 
     def __init__(self,
                  num_symbols_in: int,
@@ -41,7 +41,7 @@ class Aligner(torch.nn.Module):
         self.embedding = nn.Embedding(num_embeddings=num_symbols_in, embedding_dim=conv_dim-lang_embed_dim)
         self.lang_embedding = nn.Embedding(num_embeddings=num_symbols_in, embedding_dim=lang_embed_dim)
         self.rnn = torch.nn.LSTM(conv_dim, lstm_dim, batch_first=True, bidirectional=True)
-        self.rnn_2 = torch.nn.LSTM(2*conv_dim, lstm_dim, batch_first=True, bidirectional=True)
+        self.rnn_2 = torch.nn.LSTM(2 * conv_dim, lstm_dim, batch_first=True, bidirectional=True)
         self.lin = torch.nn.Linear(2 * lstm_dim, num_symbols_out)
 
     def forward(self, x):
@@ -57,6 +57,7 @@ class Aligner(torch.nn.Module):
         return x
 
     def generate(self, x):
+        assert x.size(0) == 1, 'Currently only batch size 1 please!'
         x_lang = self.lang_embedding(x[:, :1])
         x_lang = x_lang.repeat(1, x.size(1), 1)
         x = self.embedding(x)
@@ -64,9 +65,8 @@ class Aligner(torch.nn.Module):
         x, _ = self.rnn(x)
         x, _ = self.rnn_2(x)
         x = self.lin(x)
-        x_out = x.argmax(2)
-
-        return x_out, x
+        tokens = x.argmax(-1)
+        return tokens, x
 
     def get_step(self):
         return self.step.data.item()
@@ -107,7 +107,7 @@ class PositionalEncoding(nn.Module):
         return self.dropout(x)
 
 
-class AlignerTrans(nn.Module):
+class Aligner(nn.Module):
 
     def __init__(self,
                  encoder_vocab_size: int,
@@ -120,7 +120,7 @@ class AlignerTrans(nn.Module):
         super(Aligner, self).__init__()
 
         self.d_model = d_model
-
+        self.rnn = torch.nn.LSTM(2 * d_model, d_model // 2, batch_first=False, bidirectional=True)
         self.embedding = nn.Embedding(encoder_vocab_size, d_model)
         self.pos_encoder = PositionalEncoding(d_model, dropout)
 
@@ -156,9 +156,11 @@ class AlignerTrans(nn.Module):
 
         x = x.transpose(0, 1)        # shape: [T, N]
         src_pad_mask = self.make_len_mask(x).to(x.device)
-        x = self.embedding(x)
-        x = self.pos_encoder(x)
+        emb = self.embedding(x)
+        x = self.pos_encoder(emb)
         x = self.encoder(x, src_key_padding_mask=src_pad_mask)
+        x = torch.cat([emb, x], dim=-1)
+        x, _ = self.rnn(x)
         x = self.fc_out(x)
         x = x.transpose(0, 1)
         return x
@@ -174,9 +176,11 @@ class AlignerTrans(nn.Module):
 
         x = x.transpose(0, 1)        # shape: [T, N]
         src_pad_mask = self.make_len_mask(x).to(x.device)
-        x = self.embedding(x)
-        x = self.pos_encoder(x)
+        emb = self.embedding(x)
+        x = self.pos_encoder(emb)
         x = self.encoder(x, src_key_padding_mask=src_pad_mask)
+        x = torch.cat([emb, x], dim=-1)
+        x, _ = self.rnn(x)
         x = self.fc_out(x)
         x = x.transpose(0, 1)
         x_out = x.argmax(2)

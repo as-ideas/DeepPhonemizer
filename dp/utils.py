@@ -7,7 +7,6 @@ import yaml
 import math
 
 from dp.model import Aligner
-from dp.text import Preprocessor
 
 
 def read_config(path: str) -> Dict[str, Any]:
