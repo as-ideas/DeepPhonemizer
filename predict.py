@@ -15,9 +15,9 @@ if __name__ == '__main__':
     checkpoint = torch.load(checkpoint_path, map_location=torch.device('cpu'))
     predictor = Predictor.from_checkpoint(checkpoint_path)
 
-    text = ['covid']
+    text = ['zweitausendzweitausendzweitausend']
 
-    pred_batch, meta = predictor(text, language='de')
+    pred_batch, meta = predictor(text, language='en_us')
     for i, pred in enumerate(pred_batch):
         pred_decoded = ''.join(pred)
         tokens, logits = meta[i]['tokens'], meta[i]['logits']
