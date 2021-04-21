@@ -107,7 +107,7 @@ class PositionalEncoding(nn.Module):
         return self.dropout(x)
 
 
-class Aligner(nn.Module):
+class AlignerTrans(nn.Module):
 
     def __init__(self,
                  encoder_vocab_size: int,
@@ -120,7 +120,7 @@ class Aligner(nn.Module):
         super(Aligner, self).__init__()
 
         self.d_model = d_model
-        self.rnn = torch.nn.LSTM(2 * d_model, d_model // 2, batch_first=False, bidirectional=True)
+
         self.embedding = nn.Embedding(encoder_vocab_size, d_model)
         self.pos_encoder = PositionalEncoding(d_model, dropout)
 
@@ -156,11 +156,9 @@ class Aligner(nn.Module):
 
         x = x.transpose(0, 1)        # shape: [T, N]
         src_pad_mask = self.make_len_mask(x).to(x.device)
-        emb = self.embedding(x)
-        x = self.pos_encoder(emb)
+        x = self.embedding(x)
+        x = self.pos_encoder(x)
         x = self.encoder(x, src_key_padding_mask=src_pad_mask)
-        x = torch.cat([emb, x], dim=-1)
-        x, _ = self.rnn(x)
         x = self.fc_out(x)
         x = x.transpose(0, 1)
         return x
@@ -176,11 +174,9 @@ class Aligner(nn.Module):
 
         x = x.transpose(0, 1)        # shape: [T, N]
         src_pad_mask = self.make_len_mask(x).to(x.device)
-        emb = self.embedding(x)
-        x = self.pos_encoder(emb)
+        x = self.embedding(x)
+        x = self.pos_encoder(x)
         x = self.encoder(x, src_key_padding_mask=src_pad_mask)
-        x = torch.cat([emb, x], dim=-1)
-        x, _ = self.rnn(x)
         x = self.fc_out(x)
         x = x.transpose(0, 1)
         x_out = x.argmax(2)

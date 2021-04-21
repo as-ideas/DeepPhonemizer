@@ -15,7 +15,7 @@ if __name__ == '__main__':
     checkpoint = torch.load(checkpoint_path, map_location=torch.device('cpu'))
     predictor = Predictor.from_checkpoint(checkpoint_path)
 
-    text = ['eintausendvierundsechzig']
+    text = ['sechzigsechzigsechzigsechzigsechzig']
 
     pred_batch, meta = predictor(text, language='de', batch_size=1)
     tokens, logits =  meta[0]['tokens'], meta[0]['logits']
