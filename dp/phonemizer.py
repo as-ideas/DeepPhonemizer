@@ -2,8 +2,6 @@ import torch
 import re
 from typing import Dict, Union, Tuple, List
 
-from dp.decorators import time_it
-from dp.model import TransformerModel
 from dp.predictor import Predictor
 from dp.text import Preprocessor
 from dp.utils import get_sequence_prob, load_checkpoint
