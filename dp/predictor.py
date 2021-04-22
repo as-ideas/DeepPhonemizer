@@ -5,7 +5,8 @@ from torch.nn.utils.rnn import pad_sequence
 
 from dp.model import Aligner
 from dp.text import Preprocessor
-from dp.utils import load_checkpoint, batchify
+from dp.model import load_checkpoint
+from dp.utils import batchify, get_dedup_tokens
 
 
 class Predictor:
@@ -51,11 +52,11 @@ class Predictor:
 
         out_phonemes, out_meta = [], []
         for word in words:
-            output, logits = predictions[word]
+            output, probs = predictions[word]
             out_phons = self.phoneme_tokenizer.decode(
                 sequence=output, remove_special_tokens=True)
             out_phonemes.append(out_phons)
-            out_meta.append({'phonemes': out_phons, 'logits': logits, 'tokens': output})
+            out_meta.append({'phonemes': out_phons, 'probs': probs, 'tokens': output})
 
         return out_phonemes, out_meta
 
@@ -70,10 +71,11 @@ class Predictor:
                 input_batch.append(torch.tensor(input).long())
             input_batch = pad_sequence(sequences=input_batch,
                                        batch_first=True, padding_value=0)
-            output_batch, logits_batch = self.model.generate(input_batch)
-            for text, output, logits in zip(text_batch, output_batch, logits_batch):
+            logits_batch = self.model(input_batch)
+            output_batch, probs_batch = get_dedup_tokens(logits_batch)
+            for text, output, probs in zip(text_batch, output_batch, probs_batch):
                 seq_len = self._get_len_util_stop(output, self.phoneme_tokenizer.end_index)
-                predictions[text] = (output[:seq_len], logits[:seq_len])
+                predictions[text] = (output[:seq_len], probs[:seq_len])
 
         return predictions
 

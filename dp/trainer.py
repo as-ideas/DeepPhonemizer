@@ -13,7 +13,7 @@ from dp.decorators import ignore_exception
 from dp.metrics import phoneme_error_rate, word_error
 from dp.model import Aligner
 from dp.text import Preprocessor
-from dp.utils import to_device, unpickle_binary
+from dp.utils import to_device, unpickle_binary, get_dedup_tokens
 
 
 class Trainer:
@@ -152,9 +152,9 @@ class Trainer:
                 target = batch['phonemes'][i, :]
                 lang = batch['language'][i]
                 lang = lang_tokenizer.decode(lang.detach().cpu().item())
-                generated, _ = model.generate(text.unsqueeze(0))
+                generated = model(text.unsqueeze(0))
+                generated, _ = get_dedup_tokens(generated)
                 generated = generated[0]
-                generated = [k for k, g in groupby(generated) if k != 0]
                 text, target = text.detach().cpu(), target.detach().cpu()
                 text = text_tokenizer.decode(text, remove_special_tokens=True)
                 generated = phoneme_tokenizer.decode(generated, remove_special_tokens=True)

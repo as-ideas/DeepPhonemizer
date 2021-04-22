@@ -1,12 +1,15 @@
-from typing import List, Tuple
+from typing import List, Tuple, Dict, Any
 
 import torch
 import torch.nn as nn
 import math
 
 from torch.nn import TransformerEncoderLayer, LayerNorm, TransformerEncoder, Dropout
+from torch.nn.utils.rnn import pad_sequence
 
 from dp.text import Preprocessor
+
+
 
 
 class BatchNormConv(nn.Module):
@@ -56,17 +59,6 @@ class Aligner(torch.nn.Module):
         x = self.lin(x)
         return x
 
-    def generate(self, x):
-        x_lang = self.lang_embedding(x[:, :1])
-        x_lang = x_lang.repeat(1, x.size(1), 1)
-        x = self.embedding(x)
-        x = torch.cat([x, x_lang], dim=-1)
-        x, _ = self.rnn(x)
-        x, _ = self.rnn_2(x)
-        x = self.lin(x)
-        tokens = x.argmax(-1)
-        return tokens, x
-
     def get_step(self):
         return self.step.data.item()
 
@@ -106,7 +98,7 @@ class PositionalEncoding(nn.Module):
         return self.dropout(x)
 
 
-class AlignerTrans(nn.Module):
+class AlignerT(nn.Module):
 
     def __init__(self,
                  encoder_vocab_size: int,
@@ -160,27 +152,9 @@ class AlignerTrans(nn.Module):
         x = self.encoder(x, src_key_padding_mask=src_pad_mask)
         x = self.fc_out(x)
         x = x.transpose(0, 1)
+
+
         return x
-
-    def generate(self,
-                 x,           # shape: [N, T]
-                ) -> Tuple[torch.tensor, torch.tensor]:
-
-        """ Returns indices and logits """
-
-        if self.training:
-            self.step += 1
-
-        x = x.transpose(0, 1)        # shape: [T, N]
-        src_pad_mask = self.make_len_mask(x).to(x.device)
-        x = self.embedding(x)
-        x = self.pos_encoder(x)
-        x = self.encoder(x, src_key_padding_mask=src_pad_mask)
-        x = self.fc_out(x)
-        x = x.transpose(0, 1)
-        x_out = x.argmax(2)
-
-        return x_out, x
 
     def get_step(self):
         return self.step.data.item()
@@ -197,3 +171,12 @@ class AlignerTrans(nn.Module):
             dropout=config['model']['dropout'],
             heads=config['model']['heads']
         )
+
+
+def load_checkpoint(checkpoint_path: str, device='cpu') -> Tuple[Aligner, Dict[str, Any]]:
+    device = torch.device(device)
+    checkpoint = torch.load(checkpoint_path, map_location=device)
+    model = Aligner.from_config(checkpoint['config']).to(device)
+    model.load_state_dict(checkpoint['model'])
+    model.eval()
+    return model, checkpoint

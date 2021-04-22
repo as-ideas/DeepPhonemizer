@@ -6,6 +6,8 @@ import torch
 import yaml
 import math
 
+from torch.nn.utils.rnn import pad_sequence
+
 from dp.model import Aligner
 
 
@@ -38,22 +40,11 @@ def to_device(batch: Dict[str, torch.tensor], device: torch.device) -> Dict[str,
     return {key: val.to(device) for key, val in batch.items()}
 
 
-def get_sequence_prob(tokens: List[int], logits: torch.tensor) -> float:
-    if len(tokens) == 0:
-        return 1.
-    norm_logits = logits.softmax(dim=-1)
-    probs = [norm_logits[i, p] for i, p in enumerate(tokens[1:])]
+def get_sequence_prob(probs: torch.tensor) -> float:
+    if probs is None or len(probs) == 0:
+        return 0.
     prob = math.exp(sum([math.log(p) for p in probs]))
     return prob
-
-
-def load_checkpoint(checkpoint_path: str, device='cpu') -> Tuple[Aligner, Dict[str, Any]]:
-    device = torch.device(device)
-    checkpoint = torch.load(checkpoint_path, map_location=device)
-    model = Aligner.from_config(checkpoint['config']).to(device)
-    model.load_state_dict(checkpoint['model'])
-    model.eval()
-    return model, checkpoint
 
 
 def batchify(input: list, batch_size: int) -> List[list]:
@@ -64,3 +55,29 @@ def batchify(input: list, batch_size: int) -> List[list]:
         output.append(batch)
     return output
 
+
+def get_dedup_tokens(logits_batch: torch.tensor) \
+        -> Tuple[torch.tensor, torch.tensor]:
+    logits_batch = logits_batch.softmax(-1)
+    out_tokens, out_probs = [], []
+    for i in range(logits_batch.size(0)):
+        logits = logits_batch[i]
+        max_logits, max_indices = torch.max(logits, dim=-1)
+        max_logits = max_logits[max_indices!=0]
+        max_indices = max_indices[max_indices!=0]
+        cons_tokens, counts = torch.unique_consecutive(
+            max_indices, return_counts=True)
+        out_probs_i = []
+        ind = 0
+        for c in counts:
+            max_logit = max_logits[ind:ind + c].max()
+            out_probs_i.append(max_logit.item())
+            ind = ind + c
+        out_tokens.append(cons_tokens)
+        out_probs_i = torch.tensor(out_probs_i)
+        out_probs.append(out_probs_i)
+
+    out_tokens = pad_sequence(out_tokens, batch_first=True, padding_value=0)
+    out_probs = pad_sequence(out_probs, batch_first=True, padding_value=0)
+
+    return out_tokens, out_probs

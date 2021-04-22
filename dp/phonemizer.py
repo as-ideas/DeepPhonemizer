@@ -2,9 +2,10 @@ import torch
 import re
 from typing import Dict, Union, Tuple, List
 
+from dp.model import load_checkpoint
 from dp.predictor import Predictor
 from dp.text import Preprocessor
-from dp.utils import get_sequence_prob, load_checkpoint
+from dp.utils import get_sequence_prob
 
 DEFAULT_PUNCTUATION = '().,:?!'
 
@@ -133,7 +134,7 @@ class Phonemizer:
                       batch_size: int) -> Tuple[List[str], List[float]]:
         tokens, metas = self.predictor(words, language=lang, batch_size=batch_size)
         pred = [''.join(t) for t in tokens]
-        probs = [get_sequence_prob(m['tokens'], m['logits']) for m in metas]
+        probs = [get_sequence_prob(m['probs']) for m in metas]
         return pred, probs
 
     def get_dict_entry(self,
@@ -185,9 +186,10 @@ if __name__ == '__main__':
     checkpoint_path = '../checkpoints/best_model_no_optim.pt'
     phonemizer = Phonemizer.from_checkpoint(checkpoint_path)
 
-    input = ['Wir sind tollehechte', 'Bringmeister']
+    input = open('/Users/cschaefe/datasets/ASVoice4/metadata_clean_incl_english.csv').readlines()[:]
+    input = [s.split('|')[1] for s in input if not s.split('|')[0].startswith('en_') and len(s.split('|')) > 1][:1000]
 
-    words, phons, preds = phonemizer.phonemise_list(input, lang='de', batch_size=8)
+    words, phons, preds = phonemizer.phonemise_list(input, lang='de', batch_size=16)
 
     pred_words = sorted(list(preds.keys()), key=lambda x: -preds[x][1])
     for word in pred_words:
@@ -195,4 +197,4 @@ if __name__ == '__main__':
         print(f'{word} {pred} {prob}')
 
     phons = [''.join(p) for p in phons]
-    print(phons)
+   # print(phons)
