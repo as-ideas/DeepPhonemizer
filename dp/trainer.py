@@ -11,7 +11,6 @@ from torch.utils.tensorboard import SummaryWriter
 from dp.dataset import new_dataloader
 from dp.decorators import ignore_exception
 from dp.metrics import phoneme_error_rate, word_error
-from dp.model import Aligner
 from dp.text import Preprocessor
 from dp.utils import to_device, unpickle_binary, get_dedup_tokens
 
@@ -25,7 +24,7 @@ class Trainer:
         self.ctc_loss = torch.nn.CTCLoss()
 
     def train(self,
-              model: Aligner,
+              model: torch.nn.Module,
               checkpoint: dict,
               store_phoneme_dict_in_model=True) -> None:
 
@@ -107,7 +106,7 @@ class Trainer:
             self.save_model(model=model, optimizer=optimizer, checkpoint=checkpoint,
                             path=self.checkpoint_dir / 'latest_model.pt')
 
-    def validate(self, model: Aligner, val_batches: List[dict]) -> float:
+    def validate(self, model: torch.nn.Module, val_batches: List[dict]) -> float:
         device = next(model.parameters()).device
         ctc_loss = self.ctc_loss.to(device)
 
@@ -130,7 +129,7 @@ class Trainer:
 
     @ignore_exception
     def generate_samples(self,
-                         model: Aligner,
+                         model: torch.nn.Module,
                          preprocessor: Preprocessor,
                          val_batches: List[dict],
                          n_log_samples: int) -> float:
@@ -196,7 +195,7 @@ class Trainer:
         return sum_per / count
 
     def save_model(self,
-                   model: Aligner,
+                   model: torch.nn.Module,
                    optimizer: torch.optim,
                    checkpoint: dict,
                    path: Path) -> None:

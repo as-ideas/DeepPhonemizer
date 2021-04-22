@@ -1,3 +1,5 @@
+from itertools import zip_longest
+
 import torch
 import re
 from typing import Dict, Union, Tuple, List
@@ -158,10 +160,13 @@ class Phonemizer:
     def expand_acronym(self, word: str) -> str:
         subwords = []
         for subword in word.split('-'):
-            if subword.isupper():
-                subwords.append('-'.join(list(subword)))
-            else:
-                subwords.append(subword)
+            expanded = []
+            for a, b in zip_longest(subword, subword[1:]):
+                expanded.append(a)
+                if b is not None and b.isupper():
+                    expanded.append('-')
+            expanded = ''.join(expanded)
+            subwords.append(expanded)
         return '-'.join(subwords)
 
     @classmethod
@@ -186,10 +191,11 @@ if __name__ == '__main__':
     checkpoint_path = '../checkpoints/best_model_no_optim.pt'
     phonemizer = Phonemizer.from_checkpoint(checkpoint_path)
 
-    input = open('/Users/cschaefe/datasets/ASVoice4/metadata_clean_incl_english.csv').readlines()[:]
-    input = [s.split('|')[1] for s in input if not s.split('|')[0].startswith('en_') and len(s.split('|')) > 1][:1000]
+    input = open('/Users/cschaefe/datasets/ASVoice4/metadata_clean_incl_english.csv').readlines()[:1000]
+    input = [s.split('|')[1] for s in input if not s.split('|')[0].startswith('en_') and len(s.split('|')) > 1][:]
 
-    words, phons, preds = phonemizer.phonemise_list(input, lang='de', batch_size=16)
+    #input=['AfD']
+    words, phons, preds = phonemizer.phonemise_list(input, lang='de', batch_size=1)
 
     pred_words = sorted(list(preds.keys()), key=lambda x: -preds[x][1])
     for word in pred_words:
@@ -197,4 +203,4 @@ if __name__ == '__main__':
         print(f'{word} {pred} {prob}')
 
     phons = [''.join(p) for p in phons]
-   # print(phons)
+    #print(phons)

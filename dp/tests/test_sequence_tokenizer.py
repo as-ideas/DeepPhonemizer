@@ -9,8 +9,8 @@ class TestSequenceTokenizer(unittest.TestCase):
         symbols = ['a', 'b', 'c', 'd', 'e']
         languages = ['de', 'en']
 
-        tokenizer = SequenceTokenizer(symbols=symbols, languages=languages,  lowercase=True,
-                                      append_start_end=True, end_token='<end>')
+        tokenizer = SequenceTokenizer(symbols=symbols, languages=languages, char_repeats=1,
+                                      lowercase=True, append_start_end=True, end_token='<end>')
 
         tokens = tokenizer(['a', 'b'], language='de')
         decoded = tokenizer.decode(tokens)

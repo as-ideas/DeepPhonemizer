@@ -3,7 +3,6 @@ from typing import Dict, Any, List, Tuple, Iterable
 
 from torch.nn.utils.rnn import pad_sequence
 
-from dp.model import Aligner
 from dp.text import Preprocessor
 from dp.model import load_checkpoint
 from dp.utils import batchify, get_dedup_tokens
@@ -12,7 +11,7 @@ from dp.utils import batchify, get_dedup_tokens
 class Predictor:
 
     def __init__(self,
-                 model: Aligner,
+                 model: torch.nn.Module,
                  preprocessor: Preprocessor) -> None:
         self.model = model
         self.text_tokenizer = preprocessor.text_tokenizer

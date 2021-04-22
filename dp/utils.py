@@ -8,8 +8,6 @@ import math
 
 from torch.nn.utils.rnn import pad_sequence
 
-from dp.model import Aligner
-
 
 def read_config(path: str) -> Dict[str, Any]:
     with open(path, 'r') as stream:
@@ -43,6 +41,8 @@ def to_device(batch: Dict[str, torch.tensor], device: torch.device) -> Dict[str,
 def get_sequence_prob(probs: torch.tensor) -> float:
     if probs is None or len(probs) == 0:
         return 0.
+    if 0 in probs:
+        return 0
     prob = math.exp(sum([math.log(p) for p in probs]))
     return prob
 
@@ -58,6 +58,9 @@ def batchify(input: list, batch_size: int) -> List[list]:
 
 def get_dedup_tokens(logits_batch: torch.tensor) \
         -> Tuple[torch.tensor, torch.tensor]:
+
+    """ Returns deduplicated tokens and probs of tokens """
+
     logits_batch = logits_batch.softmax(-1)
     out_tokens, out_probs = [], []
     for i in range(logits_batch.size(0)):

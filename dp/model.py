@@ -5,33 +5,11 @@ import torch.nn as nn
 import math
 
 from torch.nn import TransformerEncoderLayer, LayerNorm, TransformerEncoder, Dropout
-from torch.nn.utils.rnn import pad_sequence
 
 from dp.text import Preprocessor
 
 
-
-
-class BatchNormConv(nn.Module):
-
-    def __init__(self, in_channels: int, out_channels: int, kernel_size: int):
-        super().__init__()
-        self.conv = nn.Conv1d(
-            in_channels, out_channels, kernel_size,
-            stride=1, padding=kernel_size // 2, bias=False)
-        self.bnorm = nn.BatchNorm1d(out_channels)
-        self.relu = nn.ReLU()
-
-    def forward(self, x):
-        x = x.transpose(1, 2)
-        x = self.conv(x)
-        x = self.relu(x)
-        x = self.bnorm(x)
-        x = x.transpose(1, 2)
-        return x
-
-
-class Aligner(torch.nn.Module):
+class LstmModel(torch.nn.Module):
 
     def __init__(self,
                  num_symbols_in: int,
@@ -63,9 +41,9 @@ class Aligner(torch.nn.Module):
         return self.step.data.item()
 
     @classmethod
-    def from_config(cls, config: dict) -> 'Aligner':
+    def from_config(cls, config: dict) -> 'LstmModel':
         preprocessor = Preprocessor.from_config(config)
-        model = Aligner(
+        model = LstmModel(
             num_symbols_in=preprocessor.text_tokenizer.vocab_size,
             num_symbols_out=preprocessor.phoneme_tokenizer.vocab_size,
             lang_embed_dim=config['model']['lang_dim'],
@@ -73,9 +51,6 @@ class Aligner(torch.nn.Module):
             conv_dim=config['model']['conv_dim']
         )
         return model
-
-
-
 
 
 class PositionalEncoding(nn.Module):
@@ -98,7 +73,7 @@ class PositionalEncoding(nn.Module):
         return self.dropout(x)
 
 
-class AlignerT(nn.Module):
+class TransformerModel(nn.Module):
 
     def __init__(self,
                  encoder_vocab_size: int,
@@ -108,7 +83,7 @@ class AlignerT(nn.Module):
                  layers=4,
                  dropout=0.1,
                  heads=1):
-        super(Aligner, self).__init__()
+        super(TransformerModel, self).__init__()
 
         self.d_model = d_model
 
@@ -152,8 +127,6 @@ class AlignerT(nn.Module):
         x = self.encoder(x, src_key_padding_mask=src_pad_mask)
         x = self.fc_out(x)
         x = x.transpose(0, 1)
-
-
         return x
 
     def get_step(self):
@@ -162,7 +135,7 @@ class AlignerT(nn.Module):
     @classmethod
     def from_config(cls, config: dict) -> 'Aligner':
         preprocessor = Preprocessor.from_config(config)
-        return Aligner(
+        return TransformerModel(
             encoder_vocab_size=preprocessor.text_tokenizer.vocab_size,
             decoder_vocab_size=preprocessor.phoneme_tokenizer.vocab_size,
             d_model=config['model']['d_model'],
@@ -173,10 +146,20 @@ class AlignerT(nn.Module):
         )
 
 
-def load_checkpoint(checkpoint_path: str, device='cpu') -> Tuple[Aligner, Dict[str, Any]]:
+def load_checkpoint(checkpoint_path: str, device='cpu') -> Tuple[torch.nn.Module, Dict[str, Any]]:
     device = torch.device(device)
     checkpoint = torch.load(checkpoint_path, map_location=device)
-    model = Aligner.from_config(checkpoint['config']).to(device)
+
+    model_type = checkpoint['config']['model']['type']
+    supported_types = ['lstm', 'transformer']
+    if model_type == 'lstm':
+            model = LstmModel.from_config(checkpoint['config']).to(device)
+    elif model_type == 'transformer':
+            model = TransformerModel.from_config(checkpoint['config']).to(device)
+    else:
+        raise ValueError(f'Model type not supported: {model_type}. Supported types: {supported_types}')
+
     model.load_state_dict(checkpoint['model'])
+
     model.eval()
     return model, checkpoint
