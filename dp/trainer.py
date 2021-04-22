@@ -69,6 +69,7 @@ class Trainer:
                 pred = model(text)
                 pred = pred.transpose(0, 1).log_softmax(2)
                 loss = ctc_loss(pred, phonemes, text_len, phon_len)
+
                 if not (torch.isnan(loss) or torch.isinf(loss)):
                     optimizer.zero_grad()
                     loss.backward()
