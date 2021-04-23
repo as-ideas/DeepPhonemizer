@@ -1,38 +1,12 @@
-from multiprocessing.pool import Pool
+from pathlib import Path
+import argparse
 from pathlib import Path
 from random import Random
-from typing import Iterable, Tuple
 
 import tqdm
-import pickle
-import argparse
 
 from dp.text import Preprocessor
 from dp.utils import read_config, pickle_binary, unpickle_binary
-
-
-def get_data(file: str):
-    with open(file, 'rb') as f:
-        df = pickle.load(f)
-    tuples = df[['title', 'pronunciation']]
-    tuples = [tuple(x) for x in tuples.to_numpy()]
-    data_set = {w for w, _ in tuples}
-    train_data = []
-    max_len = 50
-    all_phons = set()
-    for word, phon in tuples:
-        all_phons.update(set(phon))
-        if 0 < len(phon) < max_len and ' ' not in word and 0 < len(word) < max_len:
-            train_data.append(('de', word, phon))
-            if word.lower() not in data_set:
-                word_ = word.lower()
-                #train_data.append(('de', word_, phon))
-            if word.title() not in data_set:
-                word_ = word.title()
-                #train_data.append(('de', word_, phon))
-
-    return train_data
-
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Preprocessing for DeepForcedAligner.')
@@ -46,7 +20,6 @@ if __name__ == '__main__':
     data_dir = Path(config['paths']['data_dir'])
     data_dir.mkdir(parents=True, exist_ok=True)
 
-    #raw_data = get_data(args.path)
     raw_data = unpickle_binary(args.path)
     languages = set(config['preprocessing']['languages'])
     raw_data = [r for r in raw_data if r[0] in languages]

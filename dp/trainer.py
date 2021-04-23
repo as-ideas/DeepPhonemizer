@@ -10,6 +10,7 @@ from torch.utils.tensorboard import SummaryWriter
 from dp.dataset import new_dataloader
 from dp.decorators import ignore_exception
 from dp.metrics import phoneme_error_rate, word_error
+from dp.predictor import Predictor
 from dp.text import Preprocessor
 from dp.utils import to_device, unpickle_binary, get_dedup_tokens
 
@@ -141,7 +142,6 @@ class Trainer:
         phoneme_tokenizer = preprocessor.phoneme_tokenizer
         lang_tokenizer = preprocessor.lang_tokenizer
         lang_prediction_result = dict()
-
         per, wer = 0., 0.
         for batch in val_batches:
             batch = to_device(batch, device)

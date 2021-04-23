@@ -59,7 +59,10 @@ class Predictor:
 
         return out_phonemes, out_meta
 
-    def _batch_predict(self, texts: List[str], batch_size: int, language: str) \
+    def _batch_predict(self,
+                       texts: List[str],
+                       batch_size: int,
+                       language: str) \
             -> Dict[str, Tuple[torch.tensor, torch.tensor]]:
         predictions = dict()
         text_batches = batchify(texts, batch_size)
@@ -70,7 +73,9 @@ class Predictor:
                 input_batch.append(torch.tensor(input).long())
             input_batch = pad_sequence(sequences=input_batch,
                                        batch_first=True, padding_value=0)
-            logits_batch = self.model(input_batch)
+            with torch.no_grad():
+                logits_batch = self.model(input_batch)
+            logits_batch = logits_batch.cpu()
             output_batch, probs_batch = get_dedup_tokens(logits_batch)
             for text, output, probs in zip(text_batch, output_batch, probs_batch):
                 seq_len = self._get_len_util_stop(output, self.phoneme_tokenizer.end_index)

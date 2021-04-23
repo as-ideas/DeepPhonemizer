@@ -17,7 +17,7 @@ if __name__ == '__main__':
     torch.save(checkpoint, checkpoint_path)
     predictor = Predictor.from_checkpoint(checkpoint_path)
 
-    text = ['Topbildqualität']
+    text = ['Top']
 
     pred_batch, meta = predictor(text, language='de', batch_size=1)
     tokens, probs = meta[0]['tokens'], meta[0]['probs']
