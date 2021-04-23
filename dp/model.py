@@ -4,6 +4,7 @@ from typing import Tuple, Dict, Any
 import torch
 import torch.nn as nn
 from torch.nn import TransformerEncoderLayer, LayerNorm, TransformerEncoder, ModuleList
+from torch.nn.utils.rnn import pack_padded_sequence, pad_packed_sequence
 
 from dp.text import Preprocessor
 
@@ -26,16 +27,22 @@ class LstmModel(torch.nn.Module):
         self.lstms = ModuleList(lstms)
         self.lin = torch.nn.Linear(2 * lstm_dim, num_symbols_out)
 
-    def forward(self, x):
+    def forward(self,
+                x: torch.tensor,
+                x_len: torch.tensor = None) -> torch.tensor:
         if self.training:
             self.step += 1
         x = self.embedding(x)
+        if x_len is not None:
+            x = pack_padded_sequence(x, x_len, batch_first=True, enforce_sorted=False)
         for lstm in self.lstms:
             x, _ = lstm(x)
+        if x_len is not None:
+            x, _ = pad_packed_sequence(x, batch_first=True)
         x = self.lin(x)
         return x
 
-    def get_step(self):
+    def get_step(self) -> int:
         return self.step.data.item()
 
     @classmethod
@@ -51,7 +58,8 @@ class LstmModel(torch.nn.Module):
 
 
 class PositionalEncoding(nn.Module):
-    def __init__(self, d_model, dropout=0.1, max_len=5000):
+
+    def __init__(self, d_model: int, dropout=0.1, max_len=5000) -> None:
         super(PositionalEncoding, self).__init__()
         self.dropout = nn.Dropout(p=dropout)
         self.scale = nn.Parameter(torch.ones(1))
@@ -65,7 +73,7 @@ class PositionalEncoding(nn.Module):
         pe = pe.unsqueeze(0).transpose(0, 1)
         self.register_buffer('pe', pe)
 
-    def forward(self, x):         # shape: [T, N]
+    def forward(self, x: torch.tensor) -> torch.tensor:         # shape: [T, N]
         x = x + self.scale * self.pe[:x.size(0), :]
         return self.dropout(x)
 
@@ -79,7 +87,7 @@ class TransformerModel(nn.Module):
                  d_fft=1024,
                  layers=4,
                  dropout=0.1,
-                 heads=1):
+                 heads=1) -> None:
         super(TransformerModel, self).__init__()
 
         self.d_model = d_model
@@ -104,15 +112,15 @@ class TransformerModel(nn.Module):
         self.src_mask = None
         self.memory_mask = None
 
-    def generate_square_subsequent_mask(self, sz):
+    def generate_square_subsequent_mask(self, sz: int) -> torch.tensor:
         mask = torch.triu(torch.ones(sz, sz), 1)
         mask = mask.masked_fill(mask == 1, float('-inf'))
         return mask
 
-    def make_len_mask(self, inp):
+    def make_len_mask(self, inp: torch.tensor) -> torch.tensor:
         return (inp == 0).transpose(0, 1)
 
-    def forward(self, x):         # shape: [N, T]
+    def forward(self, x, **kwargs) -> torch.tensor:         # shape: [N, T]
 
         if self.training:
             self.step += 1
@@ -126,11 +134,11 @@ class TransformerModel(nn.Module):
         x = x.transpose(0, 1)
         return x
 
-    def get_step(self):
+    def get_step(self) -> int:
         return self.step.data.item()
 
     @classmethod
-    def from_config(cls, config: dict) -> 'Aligner':
+    def from_config(cls, config: dict) -> 'TransformerModel':
         preprocessor = Preprocessor.from_config(config)
         return TransformerModel(
             encoder_vocab_size=preprocessor.text_tokenizer.vocab_size,

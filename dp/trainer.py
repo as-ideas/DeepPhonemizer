@@ -20,7 +20,7 @@ class Trainer:
     def __init__(self, checkpoint_dir: str) -> None:
         self.checkpoint_dir = Path(checkpoint_dir)
         self.checkpoint_dir.mkdir(parents=True, exist_ok=True)
-        self.writer = SummaryWriter(log_dir=self.checkpoint_dir / 'tensorboard_translstm')
+        self.writer = SummaryWriter(log_dir=self.checkpoint_dir / 'tensorboard')
         self.ctc_loss = torch.nn.CTCLoss()
 
     def train(self,
@@ -66,7 +66,7 @@ class Trainer:
                 phonemes = batch['phonemes']
                 text_len = batch['text_len']
                 phon_len = batch['phonemes_len']
-                pred = model(text)
+                pred = model(text, x_len=text_len)
                 pred = pred.transpose(0, 1).log_softmax(2)
                 loss = ctc_loss(pred, phonemes, text_len, phon_len)
 
@@ -120,7 +120,7 @@ class Trainer:
             text_len = batch['text_len']
             phon_len = batch['phonemes_len']
             with torch.no_grad():
-                pred = model(text)
+                pred = model(text, x_len=text_len)
                 pred = pred.transpose(0, 1).log_softmax(2)
                 loss = ctc_loss(pred, phonemes, text_len, phon_len)
                 if not (torch.isnan(loss) or torch.isinf(loss)):
@@ -142,10 +142,10 @@ class Trainer:
         phoneme_tokenizer = preprocessor.phoneme_tokenizer
         lang_tokenizer = preprocessor.lang_tokenizer
         lang_prediction_result = dict()
-        per, wer = 0., 0.
+
         for batch in val_batches:
             batch = to_device(batch, device)
-            generated_batch = model(batch['text'])
+            generated_batch = model(batch['text'], x_len=batch['text_len'])
             for i in range(batch['text'].size(0)):
                 text_len = batch['text_len'][i]
                 text = batch['text'][i, :text_len]
@@ -159,8 +159,6 @@ class Trainer:
                 generated = phoneme_tokenizer.decode(generated, remove_special_tokens=True)
                 target = phoneme_tokenizer.decode(target, remove_special_tokens=True)
                 lang_prediction_result[lang] = lang_prediction_result.get(lang, []) + [(text, generated, target)]
-                per += phoneme_error_rate(generated, target)
-                wer += word_error(generated, target)
 
         # calculate error rates per language
         lang_per, lang_wer = dict(), dict()
