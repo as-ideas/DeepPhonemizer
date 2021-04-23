@@ -43,9 +43,9 @@ class Trainer:
             g['lr'] = config['training']['learning_rate']
 
         train_loader = new_dataloader(dataset_file=data_dir / 'train_dataset.pkl',
-                                      drop_last=True)
+                                      drop_last=True, batch_size=config['training']['batch_size'])
         val_loader = new_dataloader(dataset_file=data_dir / 'val_dataset.pkl',
-                                    drop_last=False)
+                                    drop_last=False, batch_size=config['training']['batch_size_val'])
         if store_phoneme_dict_in_model:
             phoneme_dict = unpickle_binary(data_dir / 'phoneme_dict.pkl')
             checkpoint['phoneme_dict'] = phoneme_dict
@@ -145,15 +145,15 @@ class Trainer:
         per, wer = 0., 0.
         for batch in val_batches:
             batch = to_device(batch, device)
+            generated_batch = model(batch['text'])
             for i in range(batch['text'].size(0)):
                 text_len = batch['text_len'][i]
                 text = batch['text'][i, :text_len]
                 target = batch['phonemes'][i, :]
                 lang = batch['language'][i]
                 lang = lang_tokenizer.decode(lang.detach().cpu().item())
-                generated = model(text.unsqueeze(0))
-                generated, _ = get_dedup_tokens(generated)
-                generated = generated[0]
+                generated = generated_batch[i:i+1, :text_len]
+                generated = get_dedup_tokens(generated)[0][0]
                 text, target = text.detach().cpu(), target.detach().cpu()
                 text = text_tokenizer.decode(text, remove_special_tokens=True)
                 generated = phoneme_tokenizer.decode(generated, remove_special_tokens=True)
