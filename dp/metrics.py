@@ -1,5 +1,6 @@
-import numpy
 from typing import List, Union
+
+import numpy
 
 
 def word_error(predicted: List[Union[str, int]], target: List[Union[str, int]]) -> float:

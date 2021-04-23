@@ -1,8 +1,7 @@
 import unittest
-from typing import Tuple
+from unittest.mock import Mock
 
 import torch
-from unittest.mock import Mock
 
 from dp.predictor import Predictor
 from dp.text import Preprocessor

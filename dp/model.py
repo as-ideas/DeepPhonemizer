@@ -1,10 +1,9 @@
-from typing import List, Tuple, Dict, Any
+import math
+from typing import Tuple, Dict, Any
 
 import torch
 import torch.nn as nn
-import math
-
-from torch.nn import TransformerEncoderLayer, LayerNorm, TransformerEncoder, Dropout, Sequential, ModuleList
+from torch.nn import TransformerEncoderLayer, LayerNorm, TransformerEncoder, ModuleList
 
 from dp.text import Preprocessor
 

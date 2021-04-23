@@ -1,11 +1,10 @@
+import math
 import pickle
 from pathlib import Path
-from typing import Dict, List, Any, Union, Tuple, Iterable, Sized
+from typing import Dict, List, Any, Union, Tuple
 
 import torch
 import yaml
-import math
-
 from torch.nn.utils.rnn import pad_sequence
 
 

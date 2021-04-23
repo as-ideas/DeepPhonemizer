@@ -17,10 +17,10 @@ if __name__ == '__main__':
     torch.save(checkpoint, checkpoint_path)
     predictor = Predictor.from_checkpoint(checkpoint_path)
 
-    text = ['Mitarbeiterversammlungstermine']
+    text = ['Topbildqualität']
 
     pred_batch, meta = predictor(text, language='de', batch_size=1)
-    tokens, probs =  meta[0]['tokens'], meta[0]['probs']
+    tokens, probs = meta[0]['tokens'], meta[0]['probs']
 
     pred_decoded = predictor.phoneme_tokenizer.decode(
         tokens, remove_special_tokens=False)

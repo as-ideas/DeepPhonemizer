@@ -1,7 +1,5 @@
-from itertools import zip_longest
-
-import torch
 import re
+from itertools import zip_longest
 from typing import Dict, Union, Tuple, List
 
 from dp.model import load_checkpoint
@@ -9,7 +7,7 @@ from dp.predictor import Predictor
 from dp.text import Preprocessor
 from dp.utils import get_sequence_prob
 
-DEFAULT_PUNCTUATION = '().,:?!'
+DEFAULT_PUNCTUATION = '().,:?!/'
 
 
 class Phonemizer:
@@ -191,7 +189,7 @@ if __name__ == '__main__':
     checkpoint_path = '../checkpoints/best_model_no_optim.pt'
     phonemizer = Phonemizer.from_checkpoint(checkpoint_path)
 
-    input = open('/Users/cschaefe/datasets/ASVoice4/metadata_clean_incl_english.csv').readlines()[:1000]
+    input = open('/Users/cschaefe/datasets/ASVoice4/metadata_clean_incl_english.csv').readlines()[:100]
     input = [s.split('|')[1] for s in input if not s.split('|')[0].startswith('en_') and len(s.split('|')) > 1][:]
 
     #input=['AfD']

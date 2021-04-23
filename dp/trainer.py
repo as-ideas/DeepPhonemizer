@@ -1,10 +1,9 @@
-from itertools import groupby
+import math
 from pathlib import Path
-from typing import List, Union
+from typing import List
 
 import torch
 import tqdm
-import math
 from torch.optim import Adam
 from torch.utils.tensorboard import SummaryWriter
 

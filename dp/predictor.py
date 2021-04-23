@@ -1,10 +1,10 @@
-import torch
 from typing import Dict, Any, List, Tuple, Iterable
 
+import torch
 from torch.nn.utils.rnn import pad_sequence
 
-from dp.text import Preprocessor
 from dp.model import load_checkpoint
+from dp.text import Preprocessor
 from dp.utils import batchify, get_dedup_tokens
 
 
