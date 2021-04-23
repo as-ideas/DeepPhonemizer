@@ -63,7 +63,11 @@ class SequenceTokenizer:
         return sequence
 
     def decode(self, sequence: Iterable[int], remove_special_tokens=False) -> List[str]:
-        sequence = sequence[::self.char_repeats]
+        sequence = list(sequence)
+        if self.append_start_end:
+            sequence = sequence[:1] + sequence[1:-1:self.char_repeats] + sequence[-1:]
+        else:
+            sequence = sequence[::self.char_repeats]
         decoded = [self.idx_to_token[int(t)] for t in sequence if int(t) in self.idx_to_token]
         if remove_special_tokens:
             decoded = [d for d in decoded if d not in self.special_tokens]
