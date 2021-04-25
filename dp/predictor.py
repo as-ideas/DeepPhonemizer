@@ -67,14 +67,17 @@ class Predictor:
         predictions = dict()
         text_batches = batchify(texts, batch_size)
         for text_batch in text_batches:
-            input_batch = []
+            input_batch, lens_batch = [], []
             for text in text_batch:
                 input = self.text_tokenizer(text, language)
                 input_batch.append(torch.tensor(input).long())
+                lens_batch.append(torch.tensor(len(input)))
+
             input_batch = pad_sequence(sequences=input_batch,
                                        batch_first=True, padding_value=0)
+            lens_batch = torch.stack(lens_batch)
             with torch.no_grad():
-                logits_batch = self.model(input_batch)
+                logits_batch = self.model(input_batch, x_len=lens_batch)
             logits_batch = logits_batch.cpu()
             output_batch, probs_batch = get_dedup_tokens(logits_batch)
             for text, output, probs in zip(text_batch, output_batch, probs_batch):

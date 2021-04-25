@@ -186,7 +186,7 @@ class Phonemizer:
 
 
 if __name__ == '__main__':
-    checkpoint_path = '../checkpoints/model_step_1800k.pt'
+    checkpoint_path = '../checkpoints/best_model.pt'
     phonemizer = Phonemizer.from_checkpoint(checkpoint_path)
 
     input = open('/Users/cschaefe/datasets/ASVoice4/metadata_clean_incl_english.csv').readlines()[:100]
