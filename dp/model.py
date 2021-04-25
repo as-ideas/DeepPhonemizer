@@ -34,7 +34,7 @@ class LstmModel(torch.nn.Module):
             self.step += 1
         x = self.embedding(x)
         if x_len is not None:
-            x = pack_padded_sequence(x, x_len, batch_first=True, enforce_sorted=False)
+            x = pack_padded_sequence(x, x_len.cpu(), batch_first=True, enforce_sorted=False)
         for lstm in self.lstms:
             x, _ = lstm(x)
         if x_len is not None:

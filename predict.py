@@ -11,13 +11,13 @@ from dp.predictor import Predictor
 
 if __name__ == '__main__':
 
-    checkpoint_path = 'checkpoints/best_model.pt'
+    checkpoint_path = 'checkpoints/model_step_1400k.pt'
     checkpoint = torch.load(checkpoint_path, map_location=torch.device('cpu'))
     checkpoint['config']['model']['type'] = 'transformer'
     torch.save(checkpoint, checkpoint_path)
     predictor = Predictor.from_checkpoint(checkpoint_path)
 
-    text = ['hinauszuführendem']
+    text = ['eintausendvierhundertfünfzig']
 
     pred_batch, meta = predictor(text, language='de', batch_size=1)
     tokens, probs = meta[0]['tokens'], meta[0]['probs']
