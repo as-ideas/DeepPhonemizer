@@ -8,7 +8,7 @@ from typing import List, Tuple, Dict, Iterable, Any
 import tqdm
 import torch
 from dp.dataset import new_dataloader
-from dp.model import load_checkpoint, LstmModel, TransformerModel
+from dp.model import load_checkpoint, LstmModel, ForwardTransformer, AutoregressiveTransformer
 from dp.text import SequenceTokenizer, Preprocessor
 from dp.trainer import Trainer
 from dp.utils import read_config, pickle_binary
@@ -34,6 +34,7 @@ if __name__ == '__main__':
                 print(f'Overwriting training param: {key} {val_orig} --> {val}')
                 checkpoint['config']['training'][key] = val
         config = checkpoint['config']
+        model_type = config['model']['type']
     else:
         print('Initializing new model from config...')
         preprocessor = Preprocessor.from_config(config)
@@ -42,7 +43,9 @@ if __name__ == '__main__':
         if model_type == 'lstm':
             model = LstmModel.from_config(config)
         elif model_type == 'transformer':
-            model = TransformerModel.from_config(config)
+            model = ForwardTransformer.from_config(config)
+        elif model_type == 'autoreg_transformer':
+            model = AutoregressiveTransformer.from_config(config)
         else:
             raise ValueError(f'Model type not supported: {model_type}. Supported types: {supported_types}')
         checkpoint = {
@@ -50,7 +53,9 @@ if __name__ == '__main__':
             'config': config,
         }
 
-    trainer = Trainer(checkpoint_dir=config['paths']['checkpoint_dir'])
+    loss_type = 'cross_entropy' if 'autoreg_' in model_type else 'ctc'
+
+    trainer = Trainer(checkpoint_dir=config['paths']['checkpoint_dir'], loss_type=loss_type)
     trainer.train(model=model,
                   checkpoint=checkpoint,
                   store_phoneme_dict_in_model=config['training']['store_phoneme_dict_in_model'])

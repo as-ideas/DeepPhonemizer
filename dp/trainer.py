@@ -13,16 +13,22 @@ from dp.decorators import ignore_exception
 from dp.metrics import phoneme_error_rate, word_error
 from dp.predictor import Predictor
 from dp.text import Preprocessor
-from dp.utils import to_device, unpickle_binary, get_dedup_tokens
+from dp.utils import to_device, unpickle_binary
 
 
 class Trainer:
 
-    def __init__(self, checkpoint_dir: str) -> None:
+    def __init__(self, checkpoint_dir: str, loss_type='ctc') -> None:
         self.checkpoint_dir = Path(checkpoint_dir)
         self.checkpoint_dir.mkdir(parents=True, exist_ok=True)
         self.writer = SummaryWriter(log_dir=self.checkpoint_dir / 'tensorboard')
-        self.ctc_loss = torch.nn.CTCLoss()
+        self.loss_type = loss_type
+        if loss_type == 'ctc':
+            self.criterion = torch.nn.CTCLoss()
+        elif loss_type == 'cross_entropy':
+            self.criterion = torch.nn.CrossEntropyLoss(ignore_index=0)
+        else:
+            raise ValueError(f'Loss not supported: {loss_type}')
 
     def train(self,
               model: torch.nn.Module,
@@ -36,7 +42,8 @@ class Trainer:
         model = model.to(device)
         model.train()
 
-        ctc_loss = self.ctc_loss.to(device)
+        criterion = self.criterion.to(device)
+
         optimizer = Adam(model.parameters())
         if 'optimizer' in checkpoint:
             optimizer.load_state_dict(checkpoint['optimizer'])
@@ -74,9 +81,15 @@ class Trainer:
                 phonemes = batch['phonemes']
                 text_len = batch['text_len']
                 phon_len = batch['phonemes_len']
-                pred = model(text, x_len=text_len)
-                pred = pred.transpose(0, 1).log_softmax(2)
-                loss = ctc_loss(pred, phonemes, text_len, phon_len)
+
+                loss = None
+                if self.loss_type == 'ctc':
+                    pred = model(text, x_len=text_len)
+                    pred = pred.transpose(0, 1).log_softmax(2)
+                    loss = criterion(pred, phonemes, text_len, phon_len)
+                elif self.loss_type == 'cross_entropy':
+                    pred = model(text, phonemes[:, :-1], x_len=text_len)
+                    loss = criterion(pred.transpose(1, 2), phonemes[:, 1:])
 
                 if not (torch.isnan(loss) or torch.isinf(loss)):
                     optimizer.zero_grad()
@@ -118,7 +131,7 @@ class Trainer:
 
     def validate(self, model: torch.nn.Module, val_batches: List[dict]) -> float:
         device = next(model.parameters()).device
-        ctc_loss = self.ctc_loss.to(device)
+        criterion = self.criterion.to(device)
 
         model.eval()
         val_losses = []
@@ -129,9 +142,15 @@ class Trainer:
             text_len = batch['text_len']
             phon_len = batch['phonemes_len']
             with torch.no_grad():
-                pred = model(text, x_len=text_len)
-                pred = pred.transpose(0, 1).log_softmax(2)
-                loss = ctc_loss(pred, phonemes, text_len, phon_len)
+                loss = None
+                if self.loss_type == 'ctc':
+                    pred = model(text, x_len=text_len)
+                    pred = pred.transpose(0, 1).log_softmax(2)
+                    loss = criterion(pred, phonemes, text_len, phon_len)
+                elif self.loss_type == 'cross_entropy':
+                    pred = model(text, phonemes[:, :-1], x_len=text_len)
+                    loss = criterion(pred.transpose(1, 2), phonemes[:, 1:])
+
                 if not (torch.isnan(loss) or torch.isinf(loss)):
                     val_losses.append(loss.item())
         model.train()
@@ -154,15 +173,18 @@ class Trainer:
 
         for batch in val_batches:
             batch = to_device(batch, device)
-            generated_batch = model(batch['text'], x_len=batch['text_len'])
+
+            start_inds = batch['phonemes'][:, 0]
+            generated_batch, _ = model.generate(batch['text'],
+                                                start_index=start_inds,
+                                                x_len=batch['text_len'])
             for i in range(batch['text'].size(0)):
                 text_len = batch['text_len'][i]
                 text = batch['text'][i, :text_len]
                 target = batch['phonemes'][i, :]
                 lang = batch['language'][i]
                 lang = lang_tokenizer.decode(lang.detach().cpu().item())
-                generated = generated_batch[i:i+1, :text_len]
-                generated = get_dedup_tokens(generated)[0][0]
+                generated = generated_batch[i, :text_len].cpu()
                 text, target = text.detach().cpu(), target.detach().cpu()
                 text = text_tokenizer.decode(text, remove_special_tokens=True)
                 generated = phoneme_tokenizer.decode(generated, remove_special_tokens=True)

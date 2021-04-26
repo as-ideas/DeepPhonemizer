@@ -5,7 +5,7 @@ from torch.nn.utils.rnn import pad_sequence
 
 from dp.model import load_checkpoint
 from dp.text import Preprocessor
-from dp.utils import batchify, get_dedup_tokens
+from dp.utils import batchify
 
 
 class Predictor:
@@ -76,10 +76,13 @@ class Predictor:
             input_batch = pad_sequence(sequences=input_batch,
                                        batch_first=True, padding_value=0)
             lens_batch = torch.stack(lens_batch)
+            start_indx = self.phoneme_tokenizer.get_start_index(language)
+            start_inds = torch.tensor([start_indx]*input_batch.size(0)).to(input_batch.device)
             with torch.no_grad():
-                logits_batch = self.model(input_batch, x_len=lens_batch)
-            logits_batch = logits_batch.cpu()
-            output_batch, probs_batch = get_dedup_tokens(logits_batch)
+                output_batch, probs_batch = self.model.generate(input_batch,
+                                                                start_index=start_inds,
+                                                                x_len=lens_batch)
+            output_batch, probs_batch = output_batch.cpu(), probs_batch.cpu()
             for text, output, probs in zip(text_batch, output_batch, probs_batch):
                 seq_len = self._get_len_util_stop(output, self.phoneme_tokenizer.end_index)
                 predictions[text] = (output[:seq_len], probs[:seq_len])

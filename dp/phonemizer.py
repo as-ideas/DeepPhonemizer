@@ -186,10 +186,10 @@ class Phonemizer:
 
 
 if __name__ == '__main__':
-    checkpoint_path = '../checkpoints/best_model.pt'
+    checkpoint_path = '../checkpoints/best_model_no_optim.pt'
     phonemizer = Phonemizer.from_checkpoint(checkpoint_path)
 
-    input = open('/Users/cschaefe/datasets/ASVoice4/metadata_clean_incl_english.csv').readlines()[:100]
+    input = open('/Users/cschaefe/datasets/ASVoice4/metadata_clean_incl_english.csv').readlines()[:10000]
     input = [s.split('|')[1] for s in input if not s.split('|')[0].startswith('en_') and len(s.split('|')) > 1][:]
 
     #input=['AfD']
