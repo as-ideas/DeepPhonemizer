@@ -1,10 +1,11 @@
 import math
 from pathlib import Path
-from typing import List
+from typing import List, Dict, Any
 
 import torch
 import tqdm
 from torch.optim import Adam
+from torch.optim.lr_scheduler import ReduceLROnPlateau
 from torch.utils.tensorboard import SummaryWriter
 
 from dp.dataset import new_dataloader
@@ -51,14 +52,21 @@ class Trainer:
             checkpoint['phoneme_dict'] = phoneme_dict
 
         val_batches = sorted([b for b in val_loader], key=lambda x: -x['text_len'][0])
-        best_per = math.inf
+
+        scheduler = ReduceLROnPlateau(optimizer,
+                                      factor=config['training']['scheduler_plateau_factor'],
+                                      patience=config['training']['scheduler_plateau_patience'],
+                                      mode='min')
 
         loss_sum = 0.
+        best_per = math.inf
         start_epoch = model.get_step() // len(train_loader)
 
         for epoch in range(start_epoch + 1, config['training']['epochs'] + 1):
             pbar = tqdm.tqdm(enumerate(train_loader, 1), total=len(train_loader))
             for i, batch in pbar:
+                self._set_warmup_lr(optimizer=optimizer, step=model.get_step(),
+                                    config=config)
                 batch = to_device(batch, device)
                 pbar.set_description(desc=f'Epoch: {epoch} | Step {model.get_step()} '
                                           f'| Loss: {loss_sum / i:#.4}', refresh=True)
@@ -80,7 +88,7 @@ class Trainer:
                 self.writer.add_scalar('Loss/train', loss.item(), global_step=model.get_step())
                 self.writer.add_scalar('Params/batch_size', config['training']['batch_size'],
                                        global_step=model.get_step())
-                self.writer.add_scalar('Params/learning_rate', config['training']['learning_rate'],
+                self.writer.add_scalar('Params/learning_rate', [g['lr'] for g in optimizer.param_groups][0],
                                        global_step=model.get_step())
 
                 if model.get_step() % config['training']['validate_steps'] == 0:
@@ -97,6 +105,7 @@ class Trainer:
                                         path=self.checkpoint_dir / f'best_model.pt')
                         self.save_model(model=model, optimizer=None, checkpoint=checkpoint,
                                         path=self.checkpoint_dir / f'best_model_no_optim.pt')
+                        scheduler.step(per)
 
                 if model.get_step() % config['training']['checkpoint_steps'] == 0:
                     step = model.get_step() // 1000
@@ -204,3 +213,13 @@ class Trainer:
             checkpoint['optimizer'] = None
         torch.save(checkpoint, str(path))
 
+    def _set_warmup_lr(self,
+                       optimizer: torch.optim,
+                       step: int,
+                       config: Dict[str, Any]) -> None:
+
+        warmup_steps = config['training']['warmup_steps']
+        if warmup_steps > 0 and step <= warmup_steps:
+            warmup_factor = 1.0 - max(warmup_steps - step, 0) / warmup_steps
+            for g in optimizer.param_groups:
+                g['lr'] = config['training']['learning_rate'] * warmup_factor

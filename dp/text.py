@@ -115,7 +115,7 @@ class Preprocessor:
                                            append_start_end=True)
         phoneme_tokenizer = SequenceTokenizer(phoneme_symbols,
                                               languages=lang_symbols,
-                                              lowercase=lowercase,
+                                              lowercase=False,
                                               char_repeats=1,
                                               append_start_end=True)
         return Preprocessor(lang_tokenizer=lang_tokenizer,

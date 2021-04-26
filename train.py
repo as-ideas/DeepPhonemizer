@@ -51,4 +51,6 @@ if __name__ == '__main__':
         }
 
     trainer = Trainer(checkpoint_dir=config['paths']['checkpoint_dir'])
-    trainer.train(model=model, checkpoint=checkpoint)
+    trainer.train(model=model,
+                  checkpoint=checkpoint,
+                  store_phoneme_dict_in_model=config['training']['store_phoneme_dict_in_model'])
