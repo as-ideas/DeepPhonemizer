@@ -311,7 +311,7 @@ class AutoregressiveTransformer(nn.Module):
                                                   input,
                                                   memory_key_padding_mask=src_pad_mask,
                                                   tgt_mask=tgt_mask)
-                output = self.fc_out(output).softmax(-1)  # shape: [T, N, V]
+                output = self.fc_out(output)  # shape: [T, N, V]
                 out_tokens = output.argmax(2)[-1:, :]
                 out_logits.append(output[-1:, :, :])
 
