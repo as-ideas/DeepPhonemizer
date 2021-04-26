@@ -10,6 +10,7 @@ from torch.utils.tensorboard import SummaryWriter
 
 from dp.dataset import new_dataloader
 from dp.decorators import ignore_exception
+from dp.losses import CrossEntropyLoss, CTCLoss
 from dp.metrics import phoneme_error_rate, word_error
 from dp.predictor import Predictor
 from dp.text import Preprocessor
@@ -24,9 +25,9 @@ class Trainer:
         self.writer = SummaryWriter(log_dir=self.checkpoint_dir / 'tensorboard')
         self.loss_type = loss_type
         if loss_type == 'ctc':
-            self.criterion = torch.nn.CTCLoss()
+            self.criterion = CTCLoss()
         elif loss_type == 'cross_entropy':
-            self.criterion = torch.nn.CrossEntropyLoss(ignore_index=0)
+            self.criterion = CrossEntropyLoss()
         else:
             raise ValueError(f'Loss not supported: {loss_type}')
 
@@ -80,16 +81,8 @@ class Trainer:
                 text = batch['text']
                 phonemes = batch['phonemes']
                 text_len = batch['text_len']
-                phon_len = batch['phonemes_len']
-
-                loss = None
-                if self.loss_type == 'ctc':
-                    pred = model(text, x_len=text_len)
-                    pred = pred.transpose(0, 1).log_softmax(2)
-                    loss = criterion(pred, phonemes, text_len, phon_len)
-                elif self.loss_type == 'cross_entropy':
-                    pred = model(text, phonemes[:, :-1], x_len=text_len)
-                    loss = criterion(pred.transpose(1, 2), phonemes[:, 1:])
+                pred = model(text, tar=phonemes[:, :-1], x_len=text_len)
+                loss = criterion(pred, batch)
 
                 if not (torch.isnan(loss) or torch.isinf(loss)):
                     optimizer.zero_grad()
@@ -132,7 +125,6 @@ class Trainer:
     def validate(self, model: torch.nn.Module, val_batches: List[dict]) -> float:
         device = next(model.parameters()).device
         criterion = self.criterion.to(device)
-
         model.eval()
         val_losses = []
         for batch in val_batches:
@@ -140,17 +132,9 @@ class Trainer:
             text = batch['text']
             phonemes = batch['phonemes']
             text_len = batch['text_len']
-            phon_len = batch['phonemes_len']
             with torch.no_grad():
-                loss = None
-                if self.loss_type == 'ctc':
-                    pred = model(text, x_len=text_len)
-                    pred = pred.transpose(0, 1).log_softmax(2)
-                    loss = criterion(pred, phonemes, text_len, phon_len)
-                elif self.loss_type == 'cross_entropy':
-                    pred = model(text, phonemes[:, :-1], x_len=text_len)
-                    loss = criterion(pred.transpose(1, 2), phonemes[:, 1:])
-
+                pred = model(text, tar=phonemes[:, :-1], x_len=text_len)
+                loss = criterion(pred, batch)
                 if not (torch.isnan(loss) or torch.isinf(loss)):
                     val_losses.append(loss.item())
         model.train()

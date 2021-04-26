@@ -8,7 +8,7 @@ from typing import List, Tuple, Dict, Iterable, Any
 import tqdm
 import torch
 from dp.dataset import new_dataloader
-from dp.model import load_checkpoint, LstmModel, ForwardTransformer, AutoregressiveTransformer
+from dp.model import LstmModel, ForwardTransformer, AutoregressiveTransformer, load_checkpoint
 from dp.text import SequenceTokenizer, Preprocessor
 from dp.trainer import Trainer
 from dp.utils import read_config, pickle_binary

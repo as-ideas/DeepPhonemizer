@@ -6,37 +6,8 @@ import torch.nn as nn
 from torch.nn import TransformerEncoderLayer, LayerNorm, TransformerEncoder, ModuleList
 from torch.nn.utils.rnn import pack_padded_sequence, pad_packed_sequence, pad_sequence
 
+from dp.model_utils import get_dedup_tokens
 from dp.text import Preprocessor
-
-
-def get_dedup_tokens(logits_batch: torch.tensor) \
-        -> Tuple[torch.tensor, torch.tensor]:
-
-    """ Returns deduplicated tokens and probs of tokens """
-
-    logits_batch = logits_batch.softmax(-1)
-    out_tokens, out_probs = [], []
-    for i in range(logits_batch.size(0)):
-        logits = logits_batch[i]
-        max_logits, max_indices = torch.max(logits, dim=-1)
-        max_logits = max_logits[max_indices!=0]
-        max_indices = max_indices[max_indices!=0]
-        cons_tokens, counts = torch.unique_consecutive(
-            max_indices, return_counts=True)
-        out_probs_i = []
-        ind = 0
-        for c in counts:
-            max_logit = max_logits[ind:ind + c].max()
-            out_probs_i.append(max_logit.item())
-            ind = ind + c
-        out_tokens.append(cons_tokens)
-        out_probs_i = torch.tensor(out_probs_i)
-        out_probs.append(out_probs_i)
-
-    out_tokens = pad_sequence(out_tokens, batch_first=True, padding_value=0)
-    out_probs = pad_sequence(out_probs, batch_first=True, padding_value=0)
-
-    return out_tokens, out_probs
 
 
 class LstmModel(torch.nn.Module):
@@ -174,10 +145,9 @@ class ForwardTransformer(nn.Module):
 
     def generate(self,
                  x: torch.tensor,
-                 x_len: torch.tensor = None,
                  **kwargs) -> Tuple[torch.tensor, torch.tensor]:
         with torch.no_grad():
-            x = self.forward(x, x_len=x_len)
+            x = self.forward(x)
         tokens, logits = get_dedup_tokens(x)
         return tokens, logits
 
@@ -196,27 +166,6 @@ class ForwardTransformer(nn.Module):
             dropout=config['model']['dropout'],
             heads=config['model']['heads']
         )
-
-
-def load_checkpoint(checkpoint_path: str, device='cpu') -> Tuple[torch.nn.Module, Dict[str, Any]]:
-    device = torch.device(device)
-    checkpoint = torch.load(checkpoint_path, map_location=device)
-
-    model_type = checkpoint['config']['model']['type']
-    supported_types = ['lstm', 'transformer']
-    if model_type == 'lstm':
-            model = LstmModel.from_config(checkpoint['config']).to(device)
-    elif model_type == 'transformer':
-            model = ForwardTransformer.from_config(checkpoint['config']).to(device)
-    elif model_type == 'autoreg_transformer':
-            model = AutoregressiveTransformer.from_config(checkpoint['config']).to(device)
-    else:
-        raise ValueError(f'Model type not supported: {model_type}. Supported types: {supported_types}')
-
-    model.load_state_dict(checkpoint['model'])
-
-    model.eval()
-    return model, checkpoint
 
 
 class AutoregressiveTransformer(nn.Module):
@@ -347,3 +296,24 @@ class AutoregressiveTransformer(nn.Module):
             dropout=config['model']['dropout'],
             heads=config['model']['heads']
         )
+
+
+def load_checkpoint(checkpoint_path: str, device='cpu') -> Tuple[torch.nn.Module, Dict[str, Any]]:
+    device = torch.device(device)
+    checkpoint = torch.load(checkpoint_path, map_location=device)
+
+    model_type = checkpoint['config']['model']['type']
+    supported_types = ['lstm', 'transformer']
+    if model_type == 'lstm':
+            model = LstmModel.from_config(checkpoint['config']).to(device)
+    elif model_type == 'transformer':
+            model = ForwardTransformer.from_config(checkpoint['config']).to(device)
+    elif model_type == 'autoreg_transformer':
+            model = AutoregressiveTransformer.from_config(checkpoint['config']).to(device)
+    else:
+        raise ValueError(f'Model type not supported: {model_type}. Supported types: {supported_types}')
+
+    model.load_state_dict(checkpoint['model'])
+
+    model.eval()
+    return model, checkpoint
