@@ -29,7 +29,7 @@ training:
 
   # learning rate and scheduler - scheduler is reducing lr on plateau of phoneme error rate (tested every n_generate_steps)
   learning_rate: 0.0001
-  warmup_steps: 1000
+  warmup_steps: 10000
   scheduler_plateau_factor: 0.5 # factor to multiply learning rate on plateau
   scheduler_plateau_patience: 5 # number of text generations with no improvement to tolerate
 
