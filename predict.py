@@ -11,13 +11,15 @@ from dp.predictor import Predictor
 
 if __name__ == '__main__':
 
-    checkpoint_path = 'checkpoints/best_model_no_optim.pt'
+    checkpoint_path = 'checkpoints/best_trans_1800k.pt'
     checkpoint = torch.load(checkpoint_path, map_location=torch.device('cpu'))
-#    checkpoint['config']['model']['type'] = 'transformer'
-#    torch.save(checkpoint, checkpoint_path)
+    checkpoint['config']['model']['type'] = 'transformer'
+    #checkpoint['config']['preprocessing']['char_repeats'] = 1
+    #checkpoint['config']['model']['layers'] = 4
+    torch.save(checkpoint, checkpoint_path)
     predictor = Predictor.from_checkpoint(checkpoint_path)
 
-    text = ['unterweisender']
+    text = ['Özdemir']
 
     pred_batch, meta = predictor(text, language='de', batch_size=1)
     tokens, probs = meta[0]['tokens'], meta[0]['probs']

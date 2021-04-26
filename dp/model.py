@@ -90,7 +90,7 @@ class LstmModel(torch.nn.Module):
             num_symbols_in=preprocessor.text_tokenizer.vocab_size,
             num_symbols_out=preprocessor.phoneme_tokenizer.vocab_size,
             lstm_dim=config['model']['lstm_dim'],
-            num_layers=config['model']['num_layers']
+            num_layers=config['model']['layers']
         )
         return model
 
@@ -174,7 +174,8 @@ class ForwardTransformer(nn.Module):
 
     def generate(self,
                  x: torch.tensor,
-                 x_len: torch.tensor = None) -> Tuple[torch.tensor, torch.tensor]:
+                 x_len: torch.tensor = None,
+                 **kwargs) -> Tuple[torch.tensor, torch.tensor]:
         with torch.no_grad():
             x = self.forward(x, x_len=x_len)
         tokens, logits = get_dedup_tokens(x)
