@@ -21,7 +21,7 @@ class ModelMock:
 @patch.object(Model, 'generate', new_callable=ModelMock)
 class TestPredictor(unittest.TestCase):
 
-    def test_call_with_model_mock(self, model_mock) -> None:
+    def test_call_with_model_mock(self, model_mock: Model) -> None:
         config = {
             'preprocessing': {
                 'text_symbols': 'abcd',

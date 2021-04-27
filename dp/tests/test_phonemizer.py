@@ -24,7 +24,7 @@ class PredictorMock:
 class TestPhonemizer(unittest.TestCase):
 
     @patch.object(Predictor, '__call__', new_callable=PredictorMock)
-    def test_call_with_predictor_mock(self, predictor) -> None:
+    def test_call_with_predictor_mock(self, predictor: Predictor) -> None:
 
         config = {'preprocessing': {}}
         config['preprocessing']['text_symbols'] = 'abcdefghijklmnopqrstuvwxyz'
