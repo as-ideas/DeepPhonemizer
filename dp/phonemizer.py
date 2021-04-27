@@ -10,6 +10,24 @@ from dp.utils import get_sequence_prob
 DEFAULT_PUNCTUATION = '().,:?!/'
 
 
+class PhonemizerResult:
+
+    def __init__(self,
+                 text: List[List[str]],
+                 phonemes: List[List[str]],
+                 predictions: Dict[str, Tuple[str, float]]) -> None:
+        """
+        Storage of phonemized texts
+
+        :param text: List of texts (list of words)
+        :param phonemes: List of phonemes (list of word phonemes)
+        :param predictions: Dictionary with entries word to Tuple (phoneme, probability)
+        """
+        self.text = text
+        self.phonemes = phonemes
+        self.predictions = predictions
+
+
 class Phonemizer:
 
     def __init__(self,
@@ -55,8 +73,7 @@ class Phonemizer:
                        lang: str,
                        punctuation=DEFAULT_PUNCTUATION,
                        expand_acronyms=True,
-                       batch_size=8) -> Tuple[List[List[str]], List[List[str]],
-                                                      Dict[str, Tuple[str, float]]]:
+                       batch_size=8) -> PhonemizerResult:
 
         """
         Phonemizes a list of texts and returns tokenized texts, phonemes and word predictions with probabilities.
@@ -126,7 +143,9 @@ class Phonemizer:
                 out_phons.append(phons)
             output.append(out_phons)
 
-        return cleaned_texts, output, pred_word_probs
+        return PhonemizerResult(text=cleaned_texts,
+                                phonemes=output,
+                                predictions=pred_word_probs)
 
     def predict_words(self,
                       words: List[str],
@@ -189,11 +208,11 @@ if __name__ == '__main__':
     checkpoint_path = '../checkpoints/best_model_no_optim.pt'
     phonemizer = Phonemizer.from_checkpoint(checkpoint_path)
 
-    input = open('/Users/cschaefe/datasets/ASVoice4/metadata_clean_incl_english.csv').readlines()[:10000]
+    input = open('/Users/cschaefe/datasets/ASVoice4/metadata_clean_incl_english.csv').readlines()[:100]
     input = [s.split('|')[1] for s in input if not s.split('|')[0].startswith('en_') and len(s.split('|')) > 1][:]
 
-    #input=['AfD']
-    words, phons, preds = phonemizer.phonemise_list(input, lang='de', batch_size=8)
+    result = phonemizer.phonemise_list(input, lang='de', batch_size=8)
+    words, phons, preds = result.text, result.phonemes, result.predictions
 
     pred_words = sorted(list(preds.keys()), key=lambda x: -preds[x][1])
     for word in pred_words:

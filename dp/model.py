@@ -26,6 +26,7 @@ class Model(torch.nn.Module, ABC):
         :return: Tuple, where the first element is a tensor (phoneme tokens) and the second element
                  is a tensor (phoneme token probabilities)
         """
+        pass
 
 
 class LstmModel(Model):

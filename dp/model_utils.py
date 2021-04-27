@@ -71,3 +71,8 @@ def get_len_util_stop(sequence: torch.tensor, end_index: int) -> torch.tensor:
         if val == end_index:
             return i + 1
     return len(sequence)
+
+
+def trim_util_stop(sequence: torch.tensor, end_index: int) -> torch.tensor:
+    seq_len = get_len_util_stop(sequence, end_index)
+    return sequence[:seq_len]

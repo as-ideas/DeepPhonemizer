@@ -15,7 +15,7 @@ if __name__ == '__main__':
     print(f'model step {checkpoint["step"]}')
     predictor = Predictor.from_checkpoint(checkpoint_path)
 
-    text = ['sicherlich', 'hallo']
+    text = ['aufzupflanzende', 'hallo']
 
     pred_batch, metas = predictor(text, language='de', batch_size=2)
 

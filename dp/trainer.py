@@ -13,6 +13,7 @@ from dp.decorators import ignore_exception
 from dp.losses import CrossEntropyLoss, CTCLoss
 from dp.metrics import phoneme_error_rate, word_error
 from dp.model import Model
+from dp.model_utils import get_len_util_stop, trim_util_stop
 from dp.predictor import Predictor
 from dp.text import Preprocessor
 from dp.utils import to_device, unpickle_binary
@@ -165,7 +166,8 @@ class Trainer:
                 target = batch['phonemes'][i, :]
                 lang = batch['language'][i]
                 lang = lang_tokenizer.decode(lang.detach().cpu().item())
-                generated = generated_batch[i, :text_len].cpu()
+                generated = generated_batch[i, :].cpu()
+                generated = trim_util_stop(generated, phoneme_tokenizer.end_index)
                 text, target = text.detach().cpu(), target.detach().cpu()
                 text = text_tokenizer.decode(text, remove_special_tokens=True)
                 generated = phoneme_tokenizer.decode(generated, remove_special_tokens=True)
