@@ -1,4 +1,4 @@
-import math
+from abc import ABC, abstractmethod
 from typing import Tuple, Dict, Any
 
 import torch
@@ -6,13 +6,29 @@ import torch.nn as nn
 from torch.nn import TransformerEncoderLayer, LayerNorm, TransformerEncoder, ModuleList
 from torch.nn.utils.rnn import pack_padded_sequence, pad_packed_sequence, pad_sequence
 
-from dp.model_utils import get_dedup_tokens, make_len_mask, generate_square_subsequent_mask
+from dp.model_utils import get_dedup_tokens, make_len_mask, generate_square_subsequent_mask, PositionalEncoding
 from dp.text import Preprocessor
 
 
+class Model(torch.nn.Module, ABC):
+
+    def __init__(self):
+        super().__init__()
+
+    @abstractmethod
+    def generate(self, batch: Dict[str, torch.tensor]) -> Tuple[torch.tensor, torch.tensor]:
+        """
+        Generates phonemes for a text batch
+
+        :param batch: Dictionary containing: 'text' (tokenized text tensor),
+                     'text_len' (text length tensor for LstmModel),
+                     'start_index' (phoneme start indices for AutoregressiveTransformer)
+        :return: Tuple, where the first element is a tensor (phoneme tokens) and the second element
+                 is a tensor (phoneme token probabilities)
+        """
 
 
-class LstmModel(torch.nn.Module):
+class LstmModel(Model):
 
     def __init__(self,
                  num_symbols_in: int,
@@ -30,7 +46,7 @@ class LstmModel(torch.nn.Module):
         self.lin = torch.nn.Linear(2 * lstm_dim, num_symbols_out)
 
     def forward(self,
-                batch: Dict[str, Any]) -> torch.tensor:
+                batch: Dict[str, torch.tensor]) -> torch.tensor:
         x = batch['text']
         x_len = batch['text_len']
         x = self.embedding(x)
@@ -44,7 +60,7 @@ class LstmModel(torch.nn.Module):
         return x
 
     def generate(self,
-                 batch: Dict[str, Any]) -> Tuple[torch.tensor, torch.tensor]:
+                 batch: Dict[str, torch.tensor]) -> Tuple[torch.tensor, torch.tensor]:
         with torch.no_grad():
             x = self.forward(batch)
         tokens, logits = get_dedup_tokens(x)
@@ -62,28 +78,7 @@ class LstmModel(torch.nn.Module):
         return model
 
 
-class PositionalEncoding(nn.Module):
-
-    def __init__(self, d_model: int, dropout=0.1, max_len=5000) -> None:
-        super(PositionalEncoding, self).__init__()
-        self.dropout = nn.Dropout(p=dropout)
-        self.scale = nn.Parameter(torch.ones(1))
-
-        pe = torch.zeros(max_len, d_model)
-        position = torch.arange(0, max_len, dtype=torch.float).unsqueeze(1)
-        div_term = torch.exp(torch.arange(
-            0, d_model, 2).float() * (-math.log(10000.0) / d_model))
-        pe[:, 0::2] = torch.sin(position * div_term)
-        pe[:, 1::2] = torch.cos(position * div_term)
-        pe = pe.unsqueeze(0).transpose(0, 1)
-        self.register_buffer('pe', pe)
-
-    def forward(self, x: torch.tensor) -> torch.tensor:         # shape: [T, N]
-        x = x + self.scale * self.pe[:x.size(0), :]
-        return self.dropout(x)
-
-
-class ForwardTransformer(nn.Module):
+class ForwardTransformer(Model):
 
     def __init__(self,
                  encoder_vocab_size: int,
@@ -112,11 +107,8 @@ class ForwardTransformer(nn.Module):
 
         self.fc_out = nn.Linear(d_model, decoder_vocab_size)
 
-        self.src_mask = None
-        self.memory_mask = None
-
     def forward(self,
-                batch: Dict[str, Any]) -> torch.tensor:         # shape: [N, T]
+                batch: Dict[str, torch.tensor]) -> torch.tensor:         # shape: [N, T]
 
         x = batch['text']
         x = x.transpose(0, 1)        # shape: [T, N]
@@ -129,7 +121,7 @@ class ForwardTransformer(nn.Module):
         return x
 
     def generate(self,
-                 batch: Dict[str, Any]) -> Tuple[torch.tensor, torch.tensor]:
+                 batch: Dict[str, torch.tensor]) -> Tuple[torch.tensor, torch.tensor]:
         with torch.no_grad():
             x = self.forward(batch)
         tokens, logits = get_dedup_tokens(x)
@@ -149,7 +141,7 @@ class ForwardTransformer(nn.Module):
         )
 
 
-class AutoregressiveTransformer(nn.Module):
+class AutoregressiveTransformer(Model):
 
     def __init__(self,
                  encoder_vocab_size: int,
@@ -178,10 +170,7 @@ class AutoregressiveTransformer(nn.Module):
                                           dropout=dropout, activation='relu')
         self.fc_out = nn.Linear(d_model, decoder_vocab_size)
 
-        self.src_mask = None
-        self.memory_mask = None
-
-    def forward(self, batch: Dict[str, Any]):         # shape: [N, T]
+    def forward(self, batch: Dict[str, torch.tensor]):         # shape: [N, T]
         src = batch['text']
         trg = batch['phonemes'][:, :-1]
 
@@ -199,15 +188,15 @@ class AutoregressiveTransformer(nn.Module):
         trg = self.decoder(trg)
         trg = self.pos_decoder(trg)
 
-        output = self.transformer(src, trg, src_mask=self.src_mask, tgt_mask=trg_mask,
-                                  memory_mask=self.memory_mask, src_key_padding_mask=src_pad_mask,
+        output = self.transformer(src, trg, src_mask=None, tgt_mask=trg_mask,
+                                  memory_mask=None, src_key_padding_mask=src_pad_mask,
                                   tgt_key_padding_mask=trg_pad_mask, memory_key_padding_mask=src_pad_mask)
         output = self.fc_out(output)
         output = output.transpose(0, 1)
         return output
 
     def generate(self,
-                 batch: Dict[str, Any],
+                 batch: Dict[str, torch.tensor],
                  max_len=100) -> Tuple[torch.tensor, torch.tensor]:
 
         input = batch['text']
@@ -265,7 +254,7 @@ class AutoregressiveTransformer(nn.Module):
         )
 
 
-def load_checkpoint(checkpoint_path: str, device='cpu') -> Tuple[torch.nn.Module, Dict[str, Any]]:
+def load_checkpoint(checkpoint_path: str, device='cpu') -> Tuple[Model, Dict[str, Any]]:
     device = torch.device(device)
     checkpoint = torch.load(checkpoint_path, map_location=device)
 

@@ -12,6 +12,7 @@ from dp.dataset import new_dataloader
 from dp.decorators import ignore_exception
 from dp.losses import CrossEntropyLoss, CTCLoss
 from dp.metrics import phoneme_error_rate, word_error
+from dp.model import Model
 from dp.predictor import Predictor
 from dp.text import Preprocessor
 from dp.utils import to_device, unpickle_binary
@@ -32,7 +33,7 @@ class Trainer:
             raise ValueError(f'Loss not supported: {loss_type}')
 
     def train(self,
-              model: torch.nn.Module,
+              model: Model,
               checkpoint: dict,
               store_phoneme_dict_in_model=True) -> None:
 
@@ -125,7 +126,7 @@ class Trainer:
             self.save_model(model=model, optimizer=optimizer, checkpoint=checkpoint,
                             path=self.checkpoint_dir / 'latest_model.pt')
 
-    def validate(self, model: torch.nn.Module, val_batches: List[dict]) -> float:
+    def validate(self, model: Model, val_batches: List[dict]) -> float:
         device = next(model.parameters()).device
         criterion = self.criterion.to(device)
         model.eval()
@@ -142,7 +143,7 @@ class Trainer:
 
     @ignore_exception
     def generate_samples(self,
-                         model: torch.nn.Module,
+                         model: Model,
                          preprocessor: Preprocessor,
                          val_batches: List[dict],
                          n_log_samples: int,
