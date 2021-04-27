@@ -9,7 +9,7 @@ from dp.predictor import Predictor
 from dp.text import Preprocessor
 
 
-class ModelMock(Model):
+class ModelMock:
 
     def generate(self, batch: Dict[str, Any], **kwargs) -> Tuple[torch.tensor, torch.tensor]:
         """ Return input and ones as probs """
