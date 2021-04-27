@@ -19,7 +19,7 @@ class PhonemizerDataset(Dataset):
         super().__init__()
         self.items = items
 
-    def __getitem__(self, index: int) -> Dict[str, Any]:
+    def __getitem__(self, index: int) -> Dict[str, torch.tensor]:
         item = self.items[index]
         language, text, phonemes = item
         text = torch.tensor(text, dtype=torch.long)
@@ -62,7 +62,7 @@ class BinnedLengthSampler(Sampler):
         return len(self.idx)
 
 
-def collate_dataset(batch: List[dict]) -> torch.tensor:
+def collate_dataset(batch: List[dict]) -> Dict[str, torch.tensor]:
     lang = [b['language'] for b in batch]
     lang = torch.tensor(lang).long()
     text = [b['text'] for b in batch]
