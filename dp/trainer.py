@@ -66,8 +66,8 @@ class Trainer:
                                       factor=config['training']['scheduler_plateau_factor'],
                                       patience=config['training']['scheduler_plateau_patience'],
                                       mode='min')
-        loss_sum = 0.
-        best_per = math.inf        
+        losses = []
+        best_per = math.inf
         if 'step' not in checkpoint:
             checkpoint['step'] = 0
         start_epoch = checkpoint['step'] // len(train_loader)
@@ -77,13 +77,12 @@ class Trainer:
             for i, batch in pbar:
                 checkpoint['step'] += 1
                 step = checkpoint['step']
-
                 self._set_warmup_lr(optimizer=optimizer, step=step,
                                     config=config)
                 batch = to_device(batch, device)
+                avg_loss = sum(losses) / len(losses) if len(losses) > 0 else math.inf
                 pbar.set_description(desc=f'Epoch: {epoch} | Step {step} '
-                                          f'| Loss: {loss_sum / i:#.4}', refresh=True)
-
+                                          f'| Loss: {avg_loss:#.4}', refresh=True)
                 pred = model(batch)
                 loss = criterion(pred, batch)
 
@@ -92,7 +91,7 @@ class Trainer:
                     loss.backward()
                     torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
                     optimizer.step()
-                    loss_sum += loss.item()
+                    losses.append(loss.item())
 
                 self.writer.add_scalar('Loss/train', loss.item(), global_step=step)
                 self.writer.add_scalar('Params/batch_size', config['training']['batch_size'],
@@ -122,7 +121,7 @@ class Trainer:
                     self.save_model(model=model, optimizer=optimizer, checkpoint=checkpoint,
                                     path=self.checkpoint_dir / f'model_step_{step}k.pt')
 
-            loss_sum = 0
+            losses = []
             self.save_model(model=model, optimizer=optimizer, checkpoint=checkpoint,
                             path=self.checkpoint_dir / 'latest_model.pt')
 
