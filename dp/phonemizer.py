@@ -3,7 +3,7 @@ from itertools import zip_longest
 from typing import Dict, Union, Tuple, List
 
 from dp.model import load_checkpoint
-from dp.predictor import Predictor
+from dp.predictor import Predictor, Prediction
 from dp.text import Preprocessor
 from dp.utils import get_sequence_prob
 
@@ -15,14 +15,15 @@ class PhonemizerResult:
     def __init__(self,
                  text: List[List[str]],
                  phonemes: List[List[str]],
-                 predictions: Dict[str, Tuple[str, float]]) -> None:
+                 predictions: Dict[str, Prediction]) -> None:
         """
-        Storage of phonemized texts
+        Container for explicit phonemizer output.
 
-        :param text: List of texts (list of words)
+        :param text: List of tokenized texts (list of words)
         :param phonemes: List of phonemes (list of word phonemes)
         :param predictions: Dictionary with entries word to Tuple (phoneme, probability)
         """
+
         self.text = text
         self.phonemes = phonemes
         self.predictions = predictions
@@ -48,7 +49,7 @@ class Phonemizer:
         """
         Phonemizes a single text or list of texts.
 
-        :param texts: Text to phonemize as single string or list of strings.
+        :param text: Text to phonemize as single string or list of strings.
         :param lang: Language used for phonemization.
         :param punctuation: Punctuation symbols by which the texts are split.
         :param expand_acronyms: Whether to expand an acronym, e.g. DIY -> D-I-Y.
@@ -58,10 +59,10 @@ class Phonemizer:
 
         single_input_string = isinstance(text, str)
         texts = [text] if single_input_string else text
-        _, phoneme_lists, _ = self.phonemise_list(texts=texts, lang=lang,
-                                        punctuation=punctuation, expand_acronyms=expand_acronyms)
+        result = self.phonemise_list(texts=texts, lang=lang,
+                                                  punctuation=punctuation, expand_acronyms=expand_acronyms)
 
-        phoneme_lists = [''.join(phoneme_list) for phoneme_list in phoneme_lists]
+        phoneme_lists = [''.join(phoneme_list) for phoneme_list in result.phonemes]
 
         if single_input_string:
             return phoneme_lists[0]
@@ -123,12 +124,11 @@ class Phonemizer:
             if phons is None and len(word_splits.get(word, [])) <= 1:
                 words_to_predict.append(word)
 
-        pred_phons, pred_probs = self.predict_words(words=words_to_predict,
-                                                    lang=lang, batch_size=batch_size)
-        for word, phons in zip(words_to_predict, pred_phons):
-            word_phonemes[word] = phons
-        pred_word_probs = {word: (phon, prob) for word, phon, prob
-                           in zip(words_to_predict, pred_phons, pred_probs) if len(word) > 0}
+        predictions = self.predictor(words=words_to_predict, language=lang,
+                                     batch_size=batch_size)
+        for pred in predictions:
+            word_phonemes[pred.word] = pred.phonemes
+        pred_dict = {pred.word: pred for pred in predictions}
 
         # collect all phonemes
         output = []
@@ -145,16 +145,7 @@ class Phonemizer:
 
         return PhonemizerResult(text=cleaned_texts,
                                 phonemes=output,
-                                predictions=pred_word_probs)
-
-    def predict_words(self,
-                      words: List[str],
-                      lang: str,
-                      batch_size: int) -> Tuple[List[str], List[float]]:
-        tokens, metas = self.predictor(words, language=lang, batch_size=batch_size)
-        pred = [''.join(t) for t in tokens]
-        probs = [get_sequence_prob(m['probs']) for m in metas]
-        return pred, probs
+                                predictions=pred_dict)
 
     def get_dict_entry(self,
                        word: str,
@@ -208,16 +199,10 @@ if __name__ == '__main__':
     checkpoint_path = '../checkpoints/best_model_no_optim.pt'
     phonemizer = Phonemizer.from_checkpoint(checkpoint_path)
 
-    input = open('/Users/cschaefe/datasets/ASVoice4/metadata_clean_incl_english.csv').readlines()[:100]
+    input = open('/Users/cschaefe/datasets/ASVoice4/metadata_clean_incl_english.csv').readlines()[:10]
     input = [s.split('|')[1] for s in input if not s.split('|')[0].startswith('en_') and len(s.split('|')) > 1][:]
 
     result = phonemizer.phonemise_list(input, lang='de', batch_size=8)
     words, phons, preds = result.text, result.phonemes, result.predictions
-
-    pred_words = sorted(list(preds.keys()), key=lambda x: -preds[x][1])
-    for word in pred_words:
-        pred, prob = preds[word]
-        print(f'{word} {pred} {prob}')
-
-    phons = [''.join(p) for p in phons]
-    #print(phons)
+    for pred in sorted(preds.values(), key=lambda p: -p.confidence):
+        print(f'{pred.word} {pred.phonemes} {pred.confidence}')

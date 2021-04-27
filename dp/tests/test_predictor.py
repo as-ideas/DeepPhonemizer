@@ -33,20 +33,19 @@ class TestPredictor(unittest.TestCase):
         predictor = Predictor(model, preprocessor)
         texts = ['ab', 'cde']
 
-        phonemes, meta = predictor(texts, language='de', batch_size=8)
-        self.assertEqual(2, len(phonemes))
-        self.assertEqual(2, len(meta))
-        self.assertEqual(['a', 'b'], phonemes[0])
-        self.assertEqual(['c', 'd'], phonemes[1])
+        result = predictor(texts, language='de', batch_size=8)
+        self.assertEqual(2, len(result))
+        self.assertEqual('ab', result[0].word)
+        self.assertEqual(['a', 'b'], result[0].phonemes)
+        self.assertEqual(['c', 'd'], result[1].phonemes)
 
-        phonemes, meta = predictor(texts, language='de', batch_size=1)
-        self.assertEqual(2, len(phonemes))
-        self.assertEqual(2, len(meta))
-        self.assertEqual(['a', 'b'], phonemes[0])
-        self.assertEqual(['c', 'd'], phonemes[1])
+        result = predictor(texts, language='de', batch_size=1)
+        self.assertEqual(2, len(result))
+        self.assertEqual(['a', 'b'], result[0].phonemes)
+        self.assertEqual(['c', 'd'],result[1]. phonemes)
 
         texts = ['/']
-        phonemes, meta = predictor(texts, language='de', batch_size=1)
-        self.assertEqual(1, len(phonemes))
-        self.assertEqual(1, len(meta))
-        self.assertEqual([], phonemes[0])
+        result = predictor(texts, language='de', batch_size=1)
+        self.assertEqual(1, len(result))
+        self.assertEqual([], result[0].phonemes)
+        self.assertEqual([], result[0].tokens)
