@@ -24,10 +24,10 @@ class PhonemizerDataset(Dataset):
         language, text, phonemes = item
         text = torch.tensor(text, dtype=torch.long)
         phonemes = torch.tensor(phonemes, dtype=torch.long)
-
         return {'item_id': index, 'text': text,
                 'phonemes': phonemes, 'language': language,
-                'text_len': text.size(0), 'phonemes_len': phonemes.size(0)}
+                'text_len': text.size(0), 'phonemes_len': phonemes.size(0),
+                'start_index': phonemes[0]}
 
     def __len__(self):
         return len(self.items)
@@ -73,8 +73,11 @@ def collate_dataset(batch: List[dict]) -> torch.tensor:
     phonemes_len = torch.tensor([b['phonemes_len'] for b in batch]).long()
     item_ids = [b['item_id'] for b in batch]
     item_ids = torch.tensor(item_ids).long()
+    start_index = [b['start_index'] for b in batch]
+    start_index = torch.tensor(start_index).long()
     return {'text': text, 'phonemes': phonemes, 'text_len': text_len,
-            'phonemes_len': phonemes_len, 'item_id': item_ids, 'language': lang}
+            'phonemes_len': phonemes_len, 'item_id': item_ids, 'language': lang,
+            'start_index': start_index}
 
 
 def new_dataloader(dataset_file: Path,

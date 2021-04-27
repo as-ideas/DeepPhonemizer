@@ -158,7 +158,6 @@ class Trainer:
 
         for batch in val_batches:
             batch = to_device(batch, device)
-            batch['start_index'] = batch['phonemes'][:, 0]
             generated_batch, _ = model.generate(batch)
             for i in range(batch['text'].size(0)):
                 text_len = batch['text_len'][i]

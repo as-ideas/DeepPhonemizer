@@ -12,7 +12,7 @@ preprocessing:
   n_val: 100
 
 model:
-  type: 'transformer'  # choices: ['transformer', 'lstm', 'autoreg_transformer']
+  type: 'autoreg_transformer'  # choices: ['transformer', 'lstm', 'autoreg_transformer']
 
   # transformer params
   d_model: 256
