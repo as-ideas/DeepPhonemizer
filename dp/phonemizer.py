@@ -1,6 +1,6 @@
 import re
 from itertools import zip_longest
-from typing import Dict, Union, Tuple, List
+from typing import Dict, Union, Tuple, List, Set
 
 from dp.model import load_checkpoint
 from dp.predictor import Predictor, Prediction
@@ -150,8 +150,8 @@ class Phonemizer:
     def get_dict_entry(self,
                        word: str,
                        lang: str,
-                       punc_set: set) -> Union[str, None]:
-        if word in punc_set:
+                       punc_set: Set[str]) -> Union[str, None]:
+        if word in punc_set or len(word) == 0:
             return word
         if not self.lang_phoneme_dict or lang not in self.lang_phoneme_dict:
             return None
@@ -203,6 +203,5 @@ if __name__ == '__main__':
     input = [s.split('|')[1] for s in input if not s.split('|')[0].startswith('en_') and len(s.split('|')) > 1][:]
 
     result = phonemizer.phonemise_list(input, lang='de', batch_size=8)
-    words, phons, preds = result.text, result.phonemes, result.predictions
-    for pred in sorted(preds.values(), key=lambda p: -p.confidence):
+    for pred in sorted(result.predictions.values(), key=lambda p: -p.confidence):
         print(f'{pred.word} {pred.phonemes} {pred.confidence}')
