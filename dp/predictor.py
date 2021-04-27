@@ -71,7 +71,7 @@ class Predictor:
             input_batch, lens_batch = [], []
             for text in text_batch:
                 input = self.text_tokenizer(text, language)
-                input_batch.append(torch.tensor(input).long())
+                input_batch.append(torch.tensor(input))
                 lens_batch.append(torch.tensor(len(input)))
 
             input_batch = pad_sequence(sequences=input_batch,
