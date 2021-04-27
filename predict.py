@@ -10,17 +10,19 @@ from dp.predictor import Predictor
 
 if __name__ == '__main__':
 
-    checkpoint_path = 'checkpoints/best_trans_1800k.pt'
+    checkpoint_path = 'checkpoints/best_model_no_optim.pt'
     checkpoint = torch.load(checkpoint_path, map_location=torch.device('cpu'))
-    checkpoint['config']['model']['type'] = 'transformer'
+    #checkpoint['config']['model']['type'] = 'autoreg_transformer'
     #checkpoint['config']['preprocessing']['char_repeats'] = 1
     #checkpoint['config']['model']['layers'] = 4
-    torch.save(checkpoint, checkpoint_path)
+    #checkpoint['preprocessor'].text_tokenizer.char_repeats = 1
+    #checkpoint['preprocessor'].phoneme_tokenizer.char_repeats = 1
+    #torch.save(checkpoint, checkpoint_path)
     predictor = Predictor.from_checkpoint(checkpoint_path)
 
-    text = ['Özdemir']
+    text = ['emberrassingemba']
 
-    pred_batch, meta = predictor(text, language='de', batch_size=1)
+    pred_batch, meta = predictor(text, language='en_us', batch_size=1)
     tokens, probs = meta[0]['tokens'], meta[0]['probs']
 
     pred_decoded = predictor.phoneme_tokenizer.decode(

@@ -78,10 +78,8 @@ class Trainer:
                 batch = to_device(batch, device)
                 pbar.set_description(desc=f'Epoch: {epoch} | Step {model.get_step()} '
                                           f'| Loss: {loss_sum / i:#.4}', refresh=True)
-                text = batch['text']
-                phonemes = batch['phonemes']
-                text_len = batch['text_len']
-                pred = model(text, tar=phonemes[:, :-1], x_len=text_len)
+
+                pred = model(batch)
                 loss = criterion(pred, batch)
 
                 if not (torch.isnan(loss) or torch.isinf(loss)):
@@ -129,11 +127,8 @@ class Trainer:
         val_losses = []
         for batch in val_batches:
             batch = to_device(batch, device)
-            text = batch['text']
-            phonemes = batch['phonemes']
-            text_len = batch['text_len']
             with torch.no_grad():
-                pred = model(text, tar=phonemes[:, :-1], x_len=text_len)
+                pred = model(batch)
                 loss = criterion(pred, batch)
                 if not (torch.isnan(loss) or torch.isinf(loss)):
                     val_losses.append(loss.item())
@@ -157,11 +152,8 @@ class Trainer:
 
         for batch in val_batches:
             batch = to_device(batch, device)
-
-            start_inds = batch['phonemes'][:, 0]
-            generated_batch, _ = model.generate(batch['text'],
-                                                start_index=start_inds,
-                                                x_len=batch['text_len'])
+            batch['start_index'] = batch['phonemes'][:, 0]
+            generated_batch, _ = model.generate(batch)
             for i in range(batch['text'].size(0)):
                 text_len = batch['text_len'][i]
                 text = batch['text'][i, :text_len]

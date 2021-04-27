@@ -6,8 +6,10 @@ import torch.nn as nn
 from torch.nn import TransformerEncoderLayer, LayerNorm, TransformerEncoder, ModuleList
 from torch.nn.utils.rnn import pack_padded_sequence, pad_packed_sequence, pad_sequence
 
-from dp.model_utils import get_dedup_tokens
+from dp.model_utils import get_dedup_tokens, make_len_mask, generate_square_subsequent_mask
 from dp.text import Preprocessor
+
+
 
 
 class LstmModel(torch.nn.Module):
@@ -29,8 +31,9 @@ class LstmModel(torch.nn.Module):
         self.lin = torch.nn.Linear(2 * lstm_dim, num_symbols_out)
 
     def forward(self,
-                x: torch.tensor,
-                x_len: torch.tensor = None) -> torch.tensor:
+                batch: Dict[str, Any]) -> torch.tensor:
+        x = batch['text']
+        x_len = batch['text_len']
         if self.training:
             self.step += 1
         x = self.embedding(x)
@@ -44,10 +47,9 @@ class LstmModel(torch.nn.Module):
         return x
 
     def generate(self,
-                 x: torch.tensor,
-                 x_len: torch.tensor = None) -> Tuple[torch.tensor, torch.tensor]:
+                 batch: Dict[str, Any]) -> Tuple[torch.tensor, torch.tensor]:
         with torch.no_grad():
-            x = self.forward(x, x_len=x_len)
+            x = self.forward(batch)
         tokens, logits = get_dedup_tokens(x)
         return tokens, logits
 
@@ -121,21 +123,15 @@ class ForwardTransformer(nn.Module):
         self.src_mask = None
         self.memory_mask = None
 
-    def generate_square_subsequent_mask(self, sz: int) -> torch.tensor:
-        mask = torch.triu(torch.ones(sz, sz), 1)
-        mask = mask.masked_fill(mask == 1, float('-inf'))
-        return mask
+    def forward(self,
+                batch: Dict[str, Any]) -> torch.tensor:         # shape: [N, T]
 
-    def make_len_mask(self, inp: torch.tensor) -> torch.tensor:
-        return (inp == 0).transpose(0, 1)
-
-    def forward(self, x, **kwargs) -> torch.tensor:         # shape: [N, T]
-
+        x = batch['text']
         if self.training:
             self.step += 1
 
         x = x.transpose(0, 1)        # shape: [T, N]
-        src_pad_mask = self.make_len_mask(x).to(x.device)
+        src_pad_mask = make_len_mask(x).to(x.device)
         x = self.embedding(x)
         x = self.pos_encoder(x)
         x = self.encoder(x, src_key_padding_mask=src_pad_mask)
@@ -144,10 +140,9 @@ class ForwardTransformer(nn.Module):
         return x
 
     def generate(self,
-                 x: torch.tensor,
-                 **kwargs) -> Tuple[torch.tensor, torch.tensor]:
+                 batch: Dict[str, Any]) -> Tuple[torch.tensor, torch.tensor]:
         with torch.no_grad():
-            x = self.forward(x)
+            x = self.forward(batch)
         tokens, logits = get_dedup_tokens(x)
         return tokens, logits
 
@@ -202,15 +197,9 @@ class AutoregressiveTransformer(nn.Module):
         self.src_mask = None
         self.memory_mask = None
 
-    def generate_square_subsequent_mask(self, sz):
-        mask = torch.triu(torch.ones(sz, sz), 1)
-        mask = mask.masked_fill(mask == 1, float('-inf'))
-        return mask
-
-    def make_len_mask(self, inp):
-        return (inp == 0).transpose(0, 1)
-
-    def forward(self, src, trg, **kwargs):         # shape: [N, T]
+    def forward(self, batch: Dict[str, Any]):         # shape: [N, T]
+        src = batch['text']
+        trg = batch['phonemes'][:, :-1]
 
         if self.training:
             self.step += 1
@@ -218,10 +207,10 @@ class AutoregressiveTransformer(nn.Module):
         src = src.transpose(0, 1)        # shape: [T, N]
         trg = trg.transpose(0, 1)
 
-        trg_mask = self.generate_square_subsequent_mask(len(trg)).to(trg.device)
+        trg_mask = generate_square_subsequent_mask(len(trg)).to(trg.device)
 
-        src_pad_mask = self.make_len_mask(src).to(trg.device)
-        trg_pad_mask = self.make_len_mask(trg).to(trg.device)
+        src_pad_mask = make_len_mask(src).to(trg.device)
+        trg_pad_mask = make_len_mask(trg).to(trg.device)
 
         src = self.encoder(src)
         src = self.pos_encoder(src)
@@ -237,15 +226,15 @@ class AutoregressiveTransformer(nn.Module):
         return output
 
     def generate(self,
-                 input: torch.tensor,       # shape: [N, T]
-                 start_index: torch.tensor,
-                 max_len=100,
-                 **kwargs) -> Tuple[torch.tensor, torch.tensor]:
+                 batch: Dict[str, Any],
+                 max_len=100) -> Tuple[torch.tensor, torch.tensor]:
 
-        """ Returns indices and logits """
+        input = batch['text']
+        start_index = batch['start_index']
+
         batch_size = input.size(0)
         input = input.transpose(0, 1)          # shape: [T, N]
-        src_pad_mask = self.make_len_mask(input).to(input.device)
+        src_pad_mask = make_len_mask(input).to(input.device)
         with torch.no_grad():
             input = self.encoder(input)
             input = self.pos_encoder(input)
@@ -254,7 +243,7 @@ class AutoregressiveTransformer(nn.Module):
             out_indices = start_index.unsqueeze(0)
             out_logits = []
             for i in range(max_len):
-                tgt_mask = self.generate_square_subsequent_mask(i + 1).to(input.device)
+                tgt_mask = generate_square_subsequent_mask(i + 1).to(input.device)
                 output = self.decoder(out_indices)
                 output = self.pos_decoder(output)
                 output = self.transformer.decoder(output,

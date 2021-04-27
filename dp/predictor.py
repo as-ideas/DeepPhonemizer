@@ -4,6 +4,7 @@ import torch
 from torch.nn.utils.rnn import pad_sequence
 
 from dp.model import load_checkpoint
+from dp.model_utils import get_len_util_stop
 from dp.text import Preprocessor
 from dp.utils import batchify
 
@@ -45,7 +46,7 @@ class Predictor:
                 valid_texts.add(word)
 
         valid_texts = sorted(list(valid_texts), key=lambda x: len(x))
-        batch_pred = self._batch_predict(texts=valid_texts, batch_size=batch_size,
+        batch_pred = self._predict_batch(texts=valid_texts, batch_size=batch_size,
                                          language=language)
         predictions.update(batch_pred)
 
@@ -59,7 +60,7 @@ class Predictor:
 
         return out_phonemes, out_meta
 
-    def _batch_predict(self,
+    def _predict_batch(self,
                        texts: List[str],
                        batch_size: int,
                        language: str) \
@@ -78,23 +79,19 @@ class Predictor:
             lens_batch = torch.stack(lens_batch)
             start_indx = self.phoneme_tokenizer.get_start_index(language)
             start_inds = torch.tensor([start_indx]*input_batch.size(0)).to(input_batch.device)
+            batch = {
+                'text': input_batch,
+                'text_len': lens_batch,
+                'start_index': start_inds
+            }
             with torch.no_grad():
-                output_batch, probs_batch = self.model.generate(input_batch,
-                                                                start_index=start_inds,
-                                                                x_len=lens_batch)
+                output_batch, probs_batch = self.model.generate(batch)
             output_batch, probs_batch = output_batch.cpu(), probs_batch.cpu()
             for text, output, probs in zip(text_batch, output_batch, probs_batch):
-                seq_len = self._get_len_util_stop(output, self.phoneme_tokenizer.end_index)
+                seq_len = get_len_util_stop(output, self.phoneme_tokenizer.end_index)
                 predictions[text] = (output[:seq_len], probs[:seq_len])
 
         return predictions
-
-    @staticmethod
-    def _get_len_util_stop(sequence: torch.tensor, end_index: int) -> torch.tensor:
-        for i, val in enumerate(sequence):
-            if val == end_index:
-                return i + 1
-        return len(sequence)
 
     @classmethod
     def from_checkpoint(cls, checkpoint_path: str, device='cpu') -> 'Predictor':

@@ -32,3 +32,20 @@ def get_dedup_tokens(logits_batch: torch.tensor) \
     out_probs = pad_sequence(out_probs, batch_first=True, padding_value=0)
 
     return out_tokens, out_probs
+
+
+def generate_square_subsequent_mask(sz: int) -> torch.tensor:
+    mask = torch.triu(torch.ones(sz, sz), 1)
+    mask = mask.masked_fill(mask == 1, float('-inf'))
+    return mask
+
+
+def make_len_mask(inp: torch.tensor) -> torch.tensor:
+    return (inp == 0).transpose(0, 1)
+
+
+def get_len_util_stop(sequence: torch.tensor, end_index: int) -> torch.tensor:
+    for i, val in enumerate(sequence):
+        if val == end_index:
+            return i + 1
+    return len(sequence)
