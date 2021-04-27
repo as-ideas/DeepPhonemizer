@@ -1,25 +1,27 @@
 import unittest
 from typing import Dict, Any, Tuple
-from unittest.mock import Mock
+from unittest.mock import Mock, patch
 
 import torch
 
+from dp.model import Model
 from dp.predictor import Predictor
 from dp.text import Preprocessor
 
 
-def mock_generate(batch: Dict[str, Any]) -> Tuple[torch.tensor, torch.tensor]:
-    """ Return input and ones as probs """
-    tokens = batch['text']
-    probs = torch.ones(tokens.size())
-    return tokens, probs
+class ModelMock(Model):
+
+    def generate(self, batch: Dict[str, Any], **kwargs) -> Tuple[torch.tensor, torch.tensor]:
+        """ Return input and ones as probs """
+        tokens = batch['text']
+        probs = torch.ones(tokens.size())
+        return tokens, probs
 
 
+@patch.object(Model, 'generate', new_callable=ModelMock)
 class TestPredictor(unittest.TestCase):
 
-    def test_call_with_model_mock(self) -> None:
-        model = Mock()
-        model.generate = mock_generate
+    def test_call_with_model_mock(self, model_mock) -> None:
         config = {
             'preprocessing': {
                 'text_symbols': 'abcd',
@@ -30,22 +32,22 @@ class TestPredictor(unittest.TestCase):
             },
         }
         preprocessor = Preprocessor.from_config(config)
-        predictor = Predictor(model, preprocessor)
+        predictor = Predictor(model_mock, preprocessor)
         texts = ['ab', 'cde']
 
-        result = predictor(texts, language='de', batch_size=8)
+        result = predictor(texts, lang='de', batch_size=8)
         self.assertEqual(2, len(result))
         self.assertEqual('ab', result[0].word)
-        self.assertEqual(['a', 'b'], result[0].phonemes)
-        self.assertEqual(['c', 'd'], result[1].phonemes)
+        self.assertEqual('ab', result[0].phonemes)
+        self.assertEqual('cd', result[1].phonemes)
 
-        result = predictor(texts, language='de', batch_size=1)
+        result = predictor(texts, lang='de', batch_size=1)
         self.assertEqual(2, len(result))
-        self.assertEqual(['a', 'b'], result[0].phonemes)
-        self.assertEqual(['c', 'd'],result[1]. phonemes)
+        self.assertEqual('ab', result[0].phonemes)
+        self.assertEqual('cd',result[1]. phonemes)
 
         texts = ['/']
-        result = predictor(texts, language='de', batch_size=1)
+        result = predictor(texts, lang='de', batch_size=1)
         self.assertEqual(1, len(result))
-        self.assertEqual([], result[0].phonemes)
+        self.assertEqual('', result[0].phonemes)
         self.assertEqual([], result[0].tokens)

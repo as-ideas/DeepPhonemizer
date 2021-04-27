@@ -19,6 +19,7 @@ class Prediction:
                  token_probs: List[float]) -> None:
         """
         Container for single word prediction.
+
         :param word: Original word to predict.
         :param phonemes: Predicted phonemes (without start and end token string).
         :param tokens: Predicted phoneme tokens (including start and end token).
@@ -44,13 +45,13 @@ class Predictor:
 
     def __call__(self,
                  words: List[str],
-                 language: str,
+                 lang: str,
                  batch_size=8) -> List[Prediction]:
         """
         Predicts phonemes for a list of words.
 
         :param words: List of words to predict.
-        :param language: Language of texts.
+        :param lang: Language of texts.
         :param batch_size: Size of batch for model input to speed up inference.
         :return: A list of prediction objects containing (word, phonemes, probs, tokens)
         """
@@ -60,7 +61,7 @@ class Predictor:
 
         # handle words that result in an empty input to the model
         for word in words:
-            input = self.text_tokenizer(sentence=word, language=language)
+            input = self.text_tokenizer(sentence=word, language=lang)
             decoded = self.text_tokenizer.decode(
                 sequence=input, remove_special_tokens=True)
             if len(decoded) == 0:
@@ -70,7 +71,7 @@ class Predictor:
 
         valid_texts = sorted(list(valid_texts), key=lambda x: len(x))
         batch_pred = self._predict_batch(texts=valid_texts, batch_size=batch_size,
-                                         language=language)
+                                         language=lang)
         predictions.update(batch_pred)
 
         output = []

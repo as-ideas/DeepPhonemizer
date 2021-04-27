@@ -1,45 +1,45 @@
 import unittest
-from typing import Dict, Any, Tuple
-from unittest.mock import Mock
+from typing import Dict, Any, Tuple, List
+from unittest.mock import Mock, _patch_object, patch
 
 import torch
 
-from dp.predictor import Predictor
+from dp.phonemizer import PhonemizerResult, Phonemizer
+from dp.predictor import Predictor, Prediction
 from dp.text import Preprocessor
+
+
+class PredictorMock:
+
+    def __call__(self, words: List[str], lang: str, **kwargs) -> List[Prediction]:
+        output = []
+        for word in words:
+            phons = word + f'-phon-{lang}'
+            pred = Prediction(word=word, phonemes=phons, confidence=0.5,
+                              tokens=[1]*len(phons), token_probs=[0.5]*len(phons))
+            output.append(pred)
+        return output
 
 
 class TestPhonemizer(unittest.TestCase):
 
-    def test_call_with_model_mock(self) -> None:
-        predictor = Mock()
-        model.generate = mock_generate
-        config = {
-            'preprocessing': {
-                'text_symbols': 'abcd',
-                'phoneme_symbols': 'abcd',
-                'char_repeats': 1,
-                'languages': ['de'],
-                'lowercase': False
-            },
-        }
+    @patch.object(Predictor, '__call__', new_callable=PredictorMock)
+    def test_call_with_predictor_mock(self, predictor) -> None:
+
+        config = {'preprocessing': {}}
+        config['preprocessing']['text_symbols'] = 'abcdefghijklmnopqrstuvwxyz'
+        config['preprocessing']['phoneme_symbols'] = 'abcdefghijklmnopqrstuvwxyz'
+        config['preprocessing']['languages'] = ['de']
+        config['preprocessing']['char_repeats'] = 1
+        config['preprocessing']['lowercase'] = True
         preprocessor = Preprocessor.from_config(config)
-        predictor = Predictor(model, preprocessor)
-        texts = ['ab', 'cde']
+        phonemizer = Phonemizer(predictor=predictor, preprocessor=preprocessor)
 
-        phonemes, meta = predictor(texts, language='de', batch_size=8)
-        self.assertEqual(2, len(phonemes))
-        self.assertEqual(2, len(meta))
-        self.assertEqual(['a', 'b'], phonemes[0])
-        self.assertEqual(['c', 'd'], phonemes[1])
+        result = phonemizer('hallo', lang='de')
+        self.assertEqual('hallo-phon-de', result)
 
-        phonemes, meta = predictor(texts, language='de', batch_size=1)
-        self.assertEqual(2, len(phonemes))
-        self.assertEqual(2, len(meta))
-        self.assertEqual(['a', 'b'], phonemes[0])
-        self.assertEqual(['c', 'd'], phonemes[1])
+        result = phonemizer(['hallo', 'du'], lang='de')
+        self.assertEqual(['hallo-phon-de', 'du-phon-de'], result)
 
-        texts = ['/']
-        phonemes, meta = predictor(texts, language='de', batch_size=1)
-        self.assertEqual(1, len(phonemes))
-        self.assertEqual(1, len(meta))
-        self.assertEqual([], phonemes[0])
+
+        print(result)

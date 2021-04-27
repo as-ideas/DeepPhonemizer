@@ -60,7 +60,7 @@ class Phonemizer:
         single_input_string = isinstance(text, str)
         texts = [text] if single_input_string else text
         result = self.phonemise_list(texts=texts, lang=lang,
-                                                  punctuation=punctuation, expand_acronyms=expand_acronyms)
+                                     punctuation=punctuation, expand_acronyms=expand_acronyms)
 
         phoneme_lists = [''.join(phoneme_list) for phoneme_list in result.phonemes]
 
@@ -124,7 +124,7 @@ class Phonemizer:
             if phons is None and len(word_splits.get(word, [])) <= 1:
                 words_to_predict.append(word)
 
-        predictions = self.predictor(words=words_to_predict, language=lang,
+        predictions = self.predictor(words=words_to_predict, lang=lang,
                                      batch_size=batch_size)
         for pred in predictions:
             word_phonemes[pred.word] = pred.phonemes
