@@ -20,7 +20,6 @@ class LstmModel(torch.nn.Module):
                  lstm_dim: int,
                  num_layers: int) -> None:
         super().__init__()
-        self.register_buffer('step', torch.tensor(1, dtype=torch.int))
         self.embedding = nn.Embedding(num_embeddings=num_symbols_in, embedding_dim=lstm_dim)
         lstms = [torch.nn.LSTM(lstm_dim, lstm_dim, batch_first=True, bidirectional=True)]
         for i in range(1, num_layers):
@@ -34,8 +33,6 @@ class LstmModel(torch.nn.Module):
                 batch: Dict[str, Any]) -> torch.tensor:
         x = batch['text']
         x_len = batch['text_len']
-        if self.training:
-            self.step += 1
         x = self.embedding(x)
         if x_len is not None:
             x = pack_padded_sequence(x, x_len.cpu(), batch_first=True, enforce_sorted=False)
@@ -52,9 +49,6 @@ class LstmModel(torch.nn.Module):
             x = self.forward(batch)
         tokens, logits = get_dedup_tokens(x)
         return tokens, logits
-
-    def get_step(self) -> int:
-        return self.step.data.item()
 
     @classmethod
     def from_config(cls, config: dict) -> 'LstmModel':
@@ -118,8 +112,6 @@ class ForwardTransformer(nn.Module):
 
         self.fc_out = nn.Linear(d_model, decoder_vocab_size)
 
-        self.register_buffer('step', torch.tensor(1, dtype=torch.int))
-
         self.src_mask = None
         self.memory_mask = None
 
@@ -127,9 +119,6 @@ class ForwardTransformer(nn.Module):
                 batch: Dict[str, Any]) -> torch.tensor:         # shape: [N, T]
 
         x = batch['text']
-        if self.training:
-            self.step += 1
-
         x = x.transpose(0, 1)        # shape: [T, N]
         src_pad_mask = make_len_mask(x).to(x.device)
         x = self.embedding(x)
@@ -145,9 +134,6 @@ class ForwardTransformer(nn.Module):
             x = self.forward(batch)
         tokens, logits = get_dedup_tokens(x)
         return tokens, logits
-
-    def get_step(self) -> int:
-        return self.step.data.item()
 
     @classmethod
     def from_config(cls, config: dict) -> 'ForwardTransformer':
@@ -192,17 +178,12 @@ class AutoregressiveTransformer(nn.Module):
                                           dropout=dropout, activation='relu')
         self.fc_out = nn.Linear(d_model, decoder_vocab_size)
 
-        self.register_buffer('step', torch.tensor(1, dtype=torch.int))
-
         self.src_mask = None
         self.memory_mask = None
 
     def forward(self, batch: Dict[str, Any]):         # shape: [N, T]
         src = batch['text']
         trg = batch['phonemes'][:, :-1]
-
-        if self.training:
-            self.step += 1
 
         src = src.transpose(0, 1)        # shape: [T, N]
         trg = trg.transpose(0, 1)
@@ -267,9 +248,6 @@ class AutoregressiveTransformer(nn.Module):
             for j in range(0, out_indices.size(1)-1):
                 out_probs[i, j+1] = out_logits[i, j].max()
         return out_indices, out_probs
-
-    def get_step(self):
-        return self.step.data.item()
 
     @classmethod
     def from_config(cls, config: dict) -> 'AutoregressiveTransformer':

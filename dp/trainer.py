@@ -65,18 +65,22 @@ class Trainer:
                                       factor=config['training']['scheduler_plateau_factor'],
                                       patience=config['training']['scheduler_plateau_patience'],
                                       mode='min')
-
         loss_sum = 0.
-        best_per = math.inf
-        start_epoch = model.get_step() // len(train_loader)
+        best_per = math.inf        
+        if 'step' not in checkpoint:
+            checkpoint['step'] = 0
+        start_epoch = checkpoint['step'] // len(train_loader)
 
         for epoch in range(start_epoch + 1, config['training']['epochs'] + 1):
             pbar = tqdm.tqdm(enumerate(train_loader, 1), total=len(train_loader))
             for i, batch in pbar:
-                self._set_warmup_lr(optimizer=optimizer, step=model.get_step(),
+                checkpoint['step'] += 1
+                step = checkpoint['step']
+
+                self._set_warmup_lr(optimizer=optimizer, step=step,
                                     config=config)
                 batch = to_device(batch, device)
-                pbar.set_description(desc=f'Epoch: {epoch} | Step {model.get_step()} '
+                pbar.set_description(desc=f'Epoch: {epoch} | Step {step} '
                                           f'| Loss: {loss_sum / i:#.4}', refresh=True)
 
                 pred = model(batch)
@@ -89,21 +93,22 @@ class Trainer:
                     optimizer.step()
                     loss_sum += loss.item()
 
-                self.writer.add_scalar('Loss/train', loss.item(), global_step=model.get_step())
+                self.writer.add_scalar('Loss/train', loss.item(), global_step=step)
                 self.writer.add_scalar('Params/batch_size', config['training']['batch_size'],
-                                       global_step=model.get_step())
+                                       global_step=step)
                 self.writer.add_scalar('Params/learning_rate', [g['lr'] for g in optimizer.param_groups][0],
-                                       global_step=model.get_step())
+                                       global_step=step)
 
-                if model.get_step() % config['training']['validate_steps'] == 0:
+                if step % config['training']['validate_steps'] == 0:
                     val_loss = self.validate(model, val_batches)
-                    self.writer.add_scalar('Loss/val', val_loss, global_step=model.get_step())
+                    self.writer.add_scalar('Loss/val', val_loss, global_step=step)
 
-                if model.get_step() % config['training']['generate_steps'] == 0:
+                if step % config['training']['generate_steps'] == 0:
                     per = self.generate_samples(model=model,
                                                 preprocessor=checkpoint['preprocessor'],
                                                 val_batches=val_batches,
-                                                n_log_samples=config['training']['n_generate_samples'])
+                                                n_log_samples=config['training']['n_generate_samples'],
+                                                step=step)
                     if per is not None and per < best_per:
                         self.save_model(model=model, optimizer=optimizer, checkpoint=checkpoint,
                                         path=self.checkpoint_dir / f'best_model.pt')
@@ -111,8 +116,8 @@ class Trainer:
                                         path=self.checkpoint_dir / f'best_model_no_optim.pt')
                         scheduler.step(per)
 
-                if model.get_step() % config['training']['checkpoint_steps'] == 0:
-                    step = model.get_step() // 1000
+                if step % config['training']['checkpoint_steps'] == 0:
+                    step = step // 1000
                     self.save_model(model=model, optimizer=optimizer, checkpoint=checkpoint,
                                     path=self.checkpoint_dir / f'model_step_{step}k.pt')
 
@@ -140,7 +145,8 @@ class Trainer:
                          model: torch.nn.Module,
                          preprocessor: Preprocessor,
                          val_batches: List[dict],
-                         n_log_samples: int) -> float:
+                         n_log_samples: int,
+                         step: int) -> float:
         """ Generates samples and calculates some metrics. Returns phoneme error rate. """
 
         device = next(model.parameters()).device
@@ -181,7 +187,7 @@ class Trainer:
                 log_texts.append(f'     {text:<30} {gen_decoded:<30} {target:<30}')
 
             self.writer.add_text(f'Text_Prediction_Target/{lang}',
-                                 '\n'.join(log_texts[:n_log_samples]), global_step=model.get_step())
+                                 '\n'.join(log_texts[:n_log_samples]), global_step=step)
 
         sum_wer, sum_per, count = 0., 0., 0
         for lang in languages:
@@ -190,10 +196,10 @@ class Trainer:
             sum_wer = sum_wer + sum(lang_wer[lang])
             per = sum(lang_per[lang]) / len(lang_per[lang])
             wer = sum(lang_wer[lang]) / len(lang_wer[lang])
-            self.writer.add_scalar(f'Phoneme_Error_Rate/{lang}', per, global_step=model.get_step())
-            self.writer.add_scalar(f'Word_Error_Rate/{lang}', wer, global_step=model.get_step())
-        self.writer.add_scalar(f'Phoneme_Error_Rate/mean', sum_per / count, global_step=model.get_step())
-        self.writer.add_scalar(f'Word_Error_Rate/mean', sum_wer / count, global_step=model.get_step())
+            self.writer.add_scalar(f'Phoneme_Error_Rate/{lang}', per, global_step=step)
+            self.writer.add_scalar(f'Word_Error_Rate/{lang}', wer, global_step=step)
+        self.writer.add_scalar(f'Phoneme_Error_Rate/mean', sum_per / count, global_step=step)
+        self.writer.add_scalar(f'Word_Error_Rate/mean', sum_wer / count, global_step=step)
 
         model.train()
 
@@ -202,7 +208,7 @@ class Trainer:
     def save_model(self,
                    model: torch.nn.Module,
                    optimizer: torch.optim,
-                   checkpoint: dict,
+                   checkpoint: Dict[str, Any],
                    path: Path) -> None:
         checkpoint['model'] = model.state_dict()
         if optimizer is not None:

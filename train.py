@@ -54,7 +54,6 @@ if __name__ == '__main__':
         }
 
     loss_type = 'cross_entropy' if 'autoreg_' in model_type else 'ctc'
-
     trainer = Trainer(checkpoint_dir=config['paths']['checkpoint_dir'], loss_type=loss_type)
     trainer.train(model=model,
                   checkpoint=checkpoint,

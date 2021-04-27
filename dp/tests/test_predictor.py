@@ -1,4 +1,5 @@
 import unittest
+from typing import Dict, Any, Tuple
 from unittest.mock import Mock
 
 import torch
@@ -7,24 +8,18 @@ from dp.predictor import Predictor
 from dp.text import Preprocessor
 
 
-def mock_model_call(input: torch.tensor) -> torch.tensor:
-
-    """ returns input sandwiched with start and end indices """
-
-    batch_size = input.size(0)
-    logits = torch.full((batch_size, input.size(1), 20), fill_value=0.5)
-    # return fake logits that result in output tokens = input tokens
-    for t in range(input.size(1)):
-        for b in range(input.size(0)):
-            logits[b, t, input[b, t]] = 1.
-    return logits
+def mock_generate(batch: Dict[str, Any]) -> Tuple[torch.tensor, torch.tensor]:
+    """ Return input and ones as probs """
+    tokens = batch['text']
+    probs = torch.ones(tokens.size())
+    return tokens, probs
 
 
 class TestPredictor(unittest.TestCase):
 
     def test_call_with_model_mock(self) -> None:
         model = Mock()
-        model.side_effect = mock_model_call
+        model.generate = mock_generate
         config = {
             'preprocessing': {
                 'text_symbols': 'abcd',

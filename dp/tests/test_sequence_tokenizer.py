@@ -34,7 +34,7 @@ class TestSequenceTokenizer(unittest.TestCase):
         tokens = tokenizer(['A', 'b', 'F'], language='en')
         decoded = tokenizer.decode(tokens)
 
-        self.assertEqual(3, len(tokens))
+        self.assertEqual(4, len(tokens))
         self.assertEqual(['<en>', 'b', '<end>'], decoded)
 
     def test_call_edge_cases(self) -> None:
