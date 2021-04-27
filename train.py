@@ -27,7 +27,8 @@ if __name__ == '__main__':
         print(f'Restoring model from checkpoint: {args.checkpoint}')
         model, checkpoint = load_checkpoint(args.checkpoint)
         model.train()
-        print(f'Loaded model with step: {model.get_step()}')
+        step = checkpoint['step']
+        print(f'Loaded model with step: {step}')
         for key, val in config['training'].items():
             val_orig = checkpoint['config']['training'][key]
             if val_orig != val:
