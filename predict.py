@@ -14,9 +14,9 @@ if __name__ == '__main__':
     checkpoint = torch.load(checkpoint_path, map_location=torch.device('cpu'))
     predictor = Predictor.from_checkpoint(checkpoint_path)
 
-    text = ['Engineering']
+    text = ['covid']
 
-    predictions = predictor(text, lang='en_us', batch_size=2)
+    predictions = predictor(text, lang='de', batch_size=2)
 
     for i, pred in enumerate(predictions):
         tokens, probs = pred.tokens, pred.token_probs

@@ -199,7 +199,7 @@ if __name__ == '__main__':
     checkpoint_path = '../checkpoints/de_us_nostress/best_model_no_optim.pt'
     phonemizer = Phonemizer.from_checkpoint(checkpoint_path)
 
-    input = open('/Users/cschaefe/datasets/ASVoice4/metadata_clean_incl_english.csv').readlines()[-10000:]
+    input = open('/Users/cschaefe/datasets/ASVoice4/metadata_clean_incl_english.csv').readlines()[-100:]
     input = [s.split('|')[1] for s in input if s.split('|')[0].startswith('en_') and len(s.split('|')) > 1][:]
 
     result = phonemizer.phonemise_list(input, lang='en_us', batch_size=8)
