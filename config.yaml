@@ -1,6 +1,8 @@
 
 paths:
-  checkpoint_dir: checkpoints
+  train_file: /Users/cschaefe/datasets/nlp/de_us_phonemes_train.pkl # path train file (.pkl)
+  val_file: /Users/cschaefe/datasets/nlp/de_us_phonemes_val.pkl # optional, path to val file (.pkl)
+  checkpoint_dir: checkpoints # directory to store model checkpoints and tensorboard
   data_dir: datasets # directory to store processed data
 
 preprocessing:
