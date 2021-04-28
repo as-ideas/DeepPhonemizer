@@ -5,7 +5,6 @@ from typing import Dict, List, Any, Union, Tuple
 
 import torch
 import yaml
-from torch.nn.utils.rnn import pad_sequence
 
 
 def read_config(path: str) -> Dict[str, Any]:
