@@ -196,12 +196,14 @@ class Phonemizer:
 
 
 if __name__ == '__main__':
-    checkpoint_path = '../checkpoints/best_model_no_optim.pt'
+    checkpoint_path = '../checkpoints/de_us_nostress/best_model_no_optim.pt'
     phonemizer = Phonemizer.from_checkpoint(checkpoint_path)
 
-    input = open('/Users/cschaefe/datasets/ASVoice4/metadata_clean_incl_english.csv').readlines()[:10]
-    input = [s.split('|')[1] for s in input if not s.split('|')[0].startswith('en_') and len(s.split('|')) > 1][:]
+    input = open('/Users/cschaefe/datasets/ASVoice4/metadata_clean_incl_english.csv').readlines()[-10000:]
+    input = [s.split('|')[1] for s in input if s.split('|')[0].startswith('en_') and len(s.split('|')) > 1][:]
 
-    result = phonemizer.phonemise_list(input, lang='de', batch_size=8)
+    result = phonemizer.phonemise_list(input, lang='en_us', batch_size=8)
     for pred in sorted(result.predictions.values(), key=lambda p: -p.confidence):
         print(f'{pred.word} {pred.phonemes} {pred.confidence}')
+
+    #print(result.phonemes)

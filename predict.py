@@ -10,17 +10,16 @@ from dp.predictor import Predictor
 
 if __name__ == '__main__':
 
-    checkpoint_path = 'checkpoints/best_model_no_optim.pt'
+    checkpoint_path = 'checkpoints/de_us_nostress/best_model_no_optim.pt'
     checkpoint = torch.load(checkpoint_path, map_location=torch.device('cpu'))
-    print(f'model step {checkpoint["step"]}')
     predictor = Predictor.from_checkpoint(checkpoint_path)
 
-    text = ['aufzupflanzende', 'hallo']
+    text = ['Engineering']
 
-    pred_batch, metas = predictor(text, language='de', batch_size=2)
+    predictions = predictor(text, lang='en_us', batch_size=2)
 
-    for i, meta in enumerate(metas):
-        tokens, probs = meta['tokens'], meta['probs']
+    for i, pred in enumerate(predictions):
+        tokens, probs = pred.tokens, pred.token_probs
 
         pred_decoded = predictor.phoneme_tokenizer.decode(
             tokens, remove_special_tokens=False)
@@ -30,7 +29,6 @@ if __name__ == '__main__':
         for o, p in zip(pred_decoded, probs):
             print(f'{o} {p}')
 
-        #pred_decoded = [k for k, g in groupby(pred_decoded) if k != 0]
         pred_decoded = ''.join(pred_decoded)
         print(f'{text[i]} {pred_decoded} | {prob}')
 
