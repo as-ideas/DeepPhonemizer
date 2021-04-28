@@ -8,7 +8,7 @@ from typing import List, Tuple, Dict, Iterable, Any
 import tqdm
 import torch
 from dp.dataset import new_dataloader
-from dp.model import TransformerModel
+from dp.model import LstmModel, ForwardTransformer, AutoregressiveTransformer, load_checkpoint
 from dp.text import SequenceTokenizer, Preprocessor
 from dp.trainer import Trainer
 from dp.utils import read_config, pickle_binary
@@ -25,24 +25,37 @@ if __name__ == '__main__':
 
     if args.checkpoint:
         print(f'Restoring model from checkpoint: {args.checkpoint}')
-        checkpoint = torch.load(args.checkpoint, map_location=torch.device('cpu'))
-        model = TransformerModel.from_config(checkpoint['config'])
-        model.load_state_dict(checkpoint['model'])
-        print(f'Loaded model with step: {model.get_step()}')
+        model, checkpoint = load_checkpoint(args.checkpoint)
+        model.train()
+        step = checkpoint['step']
+        print(f'Loaded model with step: {step}')
         for key, val in config['training'].items():
             val_orig = checkpoint['config']['training'][key]
             if val_orig != val:
                 print(f'Overwriting training param: {key} {val_orig} --> {val}')
                 checkpoint['config']['training'][key] = val
         config = checkpoint['config']
+        model_type = config['model']['type']
     else:
         print('Initializing new model from config...')
         preprocessor = Preprocessor.from_config(config)
-        model = TransformerModel.from_config(config)
+        model_type = config['model']['type']
+        supported_types = ['lstm', 'transformer']
+        if model_type == 'lstm':
+            model = LstmModel.from_config(config)
+        elif model_type == 'transformer':
+            model = ForwardTransformer.from_config(config)
+        elif model_type == 'autoreg_transformer':
+            model = AutoregressiveTransformer.from_config(config)
+        else:
+            raise ValueError(f'Model type not supported: {model_type}. Supported types: {supported_types}')
         checkpoint = {
             'preprocessor': preprocessor,
             'config': config,
         }
 
-    trainer = Trainer(checkpoint_dir=config['paths']['checkpoint_dir'])
-    trainer.train(model=model, checkpoint=checkpoint)
+    loss_type = 'cross_entropy' if 'autoreg_' in model_type else 'ctc'
+    trainer = Trainer(checkpoint_dir=config['paths']['checkpoint_dir'], loss_type=loss_type)
+    trainer.train(model=model,
+                  checkpoint=checkpoint,
+                  store_phoneme_dict_in_model=config['training']['store_phoneme_dict_in_model'])

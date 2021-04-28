@@ -1,7 +1,6 @@
 from pathlib import Path
 from random import Random
-from random import Random
-from typing import List, Any, Dict, Tuple, Iterable
+from typing import List, Any, Dict, Tuple
 
 import numpy as np
 import torch
@@ -20,15 +19,15 @@ class PhonemizerDataset(Dataset):
         super().__init__()
         self.items = items
 
-    def __getitem__(self, index: int) -> Dict[str, Any]:
+    def __getitem__(self, index: int) -> Dict[str, torch.tensor]:
         item = self.items[index]
         language, text, phonemes = item
         text = torch.tensor(text, dtype=torch.long)
         phonemes = torch.tensor(phonemes, dtype=torch.long)
-
         return {'item_id': index, 'text': text,
                 'phonemes': phonemes, 'language': language,
-                'text_len': text.size(0), 'phonemes_len': phonemes.size(0)}
+                'text_len': text.size(0), 'phonemes_len': phonemes.size(0),
+                'start_index': phonemes[0]}
 
     def __len__(self):
         return len(self.items)
@@ -63,7 +62,7 @@ class BinnedLengthSampler(Sampler):
         return len(self.idx)
 
 
-def collate_dataset(batch: List[dict]) -> torch.tensor:
+def collate_dataset(batch: List[dict]) -> Dict[str, torch.tensor]:
     lang = [b['language'] for b in batch]
     lang = torch.tensor(lang).long()
     text = [b['text'] for b in batch]
@@ -74,8 +73,11 @@ def collate_dataset(batch: List[dict]) -> torch.tensor:
     phonemes_len = torch.tensor([b['phonemes_len'] for b in batch]).long()
     item_ids = [b['item_id'] for b in batch]
     item_ids = torch.tensor(item_ids).long()
+    start_index = [b['start_index'] for b in batch]
+    start_index = torch.tensor(start_index).long()
     return {'text': text, 'phonemes': phonemes, 'text_len': text_len,
-            'phonemes_len': phonemes_len, 'item_id': item_ids, 'language': lang}
+            'phonemes_len': phonemes_len, 'item_id': item_ids, 'language': lang,
+            'start_index': start_index}
 
 
 def new_dataloader(dataset_file: Path,

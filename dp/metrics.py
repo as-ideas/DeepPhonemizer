@@ -1,5 +1,6 @@
-import numpy
 from typing import List, Union
+
+import numpy
 
 
 def word_error(predicted: List[Union[str, int]], target: List[Union[str, int]]) -> float:
@@ -32,7 +33,7 @@ def phoneme_error_rate(predicted: List[Union[str, int]], target: List[Union[str,
 
 if __name__ == '__main__':
 
-    pred = list('abdc')
+    pred = list('bca')
     gold = list('abc')
     wer = phoneme_error_rate(pred, gold)
 

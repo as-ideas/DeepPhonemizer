@@ -1,13 +1,11 @@
+import math
 import pickle
 from pathlib import Path
-from typing import Dict, List, Any, Union, Tuple, Iterable, Sized
+from typing import Dict, List, Any, Union, Tuple
 
 import torch
 import yaml
-import math
-
-from dp.model import TransformerModel
-from dp.text import Preprocessor
+from torch.nn.utils.rnn import pad_sequence
 
 
 def read_config(path: str) -> Dict[str, Any]:
@@ -39,22 +37,13 @@ def to_device(batch: Dict[str, torch.tensor], device: torch.device) -> Dict[str,
     return {key: val.to(device) for key, val in batch.items()}
 
 
-def get_sequence_prob(tokens: List[int], logits: torch.tensor) -> float:
-    if len(tokens) == 0:
-        return 1.
-    norm_logits = logits.softmax(dim=-1)
-    probs = [norm_logits[i, p] for i, p in enumerate(tokens[1:])]
+def get_sequence_prob(probs: torch.tensor) -> float:
+    if probs is None or len(probs) == 0:
+        return 0.
+    if 0 in probs:
+        return 0
     prob = math.exp(sum([math.log(p) for p in probs]))
     return prob
-
-
-def load_checkpoint(checkpoint_path: str, device='cpu') -> Tuple[TransformerModel, Dict[str, Any]]:
-    device = torch.device(device)
-    checkpoint = torch.load(checkpoint_path, map_location=device)
-    model = TransformerModel.from_config(checkpoint['config']).to(device)
-    model.load_state_dict(checkpoint['model'])
-    model.eval()
-    return model, checkpoint
 
 
 def batchify(input: list, batch_size: int) -> List[list]:

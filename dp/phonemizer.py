@@ -1,14 +1,32 @@
-import torch
 import re
-from typing import Dict, Union, Tuple, List
+from itertools import zip_longest
+from typing import Dict, Union, Tuple, List, Set
 
-from dp.decorators import time_it
-from dp.model import TransformerModel
-from dp.predictor import Predictor
+from dp.model import load_checkpoint
+from dp.predictor import Predictor, Prediction
 from dp.text import Preprocessor
-from dp.utils import get_sequence_prob, load_checkpoint
+from dp.utils import get_sequence_prob
 
-DEFAULT_PUNCTUATION = '().,:?!'
+DEFAULT_PUNCTUATION = '().,:?!/'
+
+
+class PhonemizerResult:
+
+    def __init__(self,
+                 text: List[List[str]],
+                 phonemes: List[List[str]],
+                 predictions: Dict[str, Prediction]) -> None:
+        """
+        Container for explicit phonemizer output.
+
+        :param text: List of tokenized texts (list of words)
+        :param phonemes: List of phonemes (list of word phonemes)
+        :param predictions: Dictionary with entries word to Tuple (phoneme, probability)
+        """
+
+        self.text = text
+        self.phonemes = phonemes
+        self.predictions = predictions
 
 
 class Phonemizer:
@@ -31,7 +49,7 @@ class Phonemizer:
         """
         Phonemizes a single text or list of texts.
 
-        :param texts: Text to phonemize as single string or list of strings.
+        :param text: Text to phonemize as single string or list of strings.
         :param lang: Language used for phonemization.
         :param punctuation: Punctuation symbols by which the texts are split.
         :param expand_acronyms: Whether to expand an acronym, e.g. DIY -> D-I-Y.
@@ -41,10 +59,10 @@ class Phonemizer:
 
         single_input_string = isinstance(text, str)
         texts = [text] if single_input_string else text
-        _, phoneme_lists, _ = self.phonemise_list(texts=texts, lang=lang,
-                                        punctuation=punctuation, expand_acronyms=expand_acronyms)
+        result = self.phonemise_list(texts=texts, lang=lang,
+                                     punctuation=punctuation, expand_acronyms=expand_acronyms)
 
-        phoneme_lists = [''.join(phoneme_list) for phoneme_list in phoneme_lists]
+        phoneme_lists = [''.join(phoneme_list) for phoneme_list in result.phonemes]
 
         if single_input_string:
             return phoneme_lists[0]
@@ -56,8 +74,7 @@ class Phonemizer:
                        lang: str,
                        punctuation=DEFAULT_PUNCTUATION,
                        expand_acronyms=True,
-                       batch_size=8) -> Tuple[List[List[str]], List[List[str]],
-                                                      Dict[str, Tuple[str, float]]]:
+                       batch_size=8) -> PhonemizerResult:
 
         """
         Phonemizes a list of texts and returns tokenized texts, phonemes and word predictions with probabilities.
@@ -107,12 +124,11 @@ class Phonemizer:
             if phons is None and len(word_splits.get(word, [])) <= 1:
                 words_to_predict.append(word)
 
-        pred_phons, pred_probs = self.predict_words(words=words_to_predict,
-                                                    lang=lang, batch_size=batch_size)
-        for word, phons in zip(words_to_predict, pred_phons):
-            word_phonemes[word] = phons
-        pred_word_probs = {word: (phon, prob) for word, phon, prob
-                           in zip(words_to_predict, pred_phons, pred_probs) if len(word) > 0}
+        predictions = self.predictor(words=words_to_predict, lang=lang,
+                                     batch_size=batch_size)
+        for pred in predictions:
+            word_phonemes[pred.word] = pred.phonemes
+        pred_dict = {pred.word: pred for pred in predictions}
 
         # collect all phonemes
         output = []
@@ -127,22 +143,15 @@ class Phonemizer:
                 out_phons.append(phons)
             output.append(out_phons)
 
-        return cleaned_texts, output, pred_word_probs
-
-    def predict_words(self,
-                      words: List[str],
-                      lang: str,
-                      batch_size: int) -> Tuple[List[str], List[float]]:
-        tokens, metas = self.predictor(words, language=lang, batch_size=batch_size)
-        pred = [''.join(t) for t in tokens]
-        probs = [get_sequence_prob(m['tokens'], m['logits']) for m in metas]
-        return pred, probs
+        return PhonemizerResult(text=cleaned_texts,
+                                phonemes=output,
+                                predictions=pred_dict)
 
     def get_dict_entry(self,
                        word: str,
                        lang: str,
-                       punc_set: set) -> Union[str, None]:
-        if word in punc_set:
+                       punc_set: Set[str]) -> Union[str, None]:
+        if word in punc_set or len(word) == 0:
             return word
         if not self.lang_phoneme_dict or lang not in self.lang_phoneme_dict:
             return None
@@ -159,10 +168,13 @@ class Phonemizer:
     def expand_acronym(self, word: str) -> str:
         subwords = []
         for subword in word.split('-'):
-            if subword.isupper():
-                subwords.append('-'.join(list(subword)))
-            else:
-                subwords.append(subword)
+            expanded = []
+            for a, b in zip_longest(subword, subword[1:]):
+                expanded.append(a)
+                if b is not None and b.isupper():
+                    expanded.append('-')
+            expanded = ''.join(expanded)
+            subwords.append(expanded)
         return '-'.join(subwords)
 
     @classmethod
@@ -184,17 +196,14 @@ class Phonemizer:
 
 
 if __name__ == '__main__':
-    checkpoint_path = '../checkpoints/best_model_no_optim.pt'
+    checkpoint_path = '../checkpoints/de_us_nostress/best_model_no_optim.pt'
     phonemizer = Phonemizer.from_checkpoint(checkpoint_path)
 
-    input = ['Wir sind tollehechte', 'Bringmeister']
+    input = open('/Users/cschaefe/datasets/ASVoice4/metadata_clean_incl_english.csv').readlines()[-10000:]
+    input = [s.split('|')[1] for s in input if s.split('|')[0].startswith('en_') and len(s.split('|')) > 1][:]
 
-    words, phons, preds = phonemizer.phonemise_list(input, lang='de', batch_size=8)
+    result = phonemizer.phonemise_list(input, lang='en_us', batch_size=8)
+    for pred in sorted(result.predictions.values(), key=lambda p: -p.confidence):
+        print(f'{pred.word} {pred.phonemes} {pred.confidence}')
 
-    pred_words = sorted(list(preds.keys()), key=lambda x: -preds[x][1])
-    for word in pred_words:
-        pred, prob = preds[word]
-        print(f'{word} {pred} {prob}')
-
-    phons = [''.join(p) for p in phons]
-    print(phons)
+    #print(result.phonemes)

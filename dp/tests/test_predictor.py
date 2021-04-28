@@ -1,58 +1,53 @@
 import unittest
-from typing import Tuple
+from typing import Dict, Any, Tuple
+from unittest.mock import Mock, patch
 
 import torch
-from unittest.mock import Mock
 
+from dp.model import Model
 from dp.predictor import Predictor
 from dp.text import Preprocessor
 
 
-def mock_generate(input: torch.tensor,
-                  start_index: int,
-                  end_index: int) -> Tuple[torch.tensor, torch.tensor]:
+class ModelMock:
 
-    """ returns input sandwiched with start and end indices """
-
-    batch_size = input.size(0)
-    start_tens = torch.full((batch_size, 1), fill_value=start_index)
-    end_tens = torch.full((batch_size, 1), fill_value=end_index)
-    tokens = torch.cat([start_tens, input, end_tens], dim=1)
-    logits = torch.full((batch_size, tokens.size(1), 20), fill_value=0.5)
-    return tokens, logits
+    def generate(self, batch: Dict[str, Any], **kwargs) -> Tuple[torch.tensor, torch.tensor]:
+        """ Return input and ones as probs """
+        tokens = batch['text']
+        probs = torch.ones(tokens.size())
+        return tokens, probs
 
 
+@patch.object(Model, 'generate', new_callable=ModelMock)
 class TestPredictor(unittest.TestCase):
 
-    def test_call_with_model_mock(self) -> None:
-        model = Mock()
-        model.generate = mock_generate
+    def test_call_with_model_mock(self, model_mock: Model) -> None:
         config = {
             'preprocessing': {
                 'text_symbols': 'abcd',
                 'phoneme_symbols': 'abcd',
+                'char_repeats': 1,
                 'languages': ['de'],
                 'lowercase': False
             },
         }
         preprocessor = Preprocessor.from_config(config)
-        predictor = Predictor(model, preprocessor)
+        predictor = Predictor(model_mock, preprocessor)
         texts = ['ab', 'cde']
 
-        phonemes, meta = predictor(texts, language='de', batch_size=8)
-        self.assertEqual(2, len(phonemes))
-        self.assertEqual(2, len(meta))
-        self.assertEqual(['a', 'b'], phonemes[0])
-        self.assertEqual(['c', 'd'], phonemes[1])
+        result = predictor(texts, lang='de', batch_size=8)
+        self.assertEqual(2, len(result))
+        self.assertEqual('ab', result[0].word)
+        self.assertEqual('ab', result[0].phonemes)
+        self.assertEqual('cd', result[1].phonemes)
 
-        phonemes, meta = predictor(texts, language='de', batch_size=1)
-        self.assertEqual(2, len(phonemes))
-        self.assertEqual(2, len(meta))
-        self.assertEqual(['a', 'b'], phonemes[0])
-        self.assertEqual(['c', 'd'], phonemes[1])
+        result = predictor(texts, lang='de', batch_size=1)
+        self.assertEqual(2, len(result))
+        self.assertEqual('ab', result[0].phonemes)
+        self.assertEqual('cd',result[1]. phonemes)
 
         texts = ['/']
-        phonemes, meta = predictor(texts, language='de', batch_size=1)
-        self.assertEqual(1, len(phonemes))
-        self.assertEqual(1, len(meta))
-        self.assertEqual([], phonemes[0])
+        result = predictor(texts, lang='de', batch_size=1)
+        self.assertEqual(1, len(result))
+        self.assertEqual('', result[0].phonemes)
+        self.assertEqual([], result[0].tokens)
