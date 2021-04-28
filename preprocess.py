@@ -14,6 +14,7 @@ if __name__ == '__main__':
     parser.add_argument('--config', '-c', default='config.yaml', help='Points to the config file.')
     args = parser.parse_args()
     config = read_config(args.config)
+
     languages = set(config['preprocessing']['languages'])
 
     train_file = config['paths']['train_file']
@@ -60,7 +61,15 @@ if __name__ == '__main__':
     pickle_binary(train_dataset, data_dir / 'train_dataset.pkl')
     pickle_binary(val_dataset, data_dir / 'val_dataset.pkl')
     phoneme_dictionary = dict()
-    all_data = sorted(train_data + val_data)
+
+    all_data = []
+    text_symbols = set(config['preprocessing']['text_symbols'])
+    phoneme_symbols = set(config['preprocessing']['phoneme_symbols'])
+    for lang, text, phon in sorted(train_data + val_data):
+        text = ''.join([t for t in text if t in text_symbols])
+        phons = ''.join([p for p in phon if p in phoneme_symbols])
+        all_data.append((lang, text, phons))
+
     for lang, text, phoneme in all_data:
         lang_dict = phoneme_dictionary.get(lang, {})
         lang_dict[text] = phoneme
