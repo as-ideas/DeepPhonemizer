@@ -1,12 +1,16 @@
 from collections import Counter
+from logging import getLogger, INFO
 from pathlib import Path
 from random import Random
 from typing import List, Tuple, Iterable
 
 import tqdm
 
+from dp.model.model import ModelType
 from dp.preprocessing.text import Preprocessor
-from dp.utils import read_config, pickle_binary
+from dp.utils import read_config, pickle_binary, save_config, get_logger
+
+logger = get_logger(__name__)
 
 
 def preprocess(config_file: str,
@@ -15,9 +19,17 @@ def preprocess(config_file: str,
                ) -> None:
 
     config = read_config(config_file)
+
+    model_type = config['model']['type']
+    model_type = ModelType(model_type)
+    if model_type.is_autoregressive() and config['preprocessing']['char_repeats'] > 1:
+        char_repeats = config['preprocessing']['char_repeats']
+        logger.warning(f'WARNING: You are training autoreressive model with char_repeats={char_repeats}. '
+                       f'It is recommended to set char_repeats=1 in the config and preprocess again.')
+
     languages = set(config['preprocessing']['languages'])
 
-    print(f'Preprocessing, train data: with {len(train_data)} files.')
+    logger.info(f'Preprocessing, train data: with {len(train_data)} files.')
 
     data_dir = Path(config['paths']['data_dir'])
     data_dir.mkdir(parents=True, exist_ok=True)
@@ -26,7 +38,7 @@ def preprocess(config_file: str,
         val_data = [r for r in val_data if r[0] in languages]
     else:
         n_val = config['preprocessing']['n_val']
-        print(f'Performing random split with num val: {n_val}')
+        logger.info(f'Performing random split with num val: {n_val}')
         train_data.sort()
         random = Random(42)
         random.shuffle(train_data)
@@ -38,7 +50,7 @@ def preprocess(config_file: str,
     train_count = Counter()
     val_count = Counter()
 
-    print('Processing train data...')
+    logger.info('Processing train data...')
     train_dataset = []
     for i, (lang, text, phonemes) in enumerate(tqdm.tqdm(train_data, total=len(train_data))):
         tokens = preprocessor((lang, text, phonemes))
@@ -51,7 +63,7 @@ def preprocess(config_file: str,
         val_dataset.append(tokens)
         val_count.update([lang])
 
-    print(f'\nSaving datasets to: {data_dir.absolute()}')
+    logger.info(f'\nSaving datasets to: {data_dir.absolute()}')
     pickle_binary(train_dataset, data_dir / 'train_dataset.pkl')
     pickle_binary(val_dataset, data_dir / 'val_dataset.pkl')
     phoneme_dictionary = dict()
@@ -74,5 +86,5 @@ def preprocess(config_file: str,
         for lang, text, phoneme in all_data:
             f.write(f'{lang}\t{text}\t{phoneme}\n')
 
-    print(f'Preprocessing done. \nTrain counts: {train_count.most_common()}'
+    logger.info(f'Preprocessing done. \nTrain counts: {train_count.most_common()}'
           f'\nVal counts: {val_count.most_common()}')

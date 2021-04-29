@@ -15,7 +15,7 @@ from dp.training.metrics import phoneme_error_rate, word_error
 from dp.model.model import Model
 from dp.model.utils import trim_util_stop
 from dp.preprocessing.text import Preprocessor
-from dp.utils import to_device, unpickle_binary
+from dp.utils.io import to_device, unpickle_binary
 
 
 class Trainer:
@@ -23,7 +23,7 @@ class Trainer:
     def __init__(self, checkpoint_dir: str, loss_type='ctc') -> None:
         self.checkpoint_dir = Path(checkpoint_dir)
         self.checkpoint_dir.mkdir(parents=True, exist_ok=True)
-        self.writer = SummaryWriter(log_dir=self.checkpoint_dir / 'tensorboard')
+        self.writer = SummaryWriter(log_dir=self.checkpoint_dir / 'logs')
         self.loss_type = loss_type
         if loss_type == 'ctc':
             self.criterion = CTCLoss()

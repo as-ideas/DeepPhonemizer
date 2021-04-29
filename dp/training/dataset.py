@@ -9,7 +9,7 @@ from torch.utils.data.dataloader import DataLoader
 from torch.utils.data.dataset import Dataset
 from torch.utils.data.sampler import Sampler
 
-from dp.utils import unpickle_binary
+from dp.utils.io import unpickle_binary
 
 
 class PhonemizerDataset(Dataset):

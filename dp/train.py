@@ -1,7 +1,14 @@
-from dp.model.model import LstmModel, ForwardTransformer, AutoregressiveTransformer, load_checkpoint
+from enum import Enum
+from logging import getLogger
+
+from dp.model.model import load_checkpoint, ModelType, \
+    create_model
 from dp.preprocessing.text import Preprocessor
 from dp.training.trainer import Trainer
-from dp.utils import read_config
+from dp.utils.io import read_config
+from dp.utils.logging import get_logger
+
+logger = get_logger(__name__)
 
 
 def train(config_file: str,
@@ -9,39 +16,34 @@ def train(config_file: str,
 
     config = read_config(config_file)
     if checkpoint_file is not None:
-        print(f'Restoring model from checkpoint: {checkpoint_file}')
+        logger.info(f'Restoring model from checkpoint: {checkpoint_file}')
         model, checkpoint = load_checkpoint(checkpoint_file)
         model.train()
         step = checkpoint['step']
-        print(f'Loaded model with step: {step}')
+        logger.info(f'Loaded model with step: {step}')
         for key, val in config['training'].items():
             val_orig = checkpoint['config']['training'][key]
             if val_orig != val:
-                print(f'Overwriting training param: {key} {val_orig} --> {val}')
+                logger.info(f'Overwriting training param: {key} {val_orig} --> {val}')
                 checkpoint['config']['training'][key] = val
         config = checkpoint['config']
         model_type = config['model']['type']
+        model_type = ModelType(model_type)
     else:
-        print('Initializing new model from config...')
+        logger.info('Initializing new model from config...')
         preprocessor = Preprocessor.from_config(config)
         model_type = config['model']['type']
-        supported_types = ['lstm', 'transformer', 'autoreg_transformer']
-
-        if model_type == 'lstm':
-            model = LstmModel.from_config(config)
-        elif model_type == 'transformer':
-            model = ForwardTransformer.from_config(config)
-        elif model_type == 'autoreg_transformer':
-            model = AutoregressiveTransformer.from_config(config)
-        else:
-            raise ValueError(f'Model type not supported: {model_type}. Supported types: {supported_types}')
+        model_type = ModelType(model_type)
+        model = create_model(model_type, config=config)
         checkpoint = {
             'preprocessor': preprocessor,
             'config': config,
         }
 
-    loss_type = 'cross_entropy' if 'autoreg_' in model_type else 'ctc'
-    trainer = Trainer(checkpoint_dir=config['paths']['checkpoint_dir'], loss_type=loss_type)
+    checkpoint_dir = config['paths']['checkpoint_dir']
+    logger.info(f'Checkpoints will be stored at {checkpoint_dir}')
+    loss_type = 'cross_entropy' if model_type.is_autoregressive() else 'ctc'
+    trainer = Trainer(checkpoint_dir=checkpoint_dir, loss_type=loss_type)
     trainer.train(model=model,
                   checkpoint=checkpoint,
                   store_phoneme_dict_in_model=config['training']['store_phoneme_dict_in_model'])

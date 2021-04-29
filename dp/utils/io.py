@@ -1,5 +1,7 @@
+import logging
 import math
 import pickle
+from logging import INFO, Logger, getLogger
 from pathlib import Path
 from typing import Dict, List, Any, Union, Tuple
 
@@ -34,22 +36,3 @@ def unpickle_binary(file: Union[str, Path]) -> Any:
 
 def to_device(batch: Dict[str, torch.tensor], device: torch.device) -> Dict[str, torch.tensor]:
     return {key: val.to(device) for key, val in batch.items()}
-
-
-def get_sequence_prob(probs: torch.tensor) -> float:
-    if probs is None or len(probs) == 0:
-        return 0.
-    if 0 in probs:
-        return 0
-    prob = math.exp(sum([math.log(p) for p in probs]))
-    return prob
-
-
-def batchify(input: list, batch_size: int) -> List[list]:
-    l = len(input)
-    output = []
-    for i in range(0, l, batch_size):
-        batch = input[i:min(i + batch_size, l)]
-        output.append(batch)
-    return output
-

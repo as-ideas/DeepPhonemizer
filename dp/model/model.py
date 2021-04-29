@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+from enum import Enum
 from typing import Tuple, Dict, Any
 
 import torch
@@ -8,6 +9,15 @@ from torch.nn.utils.rnn import pack_padded_sequence, pad_packed_sequence
 
 from dp.model.utils import get_dedup_tokens, make_len_mask, generate_square_subsequent_mask, PositionalEncoding
 from dp.preprocessing.text import Preprocessor
+
+
+class ModelType(Enum):
+    LSTM_MODEL = 'lstm_model'
+    TRANSFORMER = 'transformer'
+    AUTOREG_TRANSFORMER = 'autoreg_transformer'
+
+    def is_autoregressive(self) -> bool:
+        return self in {ModelType.AUTOREG_TRANSFORMER}
 
 
 class Model(torch.nn.Module, ABC):
@@ -255,22 +265,25 @@ class AutoregressiveTransformer(Model):
         )
 
 
+def create_model(model_type: ModelType, config: Dict[str, Any]) -> Model:
+    if model_type is ModelType.LSTM_MODEL:
+        model = LstmModel.from_config(config)
+    elif model_type is ModelType.TRANSFORMER:
+        model = ForwardTransformer.from_config(config)
+    elif model_type is ModelType.AUTOREG_TRANSFORMER:
+        model = AutoregressiveTransformer.from_config(config)
+    else:
+        raise ValueError(f'Unsupported model type: {model_type}. '
+                         f'Supported types: {[t.value for t in ModelType]}')
+    return model
+
+
 def load_checkpoint(checkpoint_path: str, device='cpu') -> Tuple[Model, Dict[str, Any]]:
     device = torch.device(device)
     checkpoint = torch.load(checkpoint_path, map_location=device)
-
     model_type = checkpoint['config']['model']['type']
-    supported_types = ['lstm', 'transformer']
-    if model_type == 'lstm':
-            model = LstmModel.from_config(checkpoint['config']).to(device)
-    elif model_type == 'transformer':
-            model = ForwardTransformer.from_config(checkpoint['config']).to(device)
-    elif model_type == 'autoreg_transformer':
-            model = AutoregressiveTransformer.from_config(checkpoint['config']).to(device)
-    else:
-        raise ValueError(f'Model type not supported: {model_type}. Supported types: {supported_types}')
-
+    model_type = ModelType(model_type)
+    model = create_model(model_type, config=checkpoint['config'])
     model.load_state_dict(checkpoint['model'])
-
     model.eval()
     return model, checkpoint

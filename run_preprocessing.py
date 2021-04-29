@@ -3,7 +3,7 @@ from dp.utils import unpickle_binary
 
 if __name__ == '__main__':
 
-    config_file = 'dp/configs/config.yaml'
+    config_file = 'dp/configs/autoreg_config.yaml'
     train_data = unpickle_binary('/Users/cschaefe/datasets/nlp/de_us_phonemes_train.pkl')
     val_data = unpickle_binary('/Users/cschaefe/datasets/nlp/de_us_phonemes_val.pkl')
 
