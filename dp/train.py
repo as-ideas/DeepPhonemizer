@@ -25,7 +25,8 @@ def train(config_file: str,
         print('Initializing new model from config...')
         preprocessor = Preprocessor.from_config(config)
         model_type = config['model']['type']
-        supported_types = ['lstm', 'transformer']
+        supported_types = ['lstm', 'transformer', 'autoreg_transformer']
+
         if model_type == 'lstm':
             model = LstmModel.from_config(config)
         elif model_type == 'transformer':

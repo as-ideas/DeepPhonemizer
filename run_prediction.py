@@ -1,13 +1,17 @@
 import math
-
+import torch
 from dp.phonemizer import Phonemizer
+from dp.preprocessing.text import Preprocessor
 
 if __name__ == '__main__':
 
-    checkpoint_path = 'checkpoints/best_model_no_optim.pt'
+    checkpoint_path = 'checkpoints/best_model_no_optim_onlymodel.pt'
+    checkpoint = torch.load(checkpoint_path)
+    checkpoint['preprocessor'] = Preprocessor.from_config(checkpoint['config'])
+    torch.save(checkpoint, checkpoint_path)
     phonemizer = Phonemizer.from_checkpoint(checkpoint_path)
 
-    text = ['özdemir']
+    text = ['takatuka']
 
     result = phonemizer.phonemise_list(text, lang='de')
 
@@ -15,9 +19,8 @@ if __name__ == '__main__':
         tokens, probs = pred.tokens, pred.token_probs
         pred_decoded = phonemizer.predictor.phoneme_tokenizer.decode(
             tokens, remove_special_tokens=False)
-        prob = math.exp(sum([math.log(p) for p in probs]))
         for o, p in zip(pred_decoded, probs):
             print(f'{o} {p}')
         pred_decoded = ''.join(pred_decoded)
-        print(f'{text} {pred_decoded} | {prob}')
+        print(f'{text} | {pred_decoded} | {pred.confidence}')
 
