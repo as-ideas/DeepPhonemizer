@@ -1,3 +1,5 @@
+from pathlib import Path
+
 from dp.model.model import load_checkpoint, ModelType, \
     create_model
 from dp.preprocessing.text import Preprocessor
@@ -37,8 +39,8 @@ def train(config_file: str,
             'config': config,
         }
 
-    checkpoint_dir = config['paths']['checkpoint_dir']
-    logger.info(f'Checkpoints will be stored at {checkpoint_dir}')
+    checkpoint_dir = Path(config['paths']['checkpoint_dir'])
+    logger.info(f'Checkpoints will be stored at {checkpoint_dir.absolute()}')
     loss_type = 'cross_entropy' if model_type.is_autoregressive() else 'ctc'
     trainer = Trainer(checkpoint_dir=checkpoint_dir, loss_type=loss_type)
     trainer.train(model=model,

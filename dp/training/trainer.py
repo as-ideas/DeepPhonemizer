@@ -20,10 +20,10 @@ from dp.utils.io import to_device, unpickle_binary
 
 class Trainer:
 
-    def __init__(self, checkpoint_dir: str, loss_type='ctc') -> None:
-        self.checkpoint_dir = Path(checkpoint_dir)
+    def __init__(self, checkpoint_dir: Path, loss_type='ctc') -> None:
+        self.checkpoint_dir = checkpoint_dir
         self.checkpoint_dir.mkdir(parents=True, exist_ok=True)
-        self.writer = SummaryWriter(log_dir=self.checkpoint_dir / 'logs')
+        self.writer = SummaryWriter(log_dir=str(self.checkpoint_dir / 'logs'))
         self.loss_type = loss_type
         if loss_type == 'ctc':
             self.criterion = CTCLoss()
