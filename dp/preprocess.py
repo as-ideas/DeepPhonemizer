@@ -8,7 +8,9 @@ import tqdm
 
 from dp.model.model import ModelType
 from dp.preprocessing.text import Preprocessor
-from dp.utils import read_config, pickle_binary, save_config, get_logger
+from dp.utils.io import read_config, pickle_binary
+from dp.utils.logging import get_logger
+
 
 logger = get_logger(__name__)
 
