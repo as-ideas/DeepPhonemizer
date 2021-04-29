@@ -40,5 +40,6 @@ setup(
         'Topic :: Software Development :: Libraries :: Python Modules',
     ],
     packages=find_packages(exclude=('tests',)),
-    package_data={'global_toolkit': '*.yaml'}
+    include_package_data=True,
+    package_data={'': ['logging.yaml']}
 )
