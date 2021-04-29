@@ -1,19 +1,15 @@
-import logging
 import logging.config
-
-import math
-import pickle
-from logging import INFO, Logger, getLogger
+import logging.config
+import os
+from logging import Logger, getLogger
 from pathlib import Path
-from typing import Dict, List, Any, Union, Tuple
 
-import torch
-import yaml
-
+import dp
 from dp.utils.io import read_config
 
-CONFIG_FILE = 'dp/configs/logging.yaml'
-config = read_config(CONFIG_FILE)
+main_dir = os.path.dirname(os.path.abspath(dp.__file__))
+config_file_path = Path(main_dir) / 'configs/logging.yaml'
+config = read_config(config_file_path)
 logging.config.dictConfig(config)
 
 

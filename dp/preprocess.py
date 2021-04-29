@@ -1,5 +1,4 @@
 from collections import Counter
-from logging import getLogger, INFO
 from pathlib import Path
 from random import Random
 from typing import List, Tuple, Iterable
@@ -10,7 +9,6 @@ from dp.model.model import ModelType
 from dp.preprocessing.text import Preprocessor
 from dp.utils.io import read_config, pickle_binary
 from dp.utils.logging import get_logger
-
 
 logger = get_logger(__name__)
 

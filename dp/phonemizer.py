@@ -7,7 +7,6 @@ from dp.model.model import load_checkpoint
 from dp.model.predictor import Predictor
 from dp.preprocessing.text import Preprocessor
 
-
 DEFAULT_PUNCTUATION = '().,:?!/'
 
 

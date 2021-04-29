@@ -1,6 +1,3 @@
-from enum import Enum
-from logging import getLogger
-
 from dp.model.model import load_checkpoint, ModelType, \
     create_model
 from dp.preprocessing.text import Preprocessor

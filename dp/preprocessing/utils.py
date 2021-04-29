@@ -1,7 +1,7 @@
+import math
 from typing import List
 
 import torch
-import math
 
 
 def get_sequence_prob(probs: torch.tensor) -> float:
