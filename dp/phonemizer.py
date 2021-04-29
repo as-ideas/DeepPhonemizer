@@ -1,11 +1,10 @@
 import re
 from itertools import zip_longest
-from typing import Dict, Union, Tuple, List, Set
+from typing import Dict, Union, List, Set
 
-from dp.model import load_checkpoint
-from dp.predictor import Predictor, Prediction
-from dp.text import Preprocessor
-from dp.utils import get_sequence_prob
+from dp.model.model import load_checkpoint
+from dp.model.predictor import Predictor, Prediction
+from dp.preprocessing.text import Preprocessor
 
 DEFAULT_PUNCTUATION = '().,:?!/'
 

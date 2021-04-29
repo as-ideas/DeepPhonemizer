@@ -1,6 +1,6 @@
 import unittest
 
-from dp.text import LanguageTokenizer
+from dp.preprocessing.text import LanguageTokenizer
 
 
 class TestSequenceTokenizer(unittest.TestCase):

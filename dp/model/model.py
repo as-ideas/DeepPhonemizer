@@ -4,10 +4,10 @@ from typing import Tuple, Dict, Any
 import torch
 import torch.nn as nn
 from torch.nn import TransformerEncoderLayer, LayerNorm, TransformerEncoder, ModuleList
-from torch.nn.utils.rnn import pack_padded_sequence, pad_packed_sequence, pad_sequence
+from torch.nn.utils.rnn import pack_padded_sequence, pad_packed_sequence
 
-from dp.model_utils import get_dedup_tokens, make_len_mask, generate_square_subsequent_mask, PositionalEncoding
-from dp.text import Preprocessor
+from dp.model.utils import get_dedup_tokens, make_len_mask, generate_square_subsequent_mask, PositionalEncoding
+from dp.preprocessing.text import Preprocessor
 
 
 class Model(torch.nn.Module, ABC):

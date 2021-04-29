@@ -1,6 +1,6 @@
 import unittest
 
-from dp.text import SequenceTokenizer
+from dp.preprocessing.text import SequenceTokenizer
 
 
 class TestSequenceTokenizer(unittest.TestCase):

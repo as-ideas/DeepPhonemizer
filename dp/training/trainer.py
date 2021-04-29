@@ -8,14 +8,13 @@ from torch.optim import Adam
 from torch.optim.lr_scheduler import ReduceLROnPlateau
 from torch.utils.tensorboard import SummaryWriter
 
-from dp.dataset import new_dataloader
-from dp.decorators import ignore_exception
-from dp.losses import CrossEntropyLoss, CTCLoss
-from dp.metrics import phoneme_error_rate, word_error
-from dp.model import Model
-from dp.model_utils import get_len_util_stop, trim_util_stop
-from dp.predictor import Predictor
-from dp.text import Preprocessor
+from dp.training.dataset import new_dataloader
+from dp.training.decorators import ignore_exception
+from dp.training.losses import CrossEntropyLoss, CTCLoss
+from dp.training.metrics import phoneme_error_rate, word_error
+from dp.model.model import Model
+from dp.model.utils import trim_util_stop
+from dp.preprocessing.text import Preprocessor
 from dp.utils import to_device, unpickle_binary
 
 

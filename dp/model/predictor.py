@@ -1,12 +1,14 @@
-from typing import Dict, Any, List, Tuple, Iterable
+from typing import Dict, List, Tuple
 
 import torch
 from torch.nn.utils.rnn import pad_sequence
 
-from dp.model import load_checkpoint
-from dp.model_utils import get_len_util_stop
-from dp.text import Preprocessor
+from dp.model.model import load_checkpoint
+from dp.model.utils import get_len_util_stop
+from dp.preprocessing.text import Preprocessor
 from dp.utils import batchify, get_sequence_prob
+
+
 
 
 class Prediction:
@@ -125,3 +127,4 @@ class Predictor:
         model, checkpoint = load_checkpoint(checkpoint_path, device=device)
         preprocessor = checkpoint['preprocessor']
         return Predictor(model=model, preprocessor=preprocessor)
+

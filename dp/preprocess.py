@@ -1,34 +1,28 @@
 from collections import Counter
 from pathlib import Path
-import argparse
-from pathlib import Path
 from random import Random
+from typing import List, Tuple, Iterable
 
 import tqdm
 
-from dp.text import Preprocessor
-from dp.utils import read_config, pickle_binary, unpickle_binary
+from dp.preprocessing.text import Preprocessor
+from dp.utils import read_config, pickle_binary
 
-if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description='Preprocessing for DeepPhonemizer')
-    parser.add_argument('--config', '-c', default='config.yaml', help='Points to the config file.')
-    args = parser.parse_args()
-    config = read_config(args.config)
 
+def preprocess(config_file: str,
+               train_data: List[Tuple[str, Iterable[str], Iterable[str]]],
+               val_data: List[Tuple[str, Iterable[str], Iterable[str]]] = None
+               ) -> None:
+
+    config = read_config(config_file)
     languages = set(config['preprocessing']['languages'])
 
-    train_file = config['paths']['train_file']
-    val_file = config['paths']['val_file']
+    print(f'Preprocessing, train data: with {len(train_data)} files.')
+
     data_dir = Path(config['paths']['data_dir'])
     data_dir.mkdir(parents=True, exist_ok=True)
-
-    print(f'Reading train data from {train_file}')
-    train_data = unpickle_binary(train_file)
     train_data = [r for r in train_data if r[0] in languages]
-
-    if val_file is not None:
-        print(f'Reading val data from {val_file}')
-        val_data = unpickle_binary(val_file)
+    if val_data is not None:
         val_data = [r for r in val_data if r[0] in languages]
     else:
         n_val = config['preprocessing']['n_val']
@@ -44,7 +38,7 @@ if __name__ == '__main__':
     train_count = Counter()
     val_count = Counter()
 
-    print('Processing data...')
+    print('Processing train data...')
     train_dataset = []
     for i, (lang, text, phonemes) in enumerate(tqdm.tqdm(train_data, total=len(train_data))):
         tokens = preprocessor((lang, text, phonemes))

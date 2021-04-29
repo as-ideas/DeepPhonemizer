@@ -1,31 +1,16 @@
-import pickle
-import argparse
-import random
-from collections import Counter
-from random import Random
-from typing import List, Tuple, Dict, Iterable, Any
-
-import tqdm
-import torch
-from dp.dataset import new_dataloader
-from dp.model import LstmModel, ForwardTransformer, AutoregressiveTransformer, load_checkpoint
-from dp.text import SequenceTokenizer, Preprocessor
-from dp.trainer import Trainer
-from dp.utils import read_config, pickle_binary
+from dp.model.model import LstmModel, ForwardTransformer, AutoregressiveTransformer, load_checkpoint
+from dp.preprocessing.text import Preprocessor
+from dp.training.trainer import Trainer
+from dp.utils import read_config
 
 
-if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description='Preprocessing for DeepPhonemizer.')
-    parser.add_argument('--config', '-c', default='config.yaml', help='Points to the config file.')
-    parser.add_argument('--checkpoint', '-cp', default=None, help='Points to the a model file to restore.')
-    parser.add_argument('--path', '-p', help='Points to the a file with data.')
-    args = parser.parse_args()
+def train(config_file: str,
+          checkpoint_file: str = None) -> None:
 
-    config = read_config(args.config)
-
-    if args.checkpoint:
-        print(f'Restoring model from checkpoint: {args.checkpoint}')
-        model, checkpoint = load_checkpoint(args.checkpoint)
+    config = read_config(config_file)
+    if checkpoint_file is not None:
+        print(f'Restoring model from checkpoint: {checkpoint_file}')
+        model, checkpoint = load_checkpoint(checkpoint_file)
         model.train()
         step = checkpoint['step']
         print(f'Loaded model with step: {step}')

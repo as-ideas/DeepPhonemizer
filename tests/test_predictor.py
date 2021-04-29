@@ -1,12 +1,12 @@
 import unittest
 from typing import Dict, Any, Tuple
-from unittest.mock import Mock, patch
+from unittest.mock import patch
 
 import torch
 
-from dp.model import Model
-from dp.predictor import Predictor
-from dp.text import Preprocessor
+from dp.model.model import Model
+from dp.model.predictor import Predictor
+from dp.preprocessing.text import Preprocessor
 
 
 class ModelMock:

@@ -1,12 +1,10 @@
 import unittest
-from typing import Dict, Any, Tuple, List
-from unittest.mock import Mock, _patch_object, patch
+from typing import List
+from unittest.mock import patch
 
-import torch
-
-from dp.phonemizer import PhonemizerResult, Phonemizer
-from dp.predictor import Predictor, Prediction
-from dp.text import Preprocessor
+from dp.phonemizer import Phonemizer
+from dp.model.predictor import Predictor, Prediction
+from dp.preprocessing.text import Preprocessor
 
 
 class PredictorMock:
