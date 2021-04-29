@@ -3,35 +3,11 @@ from typing import Dict, List, Tuple
 import torch
 from torch.nn.utils.rnn import pad_sequence
 
+from dp import Prediction
 from dp.model.model import load_checkpoint
 from dp.model.utils import get_len_util_stop
 from dp.preprocessing.text import Preprocessor
 from dp.preprocessing.utils import batchify, get_sequence_prob
-
-
-class Prediction:
-
-    def __init__(self,
-                 word: str,
-                 phonemes: str,
-                 tokens: List[int],
-                 confidence: float,
-                 token_probs: List[float]) -> None:
-        """
-        Container for single word prediction.
-
-        :param word: Original word to predict.
-        :param phonemes: Predicted phonemes (without start and end token string).
-        :param tokens: Predicted phoneme tokens (including start and end token).
-        :param confidence: Total confidence of prediction.
-        :param token_probs: Probability of each phoneme token.
-        """
-
-        self.word = word
-        self.phonemes = phonemes
-        self.tokens = tokens
-        self.confidence = confidence
-        self.token_probs = token_probs
 
 
 class Predictor:

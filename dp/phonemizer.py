@@ -2,30 +2,13 @@ import re
 from itertools import zip_longest
 from typing import Dict, Union, List, Set
 
+from dp import PhonemizerResult
 from dp.model.model import load_checkpoint
-from dp.model.predictor import Predictor, Prediction
+from dp.model.predictor import Predictor
 from dp.preprocessing.text import Preprocessor
 
+
 DEFAULT_PUNCTUATION = '().,:?!/'
-
-
-class PhonemizerResult:
-
-    def __init__(self,
-                 text: List[List[str]],
-                 phonemes: List[List[str]],
-                 predictions: Dict[str, Prediction]) -> None:
-        """
-        Container for explicit phonemizer output.
-
-        :param text: List of tokenized texts (list of words)
-        :param phonemes: List of phonemes (list of word phonemes)
-        :param predictions: Dictionary with entries word to Tuple (phoneme, probability)
-        """
-
-        self.text = text
-        self.phonemes = phonemes
-        self.predictions = predictions
 
 
 class Phonemizer:
