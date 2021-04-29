@@ -2,12 +2,14 @@ import re
 from itertools import zip_longest
 from typing import Dict, Union, List, Set
 
+import torch
+
 from dp import PhonemizerResult
 from dp.model.model import load_checkpoint
 from dp.model.predictor import Predictor
 from dp.preprocessing.text import Preprocessor
 
-DEFAULT_PUNCTUATION = '().,:?!/'
+DEFAULT_PUNCTUATION = '().,:?!/–'
 
 
 class Phonemizer:
@@ -94,7 +96,7 @@ class Phonemizer:
             word_splits[key] = word_split
 
         # try to get dict entries of subwords (and whole words)
-        subwords = {w for values in word_splits.values() for w in values if len(w) > 0}
+        subwords = {w for values in word_splits.values() for w in values}
         for subword in subwords:
             if subword not in word_phonemes:
                 word_phonemes[subword] = self.get_dict_entry(subword, lang, punc_set)
@@ -175,9 +177,17 @@ class Phonemizer:
                           preprocessor=preprocessor,
                           lang_phoneme_dict=applied_phoneme_dict)
 
+    def to_checkpoint(self, path: str) -> None:
+        checkpoint = {
+            'preprocessor': self.preprocessor,
+            'model': self.predictor.model.state_dict(),
+            'phoneme_dict': self.lang_phoneme_dict
+        }
+        torch.save(checkpoint, path)
+
 
 if __name__ == '__main__':
-    checkpoint_path = '../checkpoints/de_us_nostress/best_model_no_optim.pt'
+    checkpoint_path = '../checkpoints/best_model_no_optim_onlymodel.pt'
     phonemizer = Phonemizer.from_checkpoint(checkpoint_path)
 
     input = open('/Users/cschaefe/datasets/ASVoice4/metadata_clean_incl_english.csv').readlines()[-100:]

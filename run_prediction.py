@@ -10,10 +10,10 @@ if __name__ == '__main__':
     torch.save(checkpoint, checkpoint_path)
     phonemizer = Phonemizer.from_checkpoint(checkpoint_path)
 
-    text = ['takatuka']
+    text = 'Er erwähnt das acht Komma drei Milliarden-'
 
-    result = phonemizer.phonemise_list(text, lang='de')
-
+    result = phonemizer(text, lang='de')
+    exit()
     for text, pred in result.predictions.items():
         tokens, probs = pred.tokens, pred.token_probs
         pred_decoded = phonemizer.predictor.phoneme_tokenizer.decode(
