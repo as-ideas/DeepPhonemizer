@@ -7,7 +7,7 @@ DeepPhonemizer is compatible with Python 3.6+ and is distributed under the MIT l
 
 setup(
     name='deep-phonemizer',
-    version='0.0.5',
+    version='0.0.6',
     author='Christian Schäfer',
     author_email='c.schaefer.home@gmail.com',
     description='Grapheme to phoneme conversion with deep learning.',

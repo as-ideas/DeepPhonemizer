@@ -4,16 +4,15 @@ from dp.preprocessing.text import Preprocessor
 
 if __name__ == '__main__':
 
-    checkpoint_path = 'checkpoints/best_model_no_optim_onlymodel.pt'
+    checkpoint_path = 'checkpoints/de_us_nostress/best_model_no_optim_onlymodel.pt'
     checkpoint = torch.load(checkpoint_path)
     checkpoint['preprocessor'] = Preprocessor.from_config(checkpoint['config'])
     torch.save(checkpoint, checkpoint_path)
     phonemizer = Phonemizer.from_checkpoint(checkpoint_path)
 
-    text = 'Er erwähnt das acht Komma drei Milliarden-'
+    text = 'joe'
 
-    result = phonemizer(text, lang='de')
-    exit()
+    result = phonemizer.phonemise_list([text], lang='en_us')
     for text, pred in result.predictions.items():
         tokens, probs = pred.tokens, pred.token_probs
         pred_decoded = phonemizer.predictor.phoneme_tokenizer.decode(

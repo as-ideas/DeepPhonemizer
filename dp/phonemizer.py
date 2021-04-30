@@ -177,14 +177,6 @@ class Phonemizer:
                           preprocessor=preprocessor,
                           lang_phoneme_dict=applied_phoneme_dict)
 
-    def to_checkpoint(self, path: str) -> None:
-        checkpoint = {
-            'preprocessor': self.preprocessor,
-            'model': self.predictor.model.state_dict(),
-            'phoneme_dict': self.lang_phoneme_dict
-        }
-        torch.save(checkpoint, path)
-
 
 if __name__ == '__main__':
     checkpoint_path = '../checkpoints/best_model_no_optim_onlymodel.pt'
