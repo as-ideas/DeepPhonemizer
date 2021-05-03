@@ -1,15 +1,16 @@
 import unittest
 from typing import List
-from unittest.mock import patch, Mock
+from unittest.mock import patch
 
 from dp.phonemizer import Phonemizer
 from dp.model.predictor import Predictor, Prediction
-from dp.preprocessing.text import Preprocessor
 
 
 class PredictorMock:
 
     def __call__(self, words: List[str], lang: str, **kwargs) -> List[Prediction]:
+        """ Simply returns the original words with a suffix -phon-{language} to test for calls. """
+
         output = []
         for word in words:
             phons = word + f'-phon-{lang}'
