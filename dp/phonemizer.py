@@ -5,7 +5,7 @@ from typing import Dict, Union, List, Set
 from dp import PhonemizerResult
 from dp.model.model import load_checkpoint
 from dp.model.predictor import Predictor
-from dp.preprocessing.text import Preprocessor
+from dp.utils.logging import get_logger
 
 DEFAULT_PUNCTUATION = '().,:?!/–'
 
@@ -14,11 +14,9 @@ class Phonemizer:
 
     def __init__(self,
                  predictor: Predictor,
-                 preprocessor: Preprocessor,
                  lang_phoneme_dict: Dict[str, Dict[str, str]] = None) -> None:
 
         self.predictor = predictor
-        self.preprocessor = preprocessor
         self.lang_phoneme_dict = lang_phoneme_dict
 
     def __call__(self,
@@ -78,6 +76,7 @@ class Phonemizer:
         for text in texts:
             cleaned_text = ''.join([t for t in text if t.isalnum() or t in punc_set])
             split = re.split(punc_pattern, cleaned_text)
+            split = [s for s in split if len(s) > 0]
             split_text.append(split)
             cleaned_words.update(split)
 
@@ -151,7 +150,8 @@ class Phonemizer:
         else:
             return None
 
-    def expand_acronym(self, word: str) -> str:
+    @staticmethod
+    def expand_acronym(word: str) -> str:
         subwords = []
         for subword in word.split('-'):
             expanded = []
@@ -176,8 +176,10 @@ class Phonemizer:
             applied_phoneme_dict = checkpoint['phoneme_dict']
         preprocessor = checkpoint['preprocessor']
         predictor = Predictor(model=model, preprocessor=preprocessor)
+        logger = get_logger(__name__)
+        model_step = checkpoint['step']
+        logger.debug(f'Initializing phonemizer with model step {model_step}')
         return Phonemizer(predictor=predictor,
-                          preprocessor=preprocessor,
                           lang_phoneme_dict=applied_phoneme_dict)
 
 

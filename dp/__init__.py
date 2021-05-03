@@ -40,12 +40,12 @@ class PhonemizerResult:
         :param text: List of input texts
         :param phonemes: List of output phonemes
         :param split_text: List of texts, where each text is split into words and special chars
-        :param split_phonems: List of phonemes corresponding to split_text
+        :param split_phonemes: List of phonemes corresponding to split_text
         :param predictions: Dictionary with entries word to tuple (phoneme, probability)
         """
 
         self.text = text
         self.phonemes = phonemes
         self.split_text = split_text
-        self.split_phonems = split_phonemes
+        self.split_phonemes = split_phonemes
         self.predictions = predictions
