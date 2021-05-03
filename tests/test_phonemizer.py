@@ -14,7 +14,7 @@ class PredictorMock:
         for word in words:
             phons = word + f'-phon-{lang}'
             pred = Prediction(word=word, phonemes=phons, confidence=0.5,
-                              tokens=[1]*len(phons), token_probs=[0.5]*len(phons))
+                              phoneme_tokens=list(phons), token_probs=[0.5]*len(phons))
             output.append(pred)
         return output
 
@@ -38,6 +38,3 @@ class TestPhonemizer(unittest.TestCase):
 
         result = phonemizer(['hallo', 'du'], lang='de')
         self.assertEqual(['hallo-phon-de', 'du-phon-de'], result)
-
-
-        print(result)

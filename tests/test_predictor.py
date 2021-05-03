@@ -50,4 +50,4 @@ class TestPredictor(unittest.TestCase):
         result = predictor(texts, lang='de', batch_size=1)
         self.assertEqual(1, len(result))
         self.assertEqual('', result[0].phonemes)
-        self.assertEqual([], result[0].tokens)
+        self.assertEqual([], result[0].phoneme_tokens)

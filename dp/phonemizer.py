@@ -2,8 +2,6 @@ import re
 from itertools import zip_longest
 from typing import Dict, Union, List, Set
 
-import torch
-
 from dp import PhonemizerResult
 from dp.model.model import load_checkpoint
 from dp.model.predictor import Predictor
@@ -60,26 +58,27 @@ class Phonemizer:
                        batch_size=8) -> PhonemizerResult:
 
         """
-        Phonemizes a list of texts and returns tokenized texts, phonemes and word predictions with probabilities.
+        Phonemizes a list of texts and returns tokenized texts,
+        phonemes and word predictions with probabilities.
 
         :param texts: List texts to phonemize.
         :param lang: Language used for phonemization.
         :param punctuation: Punctuation symbols by which the texts are split.
         :param expand_acronyms: Whether to expand an acronym, e.g. DIY -> D-I-Y.
         :param batch_size: Batch size of model to speed up inference.
-        :return: A tuple containing a nested list (tokenized input texts), a nested list (phonemized input texts),
-                 and a dictionary (model predictions as mapping of word to tuple (phonemes, probability)).
+        :return: PhonemizerResult object containing original texts,
+                 phonemes, split texts, split phonemes, and predictions
         """
 
         punc_set = set(punctuation + '- ')
         punc_pattern = re.compile(f'([{punctuation + " "}])')
 
-        cleaned_texts = []
+        split_text = []
         cleaned_words = set()
         for text in texts:
             cleaned_text = ''.join([t for t in text if t.isalnum() or t in punc_set])
             split = re.split(punc_pattern, cleaned_text)
-            cleaned_texts.append(split)
+            split_text.append(split)
             cleaned_words.update(split)
 
         # collect dictionary phonemes for words and hyphenated words
@@ -114,8 +113,8 @@ class Phonemizer:
         pred_dict = {pred.word: pred for pred in predictions}
 
         # collect all phonemes
-        output = []
-        for text in cleaned_texts:
+        output_phonemes = []
+        for text in split_text:
             out_phons = []
             for word in text:
                 phons = word_phonemes[word]
@@ -124,10 +123,14 @@ class Phonemizer:
                     subphons = [word_phonemes[w] for w in subwords]
                     phons = ''.join(subphons)
                 out_phons.append(phons)
-            output.append(out_phons)
+            output_phonemes.append(out_phons)
 
-        return PhonemizerResult(text=cleaned_texts,
-                                phonemes=output,
+        text_phonemes = [''.join(phoneme_list) for phoneme_list in output_phonemes]
+
+        return PhonemizerResult(text=texts,
+                                phonemes=text_phonemes,
+                                split_text=split_text,
+                                split_phonemes=output_phonemes,
                                 predictions=pred_dict)
 
     def get_dict_entry(self,

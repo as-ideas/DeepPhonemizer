@@ -6,22 +6,22 @@ class Prediction:
     def __init__(self,
                  word: str,
                  phonemes: str,
-                 tokens: List[int],
+                 phoneme_tokens: List[str],
                  confidence: float,
                  token_probs: List[float]) -> None:
         """
         Container for single word prediction.
 
         :param word: Original word to predict.
-        :param phonemes: Predicted phonemes (without start and end token string).
-        :param tokens: Predicted phoneme tokens (including start and end token).
+        :param phonemes: Predicted phonemes (without special tokens).
+        :param phoneme_tokens: Predicted phoneme tokens (including special tokens).
         :param confidence: Total confidence of prediction.
         :param token_probs: Probability of each phoneme token.
         """
 
         self.word = word
         self.phonemes = phonemes
-        self.tokens = tokens
+        self.phoneme_tokens = phoneme_tokens
         self.confidence = confidence
         self.token_probs = token_probs
 
@@ -29,17 +29,23 @@ class Prediction:
 class PhonemizerResult:
 
     def __init__(self,
-                 text: List[List[str]],
-                 phonemes: List[List[str]],
+                 text: List[str],
+                 phonemes: List[str],
+                 split_text: List[List[str]],
+                 split_phonemes: List[List[str]],
                  predictions: Dict[str, Prediction]) -> None:
         """
-        Container for explicit phonemizer output.
+        Container for phonemizer output.
 
-        :param text: List of tokenized texts (list of words)
-        :param phonemes: List of phonemes (list of word phonemes)
-        :param predictions: Dictionary with entries word to Tuple (phoneme, probability)
+        :param text: List of input texts
+        :param phonemes: List of output phonemes
+        :param split_text: List of texts, where each text is split into words and special chars
+        :param split_phonems: List of phonemes corresponding to split_text
+        :param predictions: Dictionary with entries word to tuple (phoneme, probability)
         """
 
         self.text = text
         self.phonemes = phonemes
+        self.split_text = split_text
+        self.split_phonems = split_phonemes
         self.predictions = predictions

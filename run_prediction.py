@@ -4,21 +4,17 @@ from dp.preprocessing.text import Preprocessor
 
 if __name__ == '__main__':
 
-    checkpoint_path = 'checkpoints/de_us_nostress/best_model_no_optim_onlymodel.pt'
-    checkpoint = torch.load(checkpoint_path)
-    checkpoint['preprocessor'] = Preprocessor.from_config(checkpoint['config'])
-    torch.save(checkpoint, checkpoint_path)
+    checkpoint_path = 'checkpoints/de_us_nostress_bind_ar/best_model.pt'
     phonemizer = Phonemizer.from_checkpoint(checkpoint_path)
 
-    text = 'joe'
+    text = 'Bundesaußenministerkonferenz'
 
-    result = phonemizer.phonemise_list([text], lang='en_us')
+    result = phonemizer.phonemise_list([text], lang='de')
+
     for text, pred in result.predictions.items():
-        tokens, probs = pred.tokens, pred.token_probs
-        pred_decoded = phonemizer.predictor.phoneme_tokenizer.decode(
-            tokens, remove_special_tokens=False)
-        for o, p in zip(pred_decoded, probs):
+        tokens, probs = pred.phoneme_tokens, pred.token_probs
+        for o, p in zip(tokens, probs):
             print(f'{o} {p}')
-        pred_decoded = ''.join(pred_decoded)
-        print(f'{text} | {pred_decoded} | {pred.confidence}')
+        tokens = ''.join(tokens)
+        print(f'{text} | {tokens} | {pred.confidence}')
 
