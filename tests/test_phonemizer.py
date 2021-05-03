@@ -105,7 +105,6 @@ class TestPhonemizer(unittest.TestCase):
         result = phonemizer(',special!?', lang='de', punctuation='')
         self.assertEqual('special-phon-de', result)
 
-
     def test_expand_acronym(self) -> None:
         expanded = Phonemizer.expand_acronym('hallo')
         self.assertEqual('hallo', expanded)

@@ -3,7 +3,7 @@ import unittest
 from dp.preprocessing.text import LanguageTokenizer
 
 
-class TestSequenceTokenizer(unittest.TestCase):
+class TestLanguageTokenizer(unittest.TestCase):
 
     def test_call_happy_path(self) -> None:
 
