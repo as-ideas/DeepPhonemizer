@@ -71,8 +71,7 @@ class Phonemizer:
         punc_set = set(punctuation + '- ')
         punc_pattern = re.compile(f'([{punctuation + " "}])')
 
-        split_text = []
-        cleaned_words = set()
+        split_text, cleaned_words = [], set()
         for text in texts:
             cleaned_text = ''.join([t for t in text if t.isalnum() or t in punc_set])
             split = re.split(punc_pattern, cleaned_text)
@@ -81,55 +80,53 @@ class Phonemizer:
             cleaned_words.update(split)
 
         # collect dictionary phonemes for words and hyphenated words
-        word_phonemes = {word: self.get_dict_entry(word, lang, punc_set) for word in cleaned_words}
+        word_phonemes = {word: self.get_dict_entry(word=word, lang=lang, punc_set=punc_set)
+                         for word in cleaned_words}
 
-        # if words not in dictionary, try to split them into subwords (also keep non-splittable words)
+        # if word is not in dictionary, split it into subwords
         words_to_split = [w for w in cleaned_words if word_phonemes[w] is None]
         word_splits = dict()
         for word in words_to_split:
             key = word
-            if expand_acronyms:
-                word = self.expand_acronym(word)
+            word = self.expand_acronym(word) if expand_acronyms else word
             word_split = re.split(r'([-])', word)
             word_splits[key] = word_split
 
-        # try to get dict entries of subwords (and whole words)
+        # collect dictionary entries of subwords
         subwords = {w for values in word_splits.values() for w in values}
+        subwords = {w for w in subwords if w not in word_phonemes}
         for subword in subwords:
-            if subword not in word_phonemes:
-                word_phonemes[subword] = self.get_dict_entry(subword, lang, punc_set)
+            word_phonemes[subword] = self.get_dict_entry(word=subword,
+                                                         lang=lang,
+                                                         punc_set=punc_set)
 
-        # predict all words and subwords that are missing in the phoneme dict
-        words_to_predict = []
-        for word, phons in word_phonemes.items():
-            if phons is None and len(word_splits.get(word, [])) <= 1:
-                words_to_predict.append(word)
+        # predict all subwords that are missing in the phoneme dict
+        words_to_predict = [word for word, phons in word_phonemes.items()
+                            if phons is None and len(word_splits.get(word, [])) <= 1]
 
-        predictions = self.predictor(words=words_to_predict, lang=lang,
+        predictions = self.predictor(words=words_to_predict,
+                                     lang=lang,
                                      batch_size=batch_size)
-        for pred in predictions:
-            word_phonemes[pred.word] = pred.phonemes
+
+        word_phonemes.update({pred.word: pred.phonemes for pred in predictions})
         pred_dict = {pred.word: pred for pred in predictions}
 
         # collect all phonemes
-        output_phonemes = []
+        phoneme_lists = []
         for text in split_text:
-            out_phons = []
-            for word in text:
-                phons = word_phonemes[word]
-                if phons is None:
-                    subwords = word_splits[word]
-                    subphons = [word_phonemes[w] for w in subwords]
-                    phons = ''.join(subphons)
-                out_phons.append(phons)
-            output_phonemes.append(out_phons)
+            text_phons = [
+                self._get_phonemes(word=word, word_phonemes=word_phonemes,
+                                   word_splits=word_splits)
+                for word in text
+            ]
+            phoneme_lists.append(text_phons)
 
-        text_phonemes = [''.join(phoneme_list) for phoneme_list in output_phonemes]
+        phonemes_joined = [''.join(phoneme_list) for phoneme_list in phoneme_lists]
 
         return PhonemizerResult(text=texts,
-                                phonemes=text_phonemes,
+                                phonemes=phonemes_joined,
                                 split_text=split_text,
-                                split_phonemes=output_phonemes,
+                                split_phonemes=phoneme_lists,
                                 predictions=pred_dict)
 
     def get_dict_entry(self,
@@ -163,6 +160,17 @@ class Phonemizer:
             subwords.append(expanded)
         return '-'.join(subwords)
 
+    @staticmethod
+    def _get_phonemes(word: str,
+                      word_phonemes: Dict[str, Union[str, None]],
+                      word_splits: Dict[str, List[str]]) -> str:
+        phons = word_phonemes[word]
+        if phons is None:
+            subwords = word_splits[word]
+            subphons = [word_phonemes[w] for w in subwords]
+            phons = ''.join(subphons)
+        return phons
+
     @classmethod
     def from_checkpoint(cls,
                         checkpoint_path: str,
@@ -181,17 +189,3 @@ class Phonemizer:
         logger.debug(f'Initializing phonemizer with model step {model_step}')
         return Phonemizer(predictor=predictor,
                           lang_phoneme_dict=applied_phoneme_dict)
-
-
-if __name__ == '__main__':
-    checkpoint_path = '../checkpoints/best_model_no_optim_onlymodel.pt'
-    phonemizer = Phonemizer.from_checkpoint(checkpoint_path)
-
-    input = open('/Users/cschaefe/datasets/ASVoice4/metadata_clean_incl_english.csv').readlines()[-100:]
-    input = [s.split('|')[1] for s in input if s.split('|')[0].startswith('en_') and len(s.split('|')) > 1][:]
-
-    result = phonemizer.phonemise_list(input, lang='en_us', batch_size=8)
-    for pred in sorted(result.predictions.values(), key=lambda p: -p.confidence):
-        print(f'{pred.word} {pred.phonemes} {pred.confidence}')
-
-    #print(result.phonemes)

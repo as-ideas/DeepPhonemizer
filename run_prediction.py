@@ -9,10 +9,10 @@ if __name__ == '__main__':
     checkpoint_path = 'checkpoints/de_us_nostress_bind/best_model.pt'
     phonemizer = Phonemizer.from_checkpoint(checkpoint_path)
 
-    text = 'Madeleine, i- believe.'
+    text = 'Eine-Gutesache'
 
     result = phonemizer.phonemise_list([text], lang='de')
-    print(result.split_text)
+    print(result.phonemes)
     for text, pred in result.predictions.items():
         tokens, probs = pred.phoneme_tokens, pred.token_probs
         for o, p in zip(tokens, probs):
