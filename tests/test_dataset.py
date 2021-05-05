@@ -5,7 +5,7 @@ from dp.training.dataset import PhonemizerDataset, collate_dataset
 
 class TestPhonemizerDataset(unittest.TestCase):
 
-    def test_items(self) -> None:
+    def test_get_items(self) -> None:
         items_input = [
             (0, [1, 2], [3, 4]),
             (1, [2, 3], [4, 5, 6])

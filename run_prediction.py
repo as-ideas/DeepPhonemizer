@@ -9,7 +9,7 @@ if __name__ == '__main__':
     checkpoint_path = 'checkpoints/de_us_nostress_bind/best_model.pt'
     phonemizer = Phonemizer.from_checkpoint(checkpoint_path)
 
-    text = 'Eine-Gutesache'
+    text = '(Schleswig-Holsteins)'
 
     result = phonemizer.phonemise_list([text], lang='de')
     print(result.phonemes)
