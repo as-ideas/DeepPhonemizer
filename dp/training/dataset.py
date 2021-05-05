@@ -15,7 +15,7 @@ from dp.utils.io import unpickle_binary
 class PhonemizerDataset(Dataset):
 
     def __init__(self,
-                 items: List[Tuple[str, List[int], List[int]]]) -> None:
+                 items: List[Tuple[int, List[int], List[int]]]) -> None:
         super().__init__()
         self.items = items
 
