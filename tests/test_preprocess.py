@@ -26,7 +26,6 @@ class TestPreprocess(unittest.TestCase):
         data_dir = self.temp_dir / 'datasets'
         config_path = self.temp_dir / 'forward_test_config.yaml'
         config['paths']['data_dir'] = str(data_dir)
-        config['paths']['checkpoint_dir'] = str(data_dir)
         save_config(config, config_path)
 
         train_data = [
