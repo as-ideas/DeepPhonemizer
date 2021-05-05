@@ -8,14 +8,14 @@ import numpy as np
 import torch
 
 from dp import preprocess
-from dp.model.model import ForwardTransformer
+from dp.model.model import AutoregressiveTransformer
 from dp.model.predictor import Predictor
 from dp.preprocess import preprocess
 from dp.train import train
 from dp.utils.io import read_config, save_config
 
 
-class TestForwardTraining(unittest.TestCase):
+class TestAutoregTraining(unittest.TestCase):
 
     def setUp(self) -> None:
         torch.manual_seed(42)
@@ -23,12 +23,12 @@ class TestForwardTraining(unittest.TestCase):
         temp_dir = tempfile.mkdtemp(prefix='TestPreprocessTmp')
         self.temp_dir = Path(temp_dir)
         test_path = os.path.dirname(os.path.abspath(__file__))
-        self.test_config_path = Path(test_path) / 'resources/forward_test_config.yaml'
+        self.test_config_path = Path(test_path) / 'resources/autoreg_test_config.yaml'
 
     def tearDown(self) -> None:
         shutil.rmtree(self.temp_dir, ignore_errors=True)
 
-    def test_forward_training_happy_path(self) -> None:
+    def test_autoregtraining_happy_path(self) -> None:
         config = read_config(self.test_config_path)
         data_dir = self.temp_dir / 'datasets'
         checkpoint_dir = self.temp_dir / 'checkpoints'
@@ -56,16 +56,15 @@ class TestForwardTraining(unittest.TestCase):
 
         predictor = Predictor.from_checkpoint(checkpoint_dir / 'latest_model.pt')
 
-        self.assertTrue(isinstance(predictor.model, ForwardTransformer))
+        self.assertTrue(isinstance(predictor.model, AutoregressiveTransformer))
 
         result = predictor(words=['young'], lang='en_us')[0]
         self.assertEqual('jʌŋ', result.phonemes)
-        self.assertTrue(result.confidence > 0.95)
+        self.assertTrue(result.confidence > 0.98)
 
         result = predictor(words=['gewürz'], lang='de')[0]
         self.assertEqual('ɡəvʏʁt͡s', result.phonemes)
-        self.assertTrue(result.confidence > 0.93)
+        self.assertTrue(result.confidence > 0.96)
 
         result = predictor(words=['gewürz'], lang='en_us')[0]
-        self.assertEqual('ɡəvʏʁt͡s', result.phonemes)
-        self.assertTrue(0.82 < result.confidence < 0.86)
+        self.assertTrue(0.8 < result.confidence < 0.84)
