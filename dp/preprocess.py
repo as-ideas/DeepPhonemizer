@@ -24,7 +24,7 @@ def preprocess(config_file: str,
     model_type = ModelType(model_type)
     if model_type.is_autoregressive() and config['preprocessing']['char_repeats'] > 1:
         char_repeats = config['preprocessing']['char_repeats']
-        logger.warning(f'WARNING: You are training autoreressive model with char_repeats={char_repeats}. '
+        logger.warning(f'WARNING: You are training autoregressive model with char_repeats={char_repeats}. '
                        f'It is recommended to set char_repeats=1 in the config and preprocess again.')
 
     languages = set(config['preprocessing']['languages'])
