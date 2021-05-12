@@ -1,5 +1,8 @@
 # DeepPhonemizer
 
+![Build Status](https://github.com/as-ideas/DeepPhonemizer/workflows/pytest/badge.svg)
+
+
 DeepPhonemizer is a library for grapheme to phoneme conversion based on Transformer models. 
 It is intended to be used in text-to-speech production systems with high accuracy and efficiency.
 You can choose between a forward Transformer model (trained with CTC) and its autoregressive
