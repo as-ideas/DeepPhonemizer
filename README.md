@@ -1,21 +1,22 @@
 # DeepPhonemizer
 
 DeepPhonemizer is a library for grapheme to phoneme conversion based on Transformer models. 
-It is intended to be used in text-to-speech production systems due to its accuracy and efficiency.
+It is intended to be used in text-to-speech production systems with high accuracy and efficiency.
+You can choose between a forward Transformer model (trained with CTC) and its autoregressive
+counterpart. The former is faster and more stable whether the latter is slightly more accurate.
+
 The main advantages of this repo are:
 
-* Easy-to-use API for inference and training.
+* Easy-to-use API for training and inference.
 * Multilingual: You can train a single model on several languages.
-* Speed: Using the forward Transformer model, phonemization of large articles on a CPU is almost instantaneous.
+* Accuracy: Phoneme and word error rates are comparable to state-of-art. 
+* Speed: The repo is highly optimized for inference speed, phonemizing even large articles on a CPU is almost instantaneous if you choose the forward Transformer model.
 
-You can choose between a forward Transformer model (trained with CTC) and its autoregressive
-counterpart. The former is faster and more stable whether the latter is slightly more accurate
-in terms of smaller word error rate. 
 
 Check out the training and inference tutorial on [colab](https://colab.research.google.com/github/as-ideas/DeepPhonemizer/blob/master/notebooks/Training_Example.ipynb)!
 
 
-## ⚙️ Installation
+## Installation
 
 ```bash
 pip install deep-phonemizer
@@ -48,7 +49,7 @@ Model checkpoints will be stored in the checkpoints path that is provided by the
 
 ### Inference
 
-Load a phonemizer from a checkpoint and run a prediction. By default, the phonemizer stores a 
+Load the phonemizer from a checkpoint and run a prediction. By default, the phonemizer stores a 
 dictionary of word-phoneme mappings that is applied first, and it uses the Transformer model
 only to predict out-of-dictionary words.
 
@@ -64,19 +65,20 @@ If you need more inference information, you can use following API:
 
 ```python
 from dp.phonemizer import Phonemizer
-result = phonemizer.phonemise_list(['Phonemizing an US-English text is imposimpable!'], lang='en_us')
+result = phonemizer.phonemise_list(['Phonemizing an English text is imposimpable!'], lang='en_us')
 
 for word, pred in result.predictions.items():
   print(f'{word} {pred.phonemes} {pred.confidence}')
 ```
 
 
-## 🏗 Maintainers
+## Maintainers
 * Christian Schäfer, github: [cschaefer26](https://github.com/cschaefer26)
 
 
 ## References
 
 [Transformer based Grapheme-to-Phoneme Conversion](https://arxiv.org/abs/2004.06338)
+
 [GRAPHEME-TO-PHONEME CONVERSION USING
 LONG SHORT-TERM MEMORY RECURRENT NEURAL NETWORKS](https://static.googleusercontent.com/media/research.google.com/en//pubs/archive/43264.pdf)
