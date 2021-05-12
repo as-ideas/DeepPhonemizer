@@ -13,7 +13,7 @@ The main advantages of this repo are:
 * Speed: The repo is highly optimized for inference speed, phonemizing even large articles on a CPU is almost instantaneous if you choose the forward Transformer model.
 
 
-Check out the training and inference tutorial on [colab](https://colab.research.google.com/github/as-ideas/DeepPhonemizer/blob/main/notebooks/Training_Example.ipynb)!
+Check out the training and inference tutorial on [colab](https://colab.research.google.com/github/as-ideas/DeepPhonemizer/blob/main/dp/notebooks/Training_Example.ipynb)!
 
 
 ## Installation
