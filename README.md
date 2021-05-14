@@ -93,9 +93,9 @@ for word, pred in result.predictions.items():
 
 ## Pretrained Models
 
-| Model | Dataset | Commit |
-|---|---|---|
-|[foward_transformer](https://public-asai-dl-models.s3.eu-central-1.amazonaws.com/DeepPhonemizer/en_us_cmudict_ipa.pt) | [cmudict-ipa](https://github.com/menelik3/cmudict-ipa) | latest |
+| Model | Language | Dataset | Commit |
+|---|---|---|---|
+|[foward_transformer](https://public-asai-dl-models.s3.eu-central-1.amazonaws.com/DeepPhonemizer/en_us_cmudict_ipa.pt) | en_us | [cmudict-ipa](https://github.com/menelik3/cmudict-ipa) | latest |
 
 
 ## Maintainers
