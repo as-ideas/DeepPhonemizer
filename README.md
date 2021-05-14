@@ -83,6 +83,7 @@ If you need more inference information, you can use following API:
 
 ```python
 from dp.phonemizer import Phonemizer
+
 result = phonemizer.phonemise_list(['Phonemizing an English text is imposimpable!'], lang='en_us')
 
 for word, pred in result.predictions.items():
