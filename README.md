@@ -13,7 +13,7 @@ The main advantages of this repo are:
 * Easy-to-use API for training and inference.
 * Multilingual: You can train a single model on several languages.
 * Accuracy: Phoneme and word error rates are comparable to state-of-art. 
-* Speed: The repo is highly optimized for inference speed, phonemizing even large articles on a CPU is almost instantaneous if you choose the forward Transformer model.
+* Speed: The repo is highly optimized for fast inference by using dictionaries and batching
 
 
 Check out the [inference](https://colab.research.google.com/github/as-ideas/DeepPhonemizer/blob/main/dp/notebooks/Inference_Example.ipynb) and [training](https://colab.research.google.com/github/as-ideas/DeepPhonemizer/blob/main/dp/notebooks/Training_Example.ipynb) tutorial on colab! 
