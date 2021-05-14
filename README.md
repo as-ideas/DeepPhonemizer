@@ -75,8 +75,7 @@ only to predict out-of-dictionary words.
 from dp.phonemizer import Phonemizer
 
 phonemizer = Phonemizer.from_checkpoint('/content/checkpoints/best_model.pt')
-result = phonemizer('Phonemizing an English text is imposimpable!', lang='en_us')
-print(result)
+phonemes = phonemizer('Phonemizing an English text is imposimpable!', lang='en_us')
 ```
 
 If you need more inference information, you can use following API:
