@@ -16,7 +16,22 @@ The main advantages of this repo are:
 * Speed: The repo is highly optimized for inference speed, phonemizing even large articles on a CPU is almost instantaneous if you choose the forward Transformer model.
 
 
-Check out the training and inference tutorial on [colab](https://colab.research.google.com/github/as-ideas/DeepPhonemizer/blob/main/dp/notebooks/Training_Example.ipynb)!
+Check out the [inference](https://colab.research.google.com/github/as-ideas/DeepPhonemizer/blob/main/dp/notebooks/Inference_Example.ipynb) and [training](https://colab.research.google.com/github/as-ideas/DeepPhonemizer/blob/main/dp/notebooks/Training_Example.ipynb) tutorial on colab! 
+
+
+
+## Quickstart
+
+Download the pretrained model: [en_us_cmudict_ipa](https://public-asai-dl-models.s3.eu-central-1.amazonaws.com/DeepPhonemizer/en_us_cmudict_ipa.pt)
+
+```bash
+from dp.phonemizer import Phonemizer
+
+phonemizer = Phonemizer.from_checkpoint('en_us_cmudict_ipa.pt')
+phonemizer('Phonemizing an English text is imposimpable!', lang='en_us')
+
+'foʊnɪmaɪzɪŋ æn ɪŋglɪʃ tɛkst ɪz ɪmpəzɪmpəbəl!'
+```
 
 
 ## Installation
@@ -73,6 +88,13 @@ result = phonemizer.phonemise_list(['Phonemizing an English text is imposimpable
 for word, pred in result.predictions.items():
   print(f'{word} {pred.phonemes} {pred.confidence}')
 ```
+
+
+## Pretrained Models
+
+| Model | Dataset | Commit |
+|---|---|---|
+|[foward_transformer](https://public-asai-dl-models.s3.eu-central-1.amazonaws.com/DeepPhonemizer/en_us_cmudict_ipa.pt) | [cmudict-ipa](https://github.com/menelik3/cmudict-ipa) | latest |
 
 
 ## Maintainers
