@@ -194,9 +194,9 @@ class Trainer:
                     log_texts[word] = f'     {word:<30} {gen_decoded:<30} {target:<30}'
             # print predictionso of longest words
             log_text_items = sorted(log_texts.items(), key=lambda x: -len(x[0]))
-            log_text_list = [v for k, v in log_text_items][:n_log_samples]
+            log_text_list = [v for k, v in log_text_items]
             self.writer.add_text(f'Text_Prediction_Target/{lang}',
-                                 '\n'.join(log_text_list), global_step=step)
+                                 '\n'.join(log_text_list[:n_log_samples]), global_step=step)
 
         phon_errors, phon_counts, word_errors, word_counts = [], [], [], []
         for lang in languages:
