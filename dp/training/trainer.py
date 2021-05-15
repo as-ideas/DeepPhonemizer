@@ -205,7 +205,7 @@ class Trainer:
 
         model.train()
 
-        return sum_per / len(languages)
+        return sum_per / sum_phon_counts
 
     def save_model(self,
                    model: torch.nn.Module,
