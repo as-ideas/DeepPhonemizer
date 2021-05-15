@@ -190,17 +190,18 @@ class Trainer:
             self.writer.add_text(f'Text_Prediction_Target/{lang}',
                                  '\n'.join(log_texts[:n_log_samples]), global_step=step)
 
-        sum_wer, sum_per, sum_counts = 0., 0., 0.
+        sum_wer, sum_per, sum_phon_counts, sum_word_counts = 0., 0., 0., 0.
         for lang in languages:
             sum_per = sum_per + sum(lang_phon_errors[lang])
-            sum_counts = sum_counts + sum(lang_phon_counts[lang])
+            sum_phon_counts = sum_phon_counts + sum(lang_phon_counts[lang])
+            sum_word_counts = sum_word_counts + len(lang_wer[lang])
             sum_wer = sum_wer + sum(lang_wer[lang])
             per = sum(lang_phon_errors[lang]) / sum(lang_phon_counts[lang])
             wer = sum(lang_wer[lang]) / len(lang_wer[lang])
             self.writer.add_scalar(f'Phoneme_Error_Rate/{lang}', per, global_step=step)
             self.writer.add_scalar(f'Word_Error_Rate/{lang}', wer, global_step=step)
-        self.writer.add_scalar(f'Phoneme_Error_Rate/mean', sum_per / sum_counts, global_step=step)
-        self.writer.add_scalar(f'Word_Error_Rate/mean', sum_wer / sum_counts, global_step=step)
+        self.writer.add_scalar(f'Phoneme_Error_Rate/mean', sum_per / sum_phon_counts, global_step=step)
+        self.writer.add_scalar(f'Word_Error_Rate/mean', sum_wer / sum_word_counts, global_step=step)
 
         model.train()
 
