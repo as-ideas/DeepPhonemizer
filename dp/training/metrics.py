@@ -7,7 +7,7 @@ def word_error(predicted: List[Union[str, int]], target: List[Union[str, int]]) 
     return int(predicted != target)
 
 
-def phoneme_error_rate(predicted: List[Union[str, int]], target: List[Union[str, int]]) -> Tuple[int, int]:
+def phoneme_error(predicted: List[Union[str, int]], target: List[Union[str, int]]) -> Tuple[int, int]:
     d = numpy.zeros((len(target) + 1) * (len(predicted) + 1),
                     dtype=numpy.uint8)
     d = d.reshape((len(target) + 1, len(predicted) + 1))
@@ -35,6 +35,6 @@ if __name__ == '__main__':
 
     pred = list('bca')
     gold = list('abc')
-    wer = phoneme_error_rate(pred, gold)
+    wer = phoneme_error(pred, gold)
 
     print(wer)

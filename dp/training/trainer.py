@@ -14,7 +14,7 @@ from dp.preprocessing.text import Preprocessor
 from dp.training.dataset import new_dataloader
 from dp.training.decorators import ignore_exception
 from dp.training.losses import CrossEntropyLoss, CTCLoss
-from dp.training.metrics import phoneme_error_rate, word_error
+from dp.training.metrics import phoneme_error, word_error
 from dp.utils.io import to_device, unpickle_binary
 
 
@@ -174,38 +174,52 @@ class Trainer:
                 lang_prediction_result[lang] = lang_prediction_result.get(lang, []) + [(text, generated, target)]
 
         # calculate error rates per language
-        lang_phon_errors, lang_phon_counts, lang_wer = dict(), dict(), dict()
+        lang_phon_err, lang_phon_count, lang_word_err = dict(), dict(), dict()
         languages = sorted(lang_prediction_result.keys())
         for lang in languages:
-            log_texts = []
-            for text, generated, target in lang_prediction_result[lang]:
-                phon_err, phon_count = phoneme_error_rate(generated, target)
-                wer = word_error(generated, target)
-                lang_phon_errors[lang] = lang_phon_errors.get(lang, []) + [phon_err]
-                lang_phon_counts[lang] = lang_phon_counts.get(lang, []) + [phon_count]
-                lang_wer[lang] = lang_wer.get(lang, []) + [wer]
-                text, gen_decoded, target = ''.join(text), ''.join(generated), ''.join(target)
-                log_texts.append(f'     {text:<30} {gen_decoded:<30} {target:<30}')
-
+            log_texts = dict()
+            for word, generated, target in lang_prediction_result[lang]:
+                word = ''.join(word)
+                phon_err, phon_count = phoneme_error(generated, target)
+                word_err = word_error(generated, target)
+                phon_err_dict = lang_phon_err.setdefault(lang, dict())
+                phon_count_dict = lang_phon_count.setdefault(lang, dict())
+                word_err_dict = lang_word_err.setdefault(lang, dict())
+                best_phon_err, best_phon_count = phon_err_dict.get(word, None), phon_count_dict.get(word, None)
+                if best_phon_err is None or phon_err / phon_count < best_phon_err / best_phon_count:
+                    phon_err_dict[word] = phon_err
+                    phon_count_dict[word] = phon_count
+                    word_err_dict[word] = word_err
+                    gen_decoded, target = ''.join(generated), ''.join(target)
+                    log_texts[word] = f'     {word:<30} {gen_decoded:<30} {target:<30}'
+            # print predictionso of longest words
+            log_text_items = sorted(log_texts.items(), key=lambda x: -len(x[0]))
+            log_text_list = [v for k, v in log_text_items][:n_log_samples]
             self.writer.add_text(f'Text_Prediction_Target/{lang}',
-                                 '\n'.join(log_texts[:n_log_samples]), global_step=step)
+                                 '\n'.join(log_text_list), global_step=step)
 
-        sum_wer, sum_per, sum_phon_counts, sum_word_counts = 0., 0., 0., 0.
+        phon_errors, phon_counts, word_errors, word_counts = [], [], [], []
         for lang in languages:
-            sum_per = sum_per + sum(lang_phon_errors[lang])
-            sum_phon_counts = sum_phon_counts + sum(lang_phon_counts[lang])
-            sum_word_counts = sum_word_counts + len(lang_wer[lang])
-            sum_wer = sum_wer + sum(lang_wer[lang])
-            per = sum(lang_phon_errors[lang]) / sum(lang_phon_counts[lang])
-            wer = sum(lang_wer[lang]) / len(lang_wer[lang])
+            phon_err = sum(lang_phon_err[lang].values())
+            phon_errors.append(phon_err)
+            phon_count = sum(lang_phon_count[lang].values())
+            phon_counts.append(phon_count)
+            word_err = sum(lang_word_err[lang].values())
+            word_errors.append(word_err)
+            word_count = len(lang_word_err[lang])
+            word_counts.append(word_count)
+            per = phon_err / phon_count
+            wer = word_err / word_count
             self.writer.add_scalar(f'Phoneme_Error_Rate/{lang}', per, global_step=step)
             self.writer.add_scalar(f'Word_Error_Rate/{lang}', wer, global_step=step)
-        self.writer.add_scalar(f'Phoneme_Error_Rate/mean', sum_per / sum_phon_counts, global_step=step)
-        self.writer.add_scalar(f'Word_Error_Rate/mean', sum_wer / sum_word_counts, global_step=step)
+        mean_per = sum(phon_errors) / sum(phon_counts)
+        mean_wer = sum(word_errors) / sum(word_counts)
+        self.writer.add_scalar(f'Phoneme_Error_Rate/mean', mean_per, global_step=step)
+        self.writer.add_scalar(f'Word_Error_Rate/mean', mean_wer, global_step=step)
 
         model.train()
 
-        return sum_per / sum_phon_counts
+        return sum(phon_errors) / sum(phon_counts)
 
     def save_model(self,
                    model: torch.nn.Module,
