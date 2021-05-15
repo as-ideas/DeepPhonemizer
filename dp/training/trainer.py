@@ -174,14 +174,15 @@ class Trainer:
                 lang_prediction_result[lang] = lang_prediction_result.get(lang, []) + [(text, generated, target)]
 
         # calculate error rates per language
-        lang_per, lang_wer = dict(), dict()
+        lang_phon_errors, lang_phon_counts, lang_wer = dict(), dict(), dict()
         languages = sorted(lang_prediction_result.keys())
         for lang in languages:
             log_texts = []
             for text, generated, target in lang_prediction_result[lang]:
-                per = phoneme_error_rate(generated, target)
+                phon_err, phon_count = phoneme_error_rate(generated, target)
                 wer = word_error(generated, target)
-                lang_per[lang] = lang_per.get(lang, []) + [per]
+                lang_phon_errors[lang] = lang_phon_errors.get(lang, []) + [phon_err]
+                lang_phon_counts[lang] = lang_phon_counts.get(lang, []) + [phon_count]
                 lang_wer[lang] = lang_wer.get(lang, []) + [wer]
                 text, gen_decoded, target = ''.join(text), ''.join(generated), ''.join(target)
                 log_texts.append(f'     {text:<30} {gen_decoded:<30} {target:<30}')
@@ -189,21 +190,20 @@ class Trainer:
             self.writer.add_text(f'Text_Prediction_Target/{lang}',
                                  '\n'.join(log_texts[:n_log_samples]), global_step=step)
 
-        sum_wer, sum_per, count = 0., 0., 0
+        sum_wer, sum_per = 0., 0.
         for lang in languages:
-            count += len(lang_per[lang])
-            sum_per = sum_per + sum(lang_per[lang])
+            sum_per = sum_per + sum(lang_phon_errors[lang])
             sum_wer = sum_wer + sum(lang_wer[lang])
-            per = sum(lang_per[lang]) / len(lang_per[lang])
+            per = sum(lang_phon_errors[lang]) / sum(lang_phon_counts[lang])
             wer = sum(lang_wer[lang]) / len(lang_wer[lang])
             self.writer.add_scalar(f'Phoneme_Error_Rate/{lang}', per, global_step=step)
             self.writer.add_scalar(f'Word_Error_Rate/{lang}', wer, global_step=step)
-        self.writer.add_scalar(f'Phoneme_Error_Rate/mean', sum_per / count, global_step=step)
-        self.writer.add_scalar(f'Word_Error_Rate/mean', sum_wer / count, global_step=step)
+        self.writer.add_scalar(f'Phoneme_Error_Rate/mean', sum_per / len(languages), global_step=step)
+        self.writer.add_scalar(f'Word_Error_Rate/mean', sum_wer / len(languages), global_step=step)
 
         model.train()
 
-        return sum_per / count
+        return sum_per / len(languages)
 
     def save_model(self,
                    model: torch.nn.Module,

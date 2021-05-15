@@ -1,4 +1,4 @@
-from typing import List, Union
+from typing import List, Union, Tuple
 
 import numpy
 
@@ -7,7 +7,7 @@ def word_error(predicted: List[Union[str, int]], target: List[Union[str, int]]) 
     return int(predicted != target)
 
 
-def phoneme_error_rate(predicted: List[Union[str, int]], target: List[Union[str, int]]) -> float:
+def phoneme_error_rate(predicted: List[Union[str, int]], target: List[Union[str, int]]) -> Tuple[int, int]:
     d = numpy.zeros((len(target) + 1) * (len(predicted) + 1),
                     dtype=numpy.uint8)
     d = d.reshape((len(target) + 1, len(predicted) + 1))
@@ -28,7 +28,7 @@ def phoneme_error_rate(predicted: List[Union[str, int]], target: List[Union[str,
                 deletion = d[i - 1][j] + 1
                 d[i][j] = min(substitution, insertion, deletion)
 
-    return d[len(target)][len(predicted)] / float(len(target))
+    return d[len(target)][len(predicted)], len(target)
 
 
 if __name__ == '__main__':

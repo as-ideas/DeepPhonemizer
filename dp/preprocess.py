@@ -87,4 +87,4 @@ def preprocess(config_file: str,
             f.write(f'{lang}\t{text}\t{phoneme}\n')
 
     logger.info(f'Preprocessing done. \nTrain counts: {train_count.most_common()}'
-          f'\nVal counts: {val_count.most_common()}')
+                f'\nVal counts: {val_count.most_common()}')
