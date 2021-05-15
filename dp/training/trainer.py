@@ -216,10 +216,9 @@ class Trainer:
         mean_wer = sum(word_errors) / sum(word_counts)
         self.writer.add_scalar(f'Phoneme_Error_Rate/mean', mean_per, global_step=step)
         self.writer.add_scalar(f'Word_Error_Rate/mean', mean_wer, global_step=step)
-
         model.train()
 
-        return sum(phon_errors) / sum(phon_counts)
+        return mean_per
 
     def save_model(self,
                    model: torch.nn.Module,
