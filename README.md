@@ -22,7 +22,7 @@ Check out the [inference](https://colab.research.google.com/github/as-ideas/Deep
 
 ## Quickstart
 
-Download the pretrained model: [en_us_cmudict_ipa](https://public-asai-dl-models.s3.eu-central-1.amazonaws.com/DeepPhonemizer/en_us_cmudict_ipa.pt)
+Download the pretrained model: [en_us_cmudict_ipa_forward](https://public-asai-dl-models.s3.eu-central-1.amazonaws.com/DeepPhonemizer/en_us_cmudict_ipa_forward.pt)
 
 ```bash
 from dp.phonemizer import Phonemizer
@@ -94,7 +94,8 @@ for word, pred in result.predictions.items():
 
 | Model | Language | Dataset | Commit |
 |---|---|---|---|
-|[foward_transformer](https://public-asai-dl-models.s3.eu-central-1.amazonaws.com/DeepPhonemizer/en_us_cmudict_ipa.pt) | en_us | [cmudict-ipa](https://github.com/menelik3/cmudict-ipa) | latest |
+|[foward_transformer](https://public-asai-dl-models.s3.eu-central-1.amazonaws.com/DeepPhonemizer/en_us_cmudict_ipa_forward.pt) | en_us | [cmudict-ipa](https://github.com/menelik3/cmudict-ipa) | latest |
+|[autoreg_transformer](https://public-asai-dl-models.s3.eu-central-1.amazonaws.com/DeepPhonemizer/en_us_cmudict_ipa_autoreg.pt) | en_us | [cmudict-ipa](https://github.com/menelik3/cmudict-ipa) | latest |
 
 
 ## Maintainers
