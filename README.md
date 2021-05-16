@@ -94,8 +94,9 @@ for word, pred in result.predictions.items():
 
 | Model | Language | Dataset | Commit |
 |---|---|---|---|
-|[foward_transformer](https://public-asai-dl-models.s3.eu-central-1.amazonaws.com/DeepPhonemizer/en_us_cmudict_ipa_forward.pt) | en_us | [cmudict-ipa](https://github.com/menelik3/cmudict-ipa) | latest |
-|[autoreg_transformer](https://public-asai-dl-models.s3.eu-central-1.amazonaws.com/DeepPhonemizer/en_us_cmudict_ipa_autoreg.pt) | en_us | [cmudict-ipa](https://github.com/menelik3/cmudict-ipa) | latest |
+|[en_us_cmudict_ipa_foward](https://public-asai-dl-models.s3.eu-central-1.amazonaws.com/DeepPhonemizer/en_us_cmudict_ipa_forward.pt) | en_us | [cmudict-ipa](https://github.com/menelik3/cmudict-ipa) | latest |
+|[en_us_cmudict_ipa_autoreg](https://public-asai-dl-models.s3.eu-central-1.amazonaws.com/DeepPhonemizer/en_us_cmudict_ipa_autoreg.pt) | en_us | [cmudict-ipa](https://github.com/menelik3/cmudict-ipa) | latest |
+|[en_us_cmudict_foward](https://public-asai-dl-models.s3.eu-central-1.amazonaws.com/DeepPhonemizer/en_us_cmudict_ipa_forward.pt) | en_us | [cmudict](https://github.com/microsoft/CNTK/tree/master/Examples/SequenceToSequence/CMUDict/Data) | latest |
 
 
 ## Maintainers
