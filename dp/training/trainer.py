@@ -192,10 +192,10 @@ class Trainer:
                     word_err_dict[word] = word_err
                     gen_decoded, target = ''.join(generated), ''.join(target)
                     log_texts[word] = f'     {word:<30} {gen_decoded:<30} {target:<30}'
-            # print predictionso of longest words
+            # print predictions of longest words
             log_text_items = sorted(log_texts.items(), key=lambda x: -len(x[0]))
             log_text_list = [v for k, v in log_text_items]
-            self.writer.add_text(f'Text_Prediction_Target/{lang}',
+            self.writer.add_text(f'{lang}/text_prediction_target',
                                  '\n'.join(log_text_list[:n_log_samples]), global_step=step)
 
         phon_errors, phon_counts, word_errors, word_counts = [], [], [], []
