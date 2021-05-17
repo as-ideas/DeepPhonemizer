@@ -29,7 +29,7 @@ class Predictor:
         :param words: List of words to predict.
         :param lang: Language of texts.
         :param batch_size: Size of batch for model input to speed up inference.
-        :return: A list of prediction objects containing (word, phonemes, probs, tokens)
+        :return: A list of prediction objects containing (word, phonemes, phoneme_tokens, token_probs, confidence)
         """
 
         predictions = dict()

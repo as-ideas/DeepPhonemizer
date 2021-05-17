@@ -1,6 +1,6 @@
 import unittest
 
-from dp.training.metrics import word_error, phoneme_error_rate
+from dp.training.metrics import word_error, phoneme_error
 
 
 class TestWordError(unittest.TestCase):
@@ -27,35 +27,42 @@ class TestPhonemeErrorRate(unittest.TestCase):
     def test_call(self):
         predicted = ['a', 'b', 'c', 'd']
         target = ['a', 'k', 'c', 'a']
-        result = phoneme_error_rate(predicted, target)
-        self.assertEqual(0.5, result)
+        e, c = phoneme_error(predicted, target)
+        self.assertEqual(2, e)
+        self.assertEqual(4, c)
 
         predicted = ['r', 'r', 'r', 'r']
         target = ['a', 'k', 'c', 'a']
-        result = phoneme_error_rate(predicted, target)
-        self.assertEqual(1., result)
+        e, c = phoneme_error(predicted, target)
+        self.assertEqual(4, e)
+        self.assertEqual(4, c)
 
         predicted = ['a']
         target = ['a']
-        result = phoneme_error_rate(predicted, target)
-        self.assertEqual(0, result)
+        e, c = phoneme_error(predicted, target)
+        self.assertEqual(0, e)
+        self.assertEqual(1, c)
 
         predicted = ['a']
         target = ['b']
-        result = phoneme_error_rate(predicted, target)
-        self.assertEqual(1., result)
+        e, c = phoneme_error(predicted, target)
+        self.assertEqual(1, e)
+        self.assertEqual(1, c)
 
         predicted = ['a', 'b']
         target = ['b']
-        result = phoneme_error_rate(predicted, target)
-        self.assertEqual(1., result)
+        e, c = phoneme_error(predicted, target)
+        self.assertEqual(1, e)
+        self.assertEqual(1, c)
 
         predicted = ['a', 'b', 'c']
         target = ['b']
-        result = phoneme_error_rate(predicted, target)
-        self.assertEqual(2., result)
+        e, c = phoneme_error(predicted, target)
+        self.assertEqual(2, e)
+        self.assertEqual(1, c)
 
         predicted = ['a']
         target = ['a', 'b']
-        result = phoneme_error_rate(predicted, target)
-        self.assertEqual(0.5, result)
+        e, c = phoneme_error(predicted, target)
+        self.assertEqual(1, e)
+        self.assertEqual(2, c)

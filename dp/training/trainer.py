@@ -1,6 +1,7 @@
 import math
+from collections import Counter
 from pathlib import Path
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Tuple
 
 import torch
 import tqdm
@@ -14,7 +15,7 @@ from dp.preprocessing.text import Preprocessor
 from dp.training.dataset import new_dataloader
 from dp.training.decorators import ignore_exception
 from dp.training.losses import CrossEntropyLoss, CTCLoss
-from dp.training.metrics import phoneme_error_rate, word_error
+from dp.training.evaluation import evaluate_samples
 from dp.utils.io import to_device, unpickle_binary
 
 
@@ -104,17 +105,20 @@ class Trainer:
                     self.writer.add_scalar('Loss/val', val_loss, global_step=step)
 
                 if step % config['training']['generate_steps'] == 0:
-                    per = self.generate_samples(model=model,
-                                                preprocessor=checkpoint['preprocessor'],
-                                                val_batches=val_batches,
-                                                n_log_samples=config['training']['n_generate_samples'],
-                                                step=step)
-                    if per is not None and per < best_per:
+                    lang_samples = self.generate_samples(model=model,
+                                                         preprocessor=checkpoint['preprocessor'],
+                                                         val_batches=val_batches)
+                    eval_result = evaluate_samples(lang_samples=lang_samples)
+                    self.write_summaries(lang_samples=lang_samples,
+                                         eval_result=eval_result,
+                                         n_generate_samples=config['training']['n_generate_samples'],
+                                         step=step)
+                    if eval_result['mean_per'] is not None and eval_result['mean_per'] < best_per:
                         self.save_model(model=model, optimizer=optimizer, checkpoint=checkpoint,
                                         path=self.checkpoint_dir / f'best_model.pt')
                         self.save_model(model=model, optimizer=None, checkpoint=checkpoint,
                                         path=self.checkpoint_dir / f'best_model_no_optim.pt')
-                        scheduler.step(per)
+                        scheduler.step(eval_result['mean_per'])
 
                 if step % config['training']['checkpoint_steps'] == 0:
                     step = step // 1000
@@ -144,10 +148,9 @@ class Trainer:
     def generate_samples(self,
                          model: Model,
                          preprocessor: Preprocessor,
-                         val_batches: List[dict],
-                         n_log_samples: int,
-                         step: int) -> float:
-        """ Generates samples and calculates some metrics. Returns phoneme error rate. """
+                         val_batches: List[dict]) -> Dict[str, List[Tuple[List[str], List[str], List[str]]]]:
+
+        """ Returns a dictionary with entries lang: Tuple of (word, generated, target) """
 
         device = next(model.parameters()).device
         model.eval()
@@ -173,37 +176,40 @@ class Trainer:
                 target = phoneme_tokenizer.decode(target, remove_special_tokens=True)
                 lang_prediction_result[lang] = lang_prediction_result.get(lang, []) + [(text, generated, target)]
 
-        # calculate error rates per language
-        lang_per, lang_wer = dict(), dict()
-        languages = sorted(lang_prediction_result.keys())
-        for lang in languages:
-            log_texts = []
-            for text, generated, target in lang_prediction_result[lang]:
-                per = phoneme_error_rate(generated, target)
-                wer = word_error(generated, target)
-                lang_per[lang] = lang_per.get(lang, []) + [per]
-                lang_wer[lang] = lang_wer.get(lang, []) + [wer]
-                text, gen_decoded, target = ''.join(text), ''.join(generated), ''.join(target)
-                log_texts.append(f'     {text:<30} {gen_decoded:<30} {target:<30}')
-
-            self.writer.add_text(f'Text_Prediction_Target/{lang}',
-                                 '\n'.join(log_texts[:n_log_samples]), global_step=step)
-
-        sum_wer, sum_per, count = 0., 0., 0
-        for lang in languages:
-            count += len(lang_per[lang])
-            sum_per = sum_per + sum(lang_per[lang])
-            sum_wer = sum_wer + sum(lang_wer[lang])
-            per = sum(lang_per[lang]) / len(lang_per[lang])
-            wer = sum(lang_wer[lang]) / len(lang_wer[lang])
-            self.writer.add_scalar(f'Phoneme_Error_Rate/{lang}', per, global_step=step)
-            self.writer.add_scalar(f'Word_Error_Rate/{lang}', wer, global_step=step)
-        self.writer.add_scalar(f'Phoneme_Error_Rate/mean', sum_per / count, global_step=step)
-        self.writer.add_scalar(f'Word_Error_Rate/mean', sum_wer / count, global_step=step)
-
         model.train()
 
-        return sum_per / count
+        return lang_prediction_result
+
+    @ignore_exception
+    def write_summaries(self,
+                        lang_samples: Dict[str, List[Tuple[List[str], List[str], List[str]]]],
+                        eval_result: Dict[str, Any],
+                        n_generate_samples: int,
+                        step: int) -> None:
+
+        self.writer.add_scalar(f'Phoneme_Error_Rate/mean',
+                               eval_result['mean_per'], global_step=step)
+        self.writer.add_scalar(f'Word_Error_Rate/mean',
+                               eval_result['mean_wer'], global_step=step)
+
+        for lang in lang_samples.keys():
+            result = eval_result[lang]
+            self.writer.add_scalar(f'Phoneme_Error_Rate/{lang}',
+                                   result['per'], global_step=step)
+            self.writer.add_scalar(f'Word_Error_Rate/{lang}',
+                                   result['wer'], global_step=step)
+
+        for lang, samples in lang_samples.items():
+            samples = [(''.join(w), ''.join(p), ''.join(t)) for w, p, t in samples]
+            word_counts = Counter([word for word, _, _ in samples])
+            samples_dedup = [(w, p, t) for w, p, t in samples if word_counts[w] == 1]
+            log_texts = dict()
+            for word, pred, target in samples_dedup:
+                log_texts[word] = f'     {word:<30} {pred:<30} {target:<30}'
+            log_text_items = sorted(log_texts.items(), key=lambda x: -len(x[0]))
+            log_text_list = [v for k, v in log_text_items]
+            log_text = '\n'.join(log_text_list[:n_generate_samples])
+            self.writer.add_text(f'{lang}/text_prediction_target', log_text, global_step=step)
 
     def save_model(self,
                    model: torch.nn.Module,

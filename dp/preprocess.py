@@ -33,17 +33,26 @@ def preprocess(config_file: str,
 
     data_dir = Path(config['paths']['data_dir'])
     data_dir.mkdir(parents=True, exist_ok=True)
-    train_data = [r for r in train_data if r[0] in languages]
+
+    train_dict = {(l, w): [] for l, w, p in train_data}
+    for l, w, p in train_data:
+        train_dict[(l, w)] = train_dict[(l, w)] + [(l, w, p)]
+    train_keys = sorted(list(train_dict.keys()))
+
     if val_data is not None:
-        val_data = [r for r in val_data if r[0] in languages]
+        val_data = [(l, w, p) for l, w, p in val_data if l in languages]
     else:
         n_val = config['preprocessing']['n_val']
         logger.info(f'Performing random split with num val: {n_val}')
-        train_data.sort()
         random = Random(42)
-        random.shuffle(train_data)
-        train_data = train_data[n_val:]
-        val_data = train_data[:n_val]
+        random.shuffle(train_keys)
+        val_keys = train_keys[:n_val]
+        train_keys = train_keys[n_val:]
+        # deduplicate train data but not val data
+        train_data = [train_dict[k][0] for k in train_keys]
+        val_data = []
+        for k in val_keys:
+            val_data.extend(train_dict[k])
 
     preprocessor = Preprocessor.from_config(config)
 
@@ -76,15 +85,15 @@ def preprocess(config_file: str,
         phons = ''.join([p for p in phon if p in phoneme_symbols])
         all_data.append((lang, text, phons))
 
-    for lang, text, phoneme in all_data:
-        lang_dict = phoneme_dictionary.get(lang, {})
-        lang_dict[text] = phoneme
-        phoneme_dictionary[lang] = lang_dict
+    for l, w, p in all_data:
+        lang_dict = phoneme_dictionary.setdefault(l, {})
+        if w not in lang_dict:
+            lang_dict[w] = p
 
     pickle_binary(phoneme_dictionary, data_dir / 'phoneme_dict.pkl')
     with open(data_dir / 'combined_dataset.txt', 'w+', encoding='utf-8') as f:
         for lang, text, phoneme in all_data:
             f.write(f'{lang}\t{text}\t{phoneme}\n')
 
-    logger.info(f'Preprocessing done. \nTrain counts: {train_count.most_common()}'
-          f'\nVal counts: {val_count.most_common()}')
+    logger.info(f'Preprocessing. \nTrain counts (deduplicated): {train_count.most_common()}'
+                f'\nVal counts (including duplicates): {val_count.most_common()}')
