@@ -2,6 +2,8 @@
 
 ![Build Status](https://github.com/as-ideas/DeepPhonemizer/workflows/pytest/badge.svg)
 ![codecov](https://codecov.io/gh/as-ideas/DeepPhonemizer/branch/main/graph/badge.svg)
+![PyPI Version](https://img.shields.io/pypi/v/deep-phonemizer)
+![License](https://img.shields.io/badge/License-MIT-blue.svg)
 
 
 DeepPhonemizer is a library for grapheme to phoneme conversion based on Transformer models. 
@@ -43,7 +45,7 @@ pip install deep-phonemizer
 
 ### Training
 
-All parameters are set in a config.yaml, you can find a config in the installed package under:
+All parameters are set in a config.yaml, you can find example configs in the installed package under:
 ```bash
 dp/configs/forward_config.yaml
 ```
