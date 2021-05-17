@@ -7,14 +7,14 @@
 DeepPhonemizer is a library for grapheme to phoneme conversion based on Transformer models. 
 It is intended to be used in text-to-speech production systems with high accuracy and efficiency.
 You can choose between a forward Transformer model (trained with CTC) and its autoregressive
-counterpart. The former is faster and more stable whether the latter is slightly more accurate.
+counterpart. The former is faster and more stable while the latter is slightly more accurate.
 
 The main advantages of this repo are:
 
 * Easy-to-use API for training and inference.
 * Multilingual: You can train a single model on several languages.
 * Accuracy: Phoneme and word error rates are comparable to state-of-art. 
-* Speed: The repo is highly optimized for fast inference by using dictionaries and batching
+* Speed: The repo is highly optimized for fast inference by using dictionaries and batching.
 
 
 Check out the [inference](https://colab.research.google.com/github/as-ideas/DeepPhonemizer/blob/main/dp/notebooks/Inference_Example.ipynb) and [training](https://colab.research.google.com/github/as-ideas/DeepPhonemizer/blob/main/dp/notebooks/Training_Example.ipynb) tutorials on Colab! 
