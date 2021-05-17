@@ -15,7 +15,7 @@ from dp.preprocessing.text import Preprocessor
 from dp.training.dataset import new_dataloader
 from dp.training.decorators import ignore_exception
 from dp.training.losses import CrossEntropyLoss, CTCLoss
-from dp.training.metrics import phoneme_error, word_error, evaluate_samples
+from dp.training.evaluation import evaluate_samples
 from dp.utils.io import to_device, unpickle_binary
 
 
