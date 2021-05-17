@@ -22,6 +22,11 @@ The main advantages of this repo are:
 Check out the [inference](https://colab.research.google.com/github/as-ideas/DeepPhonemizer/blob/main/dp/notebooks/Inference_Example.ipynb) and [training](https://colab.research.google.com/github/as-ideas/DeepPhonemizer/blob/main/dp/notebooks/Training_Example.ipynb) tutorials on Colab! 
 
 
+## Installation
+
+```bash
+pip install deep-phonemizer
+```
 
 ## Quickstart
 
@@ -36,12 +41,6 @@ phonemizer('Phonemizing an English text is imposimpable!', lang='en_us')
 'foʊnɪmaɪzɪŋ æn ɪŋglɪʃ tɛkst ɪz ɪmpəzɪmpəbəl!'
 ```
 
-
-## Installation
-
-```bash
-pip install deep-phonemizer
-```
 
 ### Training
 
