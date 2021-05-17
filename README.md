@@ -1,6 +1,7 @@
 # DeepPhonemizer
 
 ![Build Status](https://github.com/as-ideas/DeepPhonemizer/workflows/pytest/badge.svg)
+![codecov](https://codecov.io/gh/as-ideas/DeepPhonemizer/branch/main/graph/badge.svg)
 
 
 DeepPhonemizer is a library for grapheme to phoneme conversion based on Transformer models. 
