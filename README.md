@@ -98,7 +98,7 @@ for word, pred in result.predictions.items():
 |[en_us_cmudict_ipa_foward](https://public-asai-dl-models.s3.eu-central-1.amazonaws.com/DeepPhonemizer/en_us_cmudict_ipa_forward.pt) | en_us | [cmudict-ipa](https://github.com/menelik3/cmudict-ipa) | 0.0.10 |
 |[en_us_cmudict_ipa_autoreg](https://public-asai-dl-models.s3.eu-central-1.amazonaws.com/DeepPhonemizer/en_us_cmudict_ipa_autoreg.pt) | en_us | [cmudict-ipa](https://github.com/menelik3/cmudict-ipa) | 0.0.10 |
 |[en_us_cmudict_foward](https://public-asai-dl-models.s3.eu-central-1.amazonaws.com/DeepPhonemizer/en_us_cmudict_ipa_forward.pt) | en_us | [cmudict](https://github.com/microsoft/CNTK/tree/master/Examples/SequenceToSequence/CMUDict/Data) | 0.0.10 |
-|[latin_ipa_foward](https://public-asai-dl-models.s3.eu-central-1.amazonaws.com/DeepPhonemizer/latin_ipa_forward.pt) | en_uk, en_us, de, fr, es | [wikipron](https://github.com/CUNY-CL/wikipron/tree/master/data) | 0.0.10 |
+|[latin_ipa_foward](https://public-asai-dl-models.s3.eu-central-1.amazonaws.com/DeepPhonemizer/latin_ipa_forward.pt) | en_uk, en_us, de, fr, es | [wikipron](https://github.com/CUNY-CL/wikipron/tree/master/data/scrape/tsv) | 0.0.10 |
 
 
 ## Maintainers
