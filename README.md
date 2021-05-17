@@ -28,7 +28,7 @@ Check out the [inference](https://colab.research.google.com/github/as-ideas/Deep
 pip install deep-phonemizer
 ```
 
-## Quickstart
+### Quickstart
 
 Download the pretrained model: [en_us_cmudict_ipa_forward](https://public-asai-dl-models.s3.eu-central-1.amazonaws.com/DeepPhonemizer/en_us_cmudict_ipa_forward.pt)
 
@@ -92,7 +92,7 @@ for word, pred in result.predictions.items():
 ```
 
 
-## Pretrained Models
+### Pretrained Models
 
 | Model | Language | Dataset | Repo Version
 |---|---|---|---|
@@ -102,11 +102,11 @@ for word, pred in result.predictions.items():
 |[latin_ipa_foward](https://public-asai-dl-models.s3.eu-central-1.amazonaws.com/DeepPhonemizer/latin_ipa_forward.pt) | en_uk, en_us, de, fr, es | [wikipron](https://github.com/CUNY-CL/wikipron/tree/master/data/scrape/tsv) | 0.0.10 |
 
 
-## Maintainers
+### Maintainers
 * Christian Schäfer, github: [cschaefer26](https://github.com/cschaefer26)
 
 
-## References
+### References
 
 [Transformer based Grapheme-to-Phoneme Conversion](https://arxiv.org/abs/2004.06338)
 
