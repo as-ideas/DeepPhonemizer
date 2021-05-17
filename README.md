@@ -43,7 +43,7 @@ pip install deep-phonemizer
 
 ### Training
 
-All parameters are set in a config.yaml, you can find a config in the installed package under:
+All parameters are set in a config.yaml, you can find example configs in the installed package under:
 ```bash
 dp/configs/forward_config.yaml
 ```
