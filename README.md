@@ -1,19 +1,20 @@
 # DeepPhonemizer
 
 ![Build Status](https://github.com/as-ideas/DeepPhonemizer/workflows/pytest/badge.svg)
+![codecov](https://codecov.io/gh/as-ideas/DeepPhonemizer/branch/main/graph/badge.svg)
 
 
 DeepPhonemizer is a library for grapheme to phoneme conversion based on Transformer models. 
 It is intended to be used in text-to-speech production systems with high accuracy and efficiency.
 You can choose between a forward Transformer model (trained with CTC) and its autoregressive
-counterpart. The former is faster and more stable whether the latter is slightly more accurate.
+counterpart. The former is faster and more stable while the latter is slightly more accurate.
 
 The main advantages of this repo are:
 
 * Easy-to-use API for training and inference.
 * Multilingual: You can train a single model on several languages.
 * Accuracy: Phoneme and word error rates are comparable to state-of-art. 
-* Speed: The repo is highly optimized for fast inference by using dictionaries and batching
+* Speed: The repo is highly optimized for fast inference by using dictionaries and batching.
 
 
 Check out the [inference](https://colab.research.google.com/github/as-ideas/DeepPhonemizer/blob/main/dp/notebooks/Inference_Example.ipynb) and [training](https://colab.research.google.com/github/as-ideas/DeepPhonemizer/blob/main/dp/notebooks/Training_Example.ipynb) tutorials on Colab! 
@@ -92,10 +93,12 @@ for word, pred in result.predictions.items():
 
 ## Pretrained Models
 
-| Model | Language | Dataset | Commit |
+| Model | Language | Dataset | Repo Version
 |---|---|---|---|
-|[foward_transformer](https://public-asai-dl-models.s3.eu-central-1.amazonaws.com/DeepPhonemizer/en_us_cmudict_ipa_forward.pt) | en_us | [cmudict-ipa](https://github.com/menelik3/cmudict-ipa) | latest |
-|[autoreg_transformer](https://public-asai-dl-models.s3.eu-central-1.amazonaws.com/DeepPhonemizer/en_us_cmudict_ipa_autoreg.pt) | en_us | [cmudict-ipa](https://github.com/menelik3/cmudict-ipa) | latest |
+|[en_us_cmudict_ipa_foward](https://public-asai-dl-models.s3.eu-central-1.amazonaws.com/DeepPhonemizer/en_us_cmudict_ipa_forward.pt) | en_us | [cmudict-ipa](https://github.com/menelik3/cmudict-ipa) | 0.0.10 |
+|[en_us_cmudict_ipa_autoreg](https://public-asai-dl-models.s3.eu-central-1.amazonaws.com/DeepPhonemizer/en_us_cmudict_ipa_autoreg.pt) | en_us | [cmudict-ipa](https://github.com/menelik3/cmudict-ipa) | 0.0.10 |
+|[en_us_cmudict_foward](https://public-asai-dl-models.s3.eu-central-1.amazonaws.com/DeepPhonemizer/en_us_cmudict_ipa_forward.pt) | en_us | [cmudict](https://github.com/microsoft/CNTK/tree/master/Examples/SequenceToSequence/CMUDict/Data) | 0.0.10 |
+|[latin_ipa_foward](https://public-asai-dl-models.s3.eu-central-1.amazonaws.com/DeepPhonemizer/latin_ipa_forward.pt) | en_uk, en_us, de, fr, es | [wikipron](https://github.com/CUNY-CL/wikipron/tree/master/data/scrape/tsv) | 0.0.10 |
 
 
 ## Maintainers

@@ -7,16 +7,16 @@ DeepPhonemizer is compatible with Python 3.6+ and is distributed under the MIT l
 
 setup(
     name='deep-phonemizer',
-    version='0.0.9',
+    version='0.0.10',
     author='Christian Schäfer',
     author_email='c.schaefer.home@gmail.com',
     description='Grapheme to phoneme conversion with deep learning.',
     long_description=long_description,
     long_description_content_type='text/x-rst',
     license='MIT',
-    install_requires=['torch>=1.2.0', 'tqdm>=4.38.0', 'PyYAML>=5.1', 'transformers>=2.2.2', 'tensorboard'],
+    install_requires=['torch>=1.2.0', 'tqdm>=4.38.0', 'PyYAML>=5.1', 'tensorboard'],
     extras_require={
-        'tests': ['pytest', 'pytest-cov', 'codecov', 'tensorflow==2.0.0'],
+        'tests': ['pytest-cov'],
         'docs': ['mkdocs', 'mkdocs-material'],
         'dev': ['bumpversion']
     },
