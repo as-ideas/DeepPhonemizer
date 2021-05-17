@@ -2,6 +2,8 @@
 
 ![Build Status](https://github.com/as-ideas/DeepPhonemizer/workflows/pytest/badge.svg)
 ![codecov](https://codecov.io/gh/as-ideas/DeepPhonemizer/branch/main/graph/badge.svg)
+![PyPI Version](https://img.shields.io/pypi/v/deep-phonemizer)
+![License](https://img.shields.io/badge/License-MIT-blue.svg)
 
 
 DeepPhonemizer is a library for grapheme to phoneme conversion based on Transformer models. 
