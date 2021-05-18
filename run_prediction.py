@@ -6,7 +6,7 @@ from dp.preprocessing.text import Preprocessor
 
 if __name__ == '__main__':
 
-    checkpoint_path = 'checkpoints/de_us_nostress_bind/best_model.pt'
+    checkpoint_path = 'checkpoints/best_model.pt'
     phonemizer = Phonemizer.from_checkpoint(checkpoint_path)
 
     text = 'Otorhinolary'
