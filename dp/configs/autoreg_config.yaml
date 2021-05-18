@@ -12,18 +12,13 @@ preprocessing:
   n_val: 100
 
 model:
-  type: 'autoreg_transformer'  # choices: ['transformer', 'lstm', 'autoreg_transformer']
+  type: 'autoreg_transformer'  # choices: ['transformer', 'autoreg_transformer']
 
-  # transformer params
   d_model: 512
   d_fft: 1024
   layers: 4
   dropout: 0.1
   heads: 4
-
-  # lstm params
-  lstm_dim: 256
-  num_layers: 2
 
 training:
 

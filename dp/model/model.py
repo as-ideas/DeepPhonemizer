@@ -39,56 +39,6 @@ class Model(torch.nn.Module, ABC):
         pass
 
 
-class LstmModel(Model):
-
-    def __init__(self,
-                 num_symbols_in: int,
-                 num_symbols_out: int,
-                 lstm_dim: int,
-                 num_layers: int) -> None:
-        super().__init__()
-        self.embedding = nn.Embedding(num_embeddings=num_symbols_in, embedding_dim=lstm_dim)
-        lstms = [torch.nn.LSTM(lstm_dim, lstm_dim, batch_first=True, bidirectional=True)]
-        for i in range(1, num_layers):
-            lstms.append(
-                torch.nn.LSTM(2 * lstm_dim, lstm_dim, batch_first=True, bidirectional=True)
-            )
-        self.lstms = ModuleList(lstms)
-        self.lin = torch.nn.Linear(2 * lstm_dim, num_symbols_out)
-
-    def forward(self,
-                batch: Dict[str, torch.tensor]) -> torch.tensor:
-        x = batch['text']
-        x_len = batch['text_len']
-        x = self.embedding(x)
-        if x_len is not None:
-            x = pack_padded_sequence(x, x_len.cpu(), batch_first=True, enforce_sorted=False)
-        for lstm in self.lstms:
-            x, _ = lstm(x)
-        if x_len is not None:
-            x, _ = pad_packed_sequence(x, batch_first=True)
-        x = self.lin(x)
-        return x
-
-    def generate(self,
-                 batch: Dict[str, torch.tensor]) -> Tuple[torch.tensor, torch.tensor]:
-        with torch.no_grad():
-            x = self.forward(batch)
-        tokens, logits = get_dedup_tokens(x)
-        return tokens, logits
-
-    @classmethod
-    def from_config(cls, config: dict) -> 'LstmModel':
-        preprocessor = Preprocessor.from_config(config)
-        model = LstmModel(
-            num_symbols_in=preprocessor.text_tokenizer.vocab_size,
-            num_symbols_out=preprocessor.phoneme_tokenizer.vocab_size,
-            lstm_dim=config['model']['lstm_dim'],
-            num_layers=config['model']['layers']
-        )
-        return model
-
-
 class ForwardTransformer(Model):
 
     def __init__(self,
