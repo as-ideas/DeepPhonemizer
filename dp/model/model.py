@@ -28,7 +28,7 @@ class Model(torch.nn.Module, ABC):
         Generates phonemes for a text batch
 
         :param batch: Dictionary containing: 'text' (tokenized text tensor),
-                     'text_len' (text length tensor for LstmModel),
+                     'text_len' (text length tensor),
                      'start_index' (phoneme start indices for AutoregressiveTransformer)
         :return: Tuple, where the first element is a tensor (phoneme tokens) and the second element
                  is a tensor (phoneme token probabilities)
@@ -213,9 +213,7 @@ class AutoregressiveTransformer(Model):
 
 
 def create_model(model_type: ModelType, config: Dict[str, Any]) -> Model:
-    if model_type is ModelType.LSTM_MODEL:
-        model = LstmModel.from_config(config)
-    elif model_type is ModelType.TRANSFORMER:
+    if model_type is ModelType.TRANSFORMER:
         model = ForwardTransformer.from_config(config)
     elif model_type is ModelType.AUTOREG_TRANSFORMER:
         model = AutoregressiveTransformer.from_config(config)
