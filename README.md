@@ -5,7 +5,6 @@
 ![PyPI Version](https://img.shields.io/pypi/v/deep-phonemizer)
 ![License](https://img.shields.io/badge/License-MIT-blue.svg)
 
-
 DeepPhonemizer is a library for grapheme to phoneme conversion based on Transformer models. 
 It is intended to be used in text-to-speech production systems with high accuracy and efficiency.
 You can choose between a forward Transformer model (trained with CTC) and its autoregressive
