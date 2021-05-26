@@ -15,11 +15,11 @@ model:
   type: 'transformer'  # choices: ['transformer', 'lstm', 'autoreg_transformer']
 
   # transformer params
-  d_model: 64
-  d_fft: 64
-  layers: 1
+  d_model: 512
+  d_fft: 1024
+  layers: 6
   dropout: 0.1
-  heads: 2
+  heads: 4
 
   # lstm params
   lstm_dim: 256
