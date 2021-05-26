@@ -48,7 +48,6 @@ def preprocess(config_file: str,
         random.shuffle(train_keys)
         val_keys = train_keys[:n_val]
         train_keys = train_keys[n_val:]
-        # deduplicate train data but not val data
         val_data = []
         for k in val_keys:
             val_data.extend(train_dict[k])

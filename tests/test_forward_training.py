@@ -50,7 +50,8 @@ class TestForwardTraining(unittest.TestCase):
 
         preprocess(config_file=config_path,
                    train_data=train_data,
-                   val_data=val_data)
+                   val_data=val_data,
+                   deduplicate_train_data=False)
 
         train(config_file=config_path)
 
