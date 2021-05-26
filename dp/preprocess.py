@@ -97,3 +97,6 @@ def preprocess(config_file: str,
 
     logger.info(f'Preprocessing. \nTrain counts (deduplicated): {train_count.most_common()}'
                 f'\nVal counts (including duplicates): {val_count.most_common()}')
+
+    assert len(train_count) > 0, 'Preprocessing resulted in zero train counts!'
+    assert len(val_count) > 0, 'Preprocessing resulted in zero validation counts!'
