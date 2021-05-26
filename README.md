@@ -61,7 +61,8 @@ train_data = [('en_us', 'young', 'jʌŋ'),
 val_data = [('en_us', 'young', 'jʌŋ'),
             ('de', 'benützten', 'bənʏt͡stn̩')] * 100
 
-preprocess(config_file='config.yaml', train_data=train_data, val_data=val_data)
+preprocess(config_file='config.yaml', train_data=train_data, 
+           deduplicate_train_data=False)
 train(config_file='config.yaml')
 ```
 Model checkpoints will be stored in the checkpoints path that is provided by the config.yaml.

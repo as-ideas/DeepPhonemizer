@@ -15,8 +15,8 @@ logger = get_logger(__name__)
 
 def preprocess(config_file: str,
                train_data: List[Tuple[str, Iterable[str], Iterable[str]]],
-               val_data: List[Tuple[str, Iterable[str], Iterable[str]]] = None
-               ) -> None:
+               val_data: List[Tuple[str, Iterable[str], Iterable[str]]] = None,
+               deduplicate_train_data=True) -> None:
 
     config = read_config(config_file)
 
@@ -49,10 +49,12 @@ def preprocess(config_file: str,
         val_keys = train_keys[:n_val]
         train_keys = train_keys[n_val:]
         # deduplicate train data but not val data
-        train_data = [train_dict[k][0] for k in train_keys]
         val_data = []
         for k in val_keys:
             val_data.extend(train_dict[k])
+
+    if deduplicate_train_data:
+        train_data = [train_dict[k][0] for k in train_keys]
 
     preprocessor = Preprocessor.from_config(config)
 
