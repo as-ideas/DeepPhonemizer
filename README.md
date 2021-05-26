@@ -54,14 +54,14 @@ Pepare data in a tuple-format and use the preprocess and train API:
 from dp.preprocess import preprocess
 from dp.train import train
 
-train_data = [
-                ('en_us', 'young', 'jʌŋ'),
+train_data = [('en_us', 'young', 'jʌŋ'),
                 ('de', 'benützten', 'bənʏt͡stn̩'),
-                ('de', 'gewürz', 'ɡəvʏʁt͡s')
-             ] * 100
+                ('de', 'gewürz', 'ɡəvʏʁt͡s')] * 1000
 
+val_data = [('en_us', 'young', 'jʌŋ'),
+            ('de', 'benützten', 'bənʏt͡stn̩')] * 100
 
-preprocess(config_file='config.yaml', train_data=train_data)
+preprocess(config_file='config.yaml', train_data=train_data, val_data=val_data)
 train(config_file='config.yaml')
 ```
 Model checkpoints will be stored in the checkpoints path that is provided by the config.yaml.
