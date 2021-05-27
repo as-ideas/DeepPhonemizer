@@ -52,8 +52,13 @@ def preprocess(config_file: str,
         for k in val_keys:
             val_data.extend(train_dict[k])
 
-    if deduplicate_train_data:
-        train_data = [train_dict[k][0] for k in train_keys]
+    train_data = []
+    for key in train_keys:
+        data_list = train_dict[key]
+        if deduplicate_train_data:
+            train_data.append(data_list[0])
+        else:
+            train_data.extend(data_list)
 
     preprocessor = Preprocessor.from_config(config)
 

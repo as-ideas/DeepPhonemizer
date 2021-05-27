@@ -29,9 +29,9 @@ class TestPreprocess(unittest.TestCase):
         save_config(config, config_path)
 
         train_data = [
-            ('en_us', 'young', 'jʌŋ'),
             ('de','benützten', 'bəˈnʏt͡stn̩'),
-            ('de', 'gewürz', 'ɡəˈvʏʁt͡s')
+            ('de', 'gewürz', 'ɡəˈvʏʁt͡s'),
+            ('en_us', 'young', 'jʌŋ'),
         ]
 
         val_data = [

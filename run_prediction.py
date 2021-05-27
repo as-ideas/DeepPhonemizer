@@ -1,11 +1,12 @@
+import torch
 from dp.phonemizer import Phonemizer
 
 if __name__ == '__main__':
 
-    checkpoint_path = 'checkpoints/best_model_no_optim.pt'
+    checkpoint_path = '/Users/cschaefe/Downloads/en_us_cmudict_ipa_autoreg.pt'
     phonemizer = Phonemizer.from_checkpoint(checkpoint_path)
 
-    text = 'Otorhinolary'
+    text = 'well'
 
     result = phonemizer.phonemise_list([text], lang='en_us')
 
