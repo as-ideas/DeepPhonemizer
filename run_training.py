@@ -11,8 +11,10 @@ if __name__ == '__main__':
                 ('de', 'benützten', 'bənʏt͡stn̩')] * 100
 
     config_file = 'dp/configs/forward_config.yaml'
+
     preprocess(config_file=config_file,
                train_data=train_data,
                val_data=val_data,
                deduplicate_train_data=False)
+
     train(config_file=config_file)
