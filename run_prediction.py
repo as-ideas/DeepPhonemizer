@@ -3,10 +3,10 @@ from dp.phonemizer import Phonemizer
 
 if __name__ == '__main__':
 
-    checkpoint_path = '/Users/cschaefe/Downloads/en_us_cmudict_ipa_autoreg.pt'
+    checkpoint_path = 'checkpoints/best_model_no_optim.pt'
     phonemizer = Phonemizer.from_checkpoint(checkpoint_path)
 
-    text = 'well'
+    text = 'imperiled'
 
     result = phonemizer.phonemise_list([text], lang='en_us')
 
