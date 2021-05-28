@@ -9,7 +9,7 @@ preprocessing:
   phoneme_symbols: ['a', 'b', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z', 'æ', 'ç', 'ð', 'ø', 'ŋ', 'œ', 'ɐ', 'ɑ', 'ɔ', 'ə', 'ɛ', 'ɝ', 'ɹ', 'ɡ', 'ɪ', 'ʁ', 'ʃ', 'ʊ', 'ʌ', 'ʏ', 'ʒ', 'ʔ', 'ˈ', 'ˌ', 'ː', '̃', '̍', '̥', '̩', '̯', '͡', 'θ']
   char_repeats: 1 # repeating chars of input text to enable mapping to longer phoneme sequences
   lowercase: true
-  n_val: 100
+  n_val: 5000
 
 model:
   type: 'autoreg_transformer'  # choices: ['transformer', 'autoreg_transformer']
