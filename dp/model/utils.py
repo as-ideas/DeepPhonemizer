@@ -28,8 +28,13 @@ class PositionalEncoding(torch.nn.Module):
 
 def get_dedup_tokens(logits_batch: torch.tensor) \
         -> Tuple[torch.tensor, torch.tensor]:
+    """
+    Converts a batch of logits into the batch most probable tokens and their probabilities.
 
-    """ Returns deduplicated tokens and probs of tokens """
+    :param logits_batch: Batch of logits (N x T x V).
+    :return: Tuple, where the first element is a tensor (token indices) and the second element
+             is a tensor (token probabilities)
+    """
 
     logits_batch = logits_batch.softmax(-1)
     out_tokens, out_probs = [], []

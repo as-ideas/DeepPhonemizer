@@ -102,6 +102,13 @@ class Predictor:
 
     @classmethod
     def from_checkpoint(cls, checkpoint_path: str, device='cpu') -> 'Predictor':
+        """
+        Initializes the predictor from a checkpoint (.pt file).
+
+        :param checkpoint_path: Path to the checkpoint file.
+        :param device: Device to load the model on ('cpu' or 'cuda').
+        :return: Predictor object.
+        """
         model, checkpoint = load_checkpoint(checkpoint_path, device=device)
         preprocessor = checkpoint['preprocessor']
         return Predictor(model=model, preprocessor=preprocessor)

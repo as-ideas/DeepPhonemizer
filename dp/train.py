@@ -12,6 +12,13 @@ logger = get_logger(__name__)
 
 def train(config_file: str,
           checkpoint_file: str = None) -> None:
+    """
+    Triggers training of a phonemizer model.
+
+    :param config_file: Path to the config.yaml that stores all necessary parameters.
+    :param checkpoint_file (optional): Path to a model checkpoint to resume training for (e.g. latest_model.pt)
+    :return: None, the model checkpoints are stored in a folder provided by the config.
+    """
 
     config = read_config(config_file)
     if checkpoint_file is not None:

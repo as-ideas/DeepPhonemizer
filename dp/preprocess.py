@@ -17,6 +17,16 @@ def preprocess(config_file: str,
                train_data: List[Tuple[str, Iterable[str], Iterable[str]]],
                val_data: List[Tuple[str, Iterable[str], Iterable[str]]] = None,
                deduplicate_train_data=True) -> None:
+    """
+    Preprocesses a given dataset to enable model training. The preprocessing result is stored in
+    a folder provied by the config.
+
+    :param config_file: Path to the config.yaml that provides all necessary hyperparameters.
+    :param train_data: Training data as a list of Tuple (language, grapheme sequence, phoneme sequence).
+    :param val_data (optional): Validation data as a list of Tuple (language, grapheme sequence, phoneme sequence).
+    :param deduplicate_train_data: Whether to deduplicate multiple occurences of the same word (the first is taken)
+    :return: None, the preprocessing result is stored in a folder provided by the config.
+    """
 
     config = read_config(config_file)
 

@@ -3,12 +3,12 @@ from dp.phonemizer import Phonemizer
 
 if __name__ == '__main__':
 
-    checkpoint_path = 'checkpoints/best_model_no_optim.pt'
+    checkpoint_path = 'checkpoints/de_us_nostress_bind_ar/best_model_no_optim.pt'
     phonemizer = Phonemizer.from_checkpoint(checkpoint_path)
 
-    text = 'imperiled'
+    text = 'vierhundertzweiunddreißig'
 
-    result = phonemizer.phonemise_list([text], lang='en_us')
+    result = phonemizer.phonemise_list([text], lang='de')
 
     print(result.phonemes)
     for text, pred in result.predictions.items():

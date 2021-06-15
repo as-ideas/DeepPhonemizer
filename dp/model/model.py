@@ -46,7 +46,7 @@ class ForwardTransformer(Model):
                  layers=4,
                  dropout=0.1,
                  heads=1) -> None:
-        super(ForwardTransformer, self).__init__()
+        super().__init__()
 
         self.d_model = d_model
 
@@ -67,6 +67,12 @@ class ForwardTransformer(Model):
 
     def forward(self,
                 batch: Dict[str, torch.tensor]) -> torch.tensor:         # shape: [N, T]
+        """
+        Forward pass of the model on a data batch.
+
+        :param batch: Dictionary with entry 'text' (text tensor).
+        :return: Predictions as tensor.
+        """
 
         x = batch['text']
         x = x.transpose(0, 1)        # shape: [T, N]
@@ -80,6 +86,14 @@ class ForwardTransformer(Model):
 
     def generate(self,
                  batch: Dict[str, torch.tensor]) -> Tuple[torch.tensor, torch.tensor]:
+        """
+        Inference pass on a batch of tokenized texts.
+
+        :param batch: Dictionary containing the input to the model with entry 'text' (text tensor)
+        :return: Tuple, where the first element is a tensor (phoneme tokens) and the second element
+                 is a tensor (phoneme token probabilities)
+        """
+
         with torch.no_grad():
             x = self.forward(batch)
         tokens, logits = get_dedup_tokens(x)
@@ -111,24 +125,27 @@ class AutoregressiveTransformer(Model):
                  decoder_layers=4,
                  dropout=0.1,
                  heads=1):
-        super(AutoregressiveTransformer, self).__init__()
+        super().__init__()
 
         self.end_index = end_index
-
         self.d_model = d_model
-
         self.encoder = nn.Embedding(encoder_vocab_size, d_model)
         self.pos_encoder = PositionalEncoding(d_model, dropout)
-
         self.decoder = nn.Embedding(decoder_vocab_size, d_model)
         self.pos_decoder = PositionalEncoding(d_model, dropout)
-
         self.transformer = nn.Transformer(d_model=d_model, nhead=heads, num_encoder_layers=encoder_layers,
                                           num_decoder_layers=decoder_layers, dim_feedforward=d_fft,
                                           dropout=dropout, activation='relu')
         self.fc_out = nn.Linear(d_model, decoder_vocab_size)
 
     def forward(self, batch: Dict[str, torch.tensor]):         # shape: [N, T]
+        """
+        Foward pass of the model on a data batch.
+
+        :param batch: Dictionary with entries 'text' (text tensor) and 'phonemes'
+                      (phoneme tensor for teacher forcing)
+        :return: Predictions as tensor.
+        """
         src = batch['text']
         trg = batch['phonemes'][:, :-1]
 
@@ -156,6 +173,15 @@ class AutoregressiveTransformer(Model):
     def generate(self,
                  batch: Dict[str, torch.tensor],
                  max_len=100) -> Tuple[torch.tensor, torch.tensor]:
+        """
+        Inference pass on a batch of tokenized texts.
+
+        :param batch: Dictionary containing the input to the model with entries 'text' (text tensor) and 'start_index'
+                      (tensor of start indices for each row of input text)
+        :param max_len: Max steps of the autoregressive inference loop.
+        :return: Tuple, where the first element is a tensor (phoneme tokens) and the second element
+                 is a tensor (phoneme token probabilities)
+        """
 
         input = batch['text']
         start_index = batch['start_index']
