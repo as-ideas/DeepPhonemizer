@@ -6,6 +6,7 @@ from torch.nn.utils.rnn import pad_sequence
 
 
 class PositionalEncoding(torch.nn.Module):
+    """ """
 
     def __init__(self, d_model: int, dropout=0.1, max_len=5000) -> None:
         super(PositionalEncoding, self).__init__()
@@ -22,18 +23,30 @@ class PositionalEncoding(torch.nn.Module):
         self.register_buffer('pe', pe)
 
     def forward(self, x: torch.Tensor) -> torch.tensor:         # shape: [T, N]
+        """
+
+        Args:
+          x: torch.Tensor: 
+
+        Returns:
+
+        """
         x = x + self.scale * self.pe[:x.size(0), :]
         return self.dropout(x)
 
 
 def get_dedup_tokens(logits_batch: torch.Tensor) \
         -> Tuple[torch.tensor, torch.tensor]:
-    """
-    Converts a batch of logits into the batch most probable tokens and their probabilities.
+    """Converts a batch of logits into the batch most probable tokens and their probabilities.
 
-    :param logits_batch: Batch of logits (N x T x V).
-    :return: Tuple, where the first element is a tensor (token indices) and the second element
-             is a tensor (token probabilities)
+    Args:
+      logits_batch: Batch of logits (N x T x V).
+      logits_batch: torch.Tensor: 
+
+    Returns:
+      Tuple, where the first element is a tensor (token indices) and the second element
+      is a tensor (token probabilities)
+
     """
 
     logits_batch = logits_batch.softmax(-1)
@@ -62,16 +75,41 @@ def get_dedup_tokens(logits_batch: torch.Tensor) \
 
 
 def generate_square_subsequent_mask(sz: int) -> torch.tensor:
+    """
+
+    Args:
+      sz: int: 
+
+    Returns:
+
+    """
     mask = torch.triu(torch.ones(sz, sz), 1)
     mask = mask.masked_fill(mask == 1, float('-inf'))
     return mask
 
 
 def make_len_mask(inp: torch.Tensor) -> torch.tensor:
+    """
+
+    Args:
+      inp: torch.Tensor: 
+
+    Returns:
+
+    """
     return (inp == 0).transpose(0, 1)
 
 
 def get_len_util_stop(sequence: torch.Tensor, end_index: int) -> torch.tensor:
+    """
+
+    Args:
+      sequence: torch.Tensor: 
+      end_index: int: 
+
+    Returns:
+
+    """
     for i, val in enumerate(sequence):
         if val == end_index:
             return i + 1
@@ -79,5 +117,14 @@ def get_len_util_stop(sequence: torch.Tensor, end_index: int) -> torch.tensor:
 
 
 def trim_util_stop(sequence: torch.Tensor, end_index: int) -> torch.tensor:
+    """
+
+    Args:
+      sequence: torch.Tensor: 
+      end_index: int: 
+
+    Returns:
+
+    """
     seq_len = get_len_util_stop(sequence, end_index)
     return sequence[:seq_len]

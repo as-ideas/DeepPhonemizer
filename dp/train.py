@@ -12,12 +12,17 @@ logger = get_logger(__name__)
 
 def train(config_file: str,
           checkpoint_file: str = None) -> None:
-    """
-    Runs training of a transformer model.
+    """Runs training of a transformer model.
 
-    :param config_file: Path to the config.yaml that stores all necessary parameters.
-    :param checkpoint_file: Optional path to a model checkpoint to resume training for (e.g. latest_model.pt)
-    :return: None, the model checkpoints are stored in a folder provided by the config.
+    Args:
+      config_file: Path to the config.yaml that stores all necessary parameters.
+      checkpoint_file: Optional path to a model checkpoint to resume training for (e.g. latest_model.pt)
+      config_file: str: 
+      checkpoint_file: str:  (Default value = None)
+
+    Returns:
+      None, the model checkpoints are stored in a folder provided by the config.
+
     """
 
     config = read_config(config_file)

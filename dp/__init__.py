@@ -2,6 +2,7 @@ from typing import List, Dict
 
 
 class Prediction:
+    """ """
 
     def __init__(self,
                  word: str,
@@ -27,6 +28,7 @@ class Prediction:
 
 
 class PhonemizerResult:
+    """ """
 
     def __init__(self,
                  text: List[str],

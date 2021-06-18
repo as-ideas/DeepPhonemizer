@@ -11,6 +11,7 @@ DEFAULT_PUNCTUATION = '().,:?!/–'
 
 
 class Phonemizer:
+    """ """
 
     def __init__(self,
                  predictor: Predictor,
@@ -55,17 +56,22 @@ class Phonemizer:
                        expand_acronyms=True,
                        batch_size=8) -> PhonemizerResult:
 
-        """
-        Phonemizes a list of texts and returns tokenized texts,
+        """Phonemizes a list of texts and returns tokenized texts,
         phonemes and word predictions with probabilities.
 
-        :param texts: List texts to phonemize.
-        :param lang: Language used for phonemization.
-        :param punctuation: Punctuation symbols by which the texts are split.
-        :param expand_acronyms: Whether to expand an acronym, e.g. DIY -> D-I-Y.
-        :param batch_size: Batch size of model to speed up inference.
-        :return: PhonemizerResult object containing original texts,
-                 phonemes, split texts, split phonemes, and predictions
+        Args:
+          texts: List texts to phonemize.
+          lang: Language used for phonemization.
+          punctuation: Punctuation symbols by which the texts are split. (Default value = DEFAULT_PUNCTUATION)
+          expand_acronyms: Whether to expand an acronym, e.g. DIY -> D-I-Y. (Default value = True)
+          batch_size: Batch size of model to speed up inference. (Default value = 8)
+          texts: List[str]: 
+          lang: str: 
+
+        Returns:
+          PhonemizerResult object containing original texts,
+          phonemes, split texts, split phonemes, and predictions
+
         """
 
         punc_set = set(punctuation + '- ')
@@ -164,6 +170,19 @@ class Phonemizer:
     def _get_phonemes(word: str,
                       word_phonemes: Dict[str, Union[str, None]],
                       word_splits: Dict[str, List[str]]) -> str:
+        """
+
+        Args:
+          word: str: 
+          word_phonemes: Dict[str: 
+          Union[str: 
+          None]]: 
+          word_splits: Dict[str: 
+          List[str]]: 
+
+        Returns:
+
+        """
         phons = word_phonemes[word]
         if phons is None:
             subwords = word_splits[word]
@@ -176,14 +195,21 @@ class Phonemizer:
                         checkpoint_path: str,
                         device='cpu',
                         lang_phoneme_dict: Dict[str, Dict[str, str]] = None) -> 'Phonemizer':
-        """
-        Initializes a Phonemizer object from a model checkpoint (.pt file).
+        """Initializes a Phonemizer object from a model checkpoint (.pt file).
 
-        :param checkpoint_path: Path to the .pt checkpoint file.
-        :param device: Device to send the model to ('cpu' or 'cuda').
-        :param lang_phoneme_dict: Optional dictionary containing language shortcuts as keys (e.g. 'en') and
-               for each key a dictionary of word-phoneme mappings. Example: {'en': {'hi': hai}}
-        :return: Phonemizer object.
+        Args:
+          checkpoint_path: Path to the .pt checkpoint file.
+          device: Device to send the model to ('cpu' or 'cuda'). (Default value = 'cpu')
+          lang_phoneme_dict: Optional dictionary containing language shortcuts as keys (e.g. 'en') and
+        for each key a dictionary of word-phoneme mappings. Example: {'en': {'hi': hai}}
+          checkpoint_path: str: 
+          lang_phoneme_dict: Dict[str: 
+          Dict[str: 
+          str]]:  (Default value = None)
+
+        Returns:
+          Phonemizer object.
+
         """
         model, checkpoint = load_checkpoint(checkpoint_path, device=device)
         applied_phoneme_dict = None

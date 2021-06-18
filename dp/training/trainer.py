@@ -22,13 +22,16 @@ from dp.utils.io import to_device, unpickle_binary
 class Trainer:
 
     def __init__(self, checkpoint_dir: Path, loss_type='ctc') -> None:
-        """
-        Initializes a Trainer object.
+    """Initializes a Trainer object.
 
-        :param checkpoint_dir: Directory to store the model checkpoints.
-        :param loss_type: Type of loss: 'ctc' for forward transformer models
-               and 'cross_entropy' for autoregressive models.
-        """
+    Args:
+      checkpoint_dir: Directory to store the model checkpoints.
+      loss_type: Type of loss: 'ctc' for forward transformer models
+    and 'cross_entropy' for autoregressive models.
+
+    Returns:
+
+    """
 
         self.checkpoint_dir = checkpoint_dir
         self.checkpoint_dir.mkdir(parents=True, exist_ok=True)
@@ -45,15 +48,21 @@ class Trainer:
               model: Model,
               checkpoint: Dict[str, Any],
               store_phoneme_dict_in_model=True) -> None:
-        """
-        Performs training of a transformer model.
+        """Performs training of a transformer model.
 
-        :param model: Model to be trained (can be a fresh model or restored from a checkpoint).
-        :param checkpoint: Dictionary with entries 'optimizer': optimizer state dict,
-                           'preprocessor': Preprocessor and 'config': Config.
-        :param store_phoneme_dict_in_model: Whether to store a dictionary of word-phoneme mappings
-               in the model checkpoint so that it can be automatically loaded by a Phonemizer object.
-        :return: None, the checkpoints will be stored in a folder provided when instantiating a Trainer.
+        Args:
+          model: Model to be trained (can be a fresh model or restored from a checkpoint).
+          checkpoint: Dictionary with entries 'optimizer': optimizer state dict,
+        'preprocessor': Preprocessor and 'config': Config.
+          store_phoneme_dict_in_model: Whether to store a dictionary of word-phoneme mappings
+        in the model checkpoint so that it can be automatically loaded by a Phonemizer object. (Default value = True)
+          model: Model: 
+          checkpoint: Dict[str: 
+          Any]: 
+
+        Returns:
+          None, the checkpoints will be stored in a folder provided when instantiating a Trainer.
+
         """
 
         config = checkpoint['config']
@@ -148,6 +157,15 @@ class Trainer:
                              path=self.checkpoint_dir / 'latest_model.pt')
 
     def _validate(self, model: Model, val_batches: List[dict]) -> float:
+        """
+
+        Args:
+          model: Model: 
+          val_batches: List[dict]: 
+
+        Returns:
+
+        """
         device = next(model.parameters()).device
         criterion = self.criterion.to(device)
         model.eval()
@@ -168,7 +186,16 @@ class Trainer:
                           preprocessor: Preprocessor,
                           val_batches: List[dict]) -> Dict[str, List[Tuple[List[str], List[str], List[str]]]]:
 
-        """ Returns a dictionary with entries lang: Tuple of (word, generated, target) """
+        """Returns a dictionary with entries lang: Tuple of (word, generated, target)
+
+        Args:
+          model: Model: 
+          preprocessor: Preprocessor: 
+          val_batches: List[dict]: 
+
+        Returns:
+
+        """
 
         device = next(model.parameters()).device
         model.eval()
@@ -204,6 +231,21 @@ class Trainer:
                          eval_result: Dict[str, Any],
                          n_generate_samples: int,
                          step: int) -> None:
+        """
+
+        Args:
+          lang_samples: Dict[str: 
+          List[Tuple[List[str]: 
+          List[str]: 
+          List[str]]]]: 
+          eval_result: Dict[str: 
+          Any]: 
+          n_generate_samples: int: 
+          step: int: 
+
+        Returns:
+
+        """
 
         self.writer.add_scalar(f'Phoneme_Error_Rate/mean',
                                eval_result['mean_per'], global_step=step)
@@ -234,6 +276,18 @@ class Trainer:
                     optimizer: torch.optim,
                     checkpoint: Dict[str, Any],
                     path: Path) -> None:
+        """
+
+        Args:
+          model: torch.nn.Module: 
+          optimizer: torch.optim: 
+          checkpoint: Dict[str: 
+          Any]: 
+          path: Path: 
+
+        Returns:
+
+        """
         checkpoint['model'] = model.state_dict()
         if optimizer is not None:
             checkpoint['optimizer'] = optimizer.state_dict()
@@ -245,6 +299,17 @@ class Trainer:
                        optimizer: torch.optim,
                        step: int,
                        config: Dict[str, Any]) -> None:
+        """
+
+        Args:
+          optimizer: torch.optim: 
+          step: int: 
+          config: Dict[str: 
+          Any]: 
+
+        Returns:
+
+        """
 
         warmup_steps = config['training']['warmup_steps']
         if warmup_steps > 0 and step <= warmup_steps:

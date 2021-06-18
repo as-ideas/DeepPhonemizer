@@ -3,7 +3,7 @@ from typing import List, Iterable, Dict, Tuple, Any
 
 class LanguageTokenizer:
 
-    """ Simple tokenizer for language to index mapping. """
+    """Simple tokenizer for language to index mapping."""
 
     def __init__(self, languages: List[str]) -> None:
         """
@@ -29,18 +29,22 @@ class LanguageTokenizer:
         return self.lang_index[lang]
 
     def decode(self, index: int) -> str:
-        """
-        Inverts the index mapping of a language.
+        """Inverts the index mapping of a language.
 
-        :param index: Index of language.
-        :return: Language as string.
+        Args:
+          index: Index of language.
+          index: int: 
+
+        Returns:
+          Language as string.
+
         """
         return self.index_lang[index]
 
 
 class SequenceTokenizer:
 
-    """ Tokenizes text and attached language-specific start index (and non-specific end index). """
+    """Tokenizes text and attached language-specific start index (and non-specific end index)."""
 
     def __init__(self,
                  symbols: List[str],
@@ -101,12 +105,16 @@ class SequenceTokenizer:
         return sequence
 
     def decode(self, sequence: Iterable[int], remove_special_tokens=False) -> List[str]:
-        """
-        Inverts a sequence of indices to the original sequence of symbols.
+        """Inverts a sequence of indices to the original sequence of symbols.
 
-        :param sequence: Encoded sequence to be decoded.
-        :param remove_special_tokens: Whether to remove special tokens such as pad or start and end tokens.
-        :return: Decoded sequence of symbols.
+        Args:
+          sequence: Encoded sequence to be decoded.
+          remove_special_tokens: Whether to remove special tokens such as pad or start and end tokens. (Default value = False)
+          sequence: Iterable[int]: 
+
+        Returns:
+          Decoded sequence of symbols.
+
         """
 
         sequence = list(sequence)
@@ -120,17 +128,31 @@ class SequenceTokenizer:
         return decoded
 
     def get_start_index(self, language: str) -> int:
-        """
-        Returns the start token index for a language.
+        """Returns the start token index for a language.
+
+        Args:
+          language: str: 
+
+        Returns:
+
         """
         lang_token = self._make_start_token(language)
         return self.token_to_idx[lang_token]
 
     def _make_start_token(self, language: str) -> str:
+        """
+
+        Args:
+          language: str: 
+
+        Returns:
+
+        """
         return '<' + language + '>'
 
 
 class Preprocessor:
+    """ """
 
     def __init__(self,
                  lang_tokenizer: LanguageTokenizer,
@@ -165,11 +187,16 @@ class Preprocessor:
 
     @classmethod
     def from_config(cls, config: Dict[str, Any]) -> 'Preprocessor':
-        """
-        Initializes a preprocessor from a config.
+        """Initializes a preprocessor from a config.
 
-        :param config: Dictionary containing preprocessing hyperparams.
-        :return: Preprocessor object.
+        Args:
+          config: Dictionary containing preprocessing hyperparams.
+          config: Dict[str: 
+          Any]: 
+
+        Returns:
+          Preprocessor object.
+
         """
 
         text_symbols = config['preprocessing']['text_symbols']

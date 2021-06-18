@@ -11,6 +11,7 @@ from dp.preprocessing.utils import batchify, product
 
 
 class Predictor:
+    """ """
 
     def __init__(self,
                  model: torch.nn.Module,
@@ -70,7 +71,16 @@ class Predictor:
                        batch_size: int,
                        language: str) \
             -> Dict[str, Tuple[List[int], List[float]]]:
-        """ Returns dictionary with key = word and val = Tuple of (phoneme tokens, phoneme probs) """
+        """Returns dictionary with key = word and val = Tuple of (phoneme tokens, phoneme probs)
+
+        Args:
+          texts: List[str]: 
+          batch_size: int: 
+          language: str: 
+
+        Returns:
+
+        """
 
         predictions = dict()
         text_batches = batchify(texts, batch_size)
@@ -102,12 +112,16 @@ class Predictor:
 
     @classmethod
     def from_checkpoint(cls, checkpoint_path: str, device='cpu') -> 'Predictor':
-        """
-        Initializes the predictor from a checkpoint (.pt file).
+        """Initializes the predictor from a checkpoint (.pt file).
 
-        :param checkpoint_path: Path to the checkpoint file.
-        :param device: Device to load the model on ('cpu' or 'cuda').
-        :return: Predictor object.
+        Args:
+          checkpoint_path: Path to the checkpoint file.
+          device: Device to load the model on ('cpu' or 'cuda'). (Default value = 'cpu')
+          checkpoint_path: str: 
+
+        Returns:
+          Predictor object.
+
         """
         model, checkpoint = load_checkpoint(checkpoint_path, device=device)
         preprocessor = checkpoint['preprocessor']

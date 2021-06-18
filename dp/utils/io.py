@@ -7,29 +7,85 @@ import yaml
 
 
 def read_config(path: str) -> Dict[str, Any]:
+    """
+
+    Args:
+      path: str: 
+
+    Returns:
+
+    """
     with open(path, 'r') as stream:
         config = yaml.load(stream, Loader=yaml.FullLoader)
     return config
 
 
 def save_config(config: Dict[str, Any], path: str) -> None:
+    """
+
+    Args:
+      config: Dict[str: 
+      Any]: 
+      path: str: 
+
+    Returns:
+
+    """
     with open(path, 'w+', encoding='utf-8') as stream:
         yaml.dump(config, stream, default_flow_style=False)
 
 
 def get_files(path: str, extension='.wav') -> List[Path]:
+    """
+
+    Args:
+      path: str: 
+      extension:  (Default value = '.wav')
+
+    Returns:
+
+    """
     return list(Path(path).expanduser().resolve().rglob(f'*{extension}'))
 
 
 def pickle_binary(data: object, file: Union[str, Path]) -> None:
+    """
+
+    Args:
+      data: object: 
+      file: Union[str: 
+      Path]: 
+
+    Returns:
+
+    """
     with open(str(file), 'wb') as f:
         pickle.dump(data, f)
 
 
 def unpickle_binary(file: Union[str, Path]) -> Any:
+    """
+
+    Args:
+      file: Union[str: 
+      Path]: 
+
+    Returns:
+
+    """
     with open(str(file), 'rb') as f:
         return pickle.load(f)
 
 
 def to_device(batch: Dict[str, torch.tensor], device: torch.device) -> Dict[str, torch.tensor]:
+    """
+
+    Args:
+      batch: Dict[str: 
+      torch.tensor]: 
+      device: torch.device: 
+
+    Returns:
+
+    """
     return {key: val.to(device) for key, val in batch.items()}

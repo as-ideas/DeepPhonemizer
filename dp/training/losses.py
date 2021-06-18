@@ -4,6 +4,7 @@ import torch
 
 
 class CrossEntropyLoss(torch.nn.Module):
+    """ """
 
     def __init__(self) -> None:
         super().__init__()
@@ -12,12 +13,18 @@ class CrossEntropyLoss(torch.nn.Module):
     def forward(self,
                 pred: torch.Tensor,
                 batch: Dict[str, torch.tensor]) -> torch.tensor:
-        """
-        Forward pass of the CrossEntropyLoss module on a batch.
+        """Forward pass of the CrossEntropyLoss module on a batch.
 
-        :param pred: Batch of model predictions.
-        :param batch: Dictionary of a training data batch, containing 'phonemes': target phonemes.
-        :return: Loss as tensor.
+        Args:
+          pred: Batch of model predictions.
+          batch: Dictionary of a training data batch, containing 'phonemes': target phonemes.
+          pred: torch.Tensor: 
+          batch: Dict[str: 
+          torch.tensor]: 
+
+        Returns:
+          Loss as tensor.
+
         """
 
         phonemes = batch['phonemes']
@@ -26,6 +33,7 @@ class CrossEntropyLoss(torch.nn.Module):
 
 
 class CTCLoss(torch.nn.Module):
+    """ """
 
     def __init__(self):
         super().__init__()
@@ -34,13 +42,19 @@ class CTCLoss(torch.nn.Module):
     def forward(self,
                 pred: torch.Tensor,
                 batch: Dict[str, torch.tensor]) -> torch.tensor:
-        """
-        Forward pass of the CTCLoss module on a batch.
+        """Forward pass of the CTCLoss module on a batch.
 
-        :param pred: Batch of model predictions.
-        :param batch: Dictionary of a training data batch, containing 'phonemes': target phonemes,
-                      'text_len': input text lengths, 'phonemes_len': target phoneme lengths
-        :return: Loss as tensor.
+        Args:
+          pred: Batch of model predictions.
+          batch: Dictionary of a training data batch, containing 'phonemes': target phonemes,
+        'text_len': input text lengths, 'phonemes_len': target phoneme lengths
+          pred: torch.Tensor: 
+          batch: Dict[str: 
+          torch.tensor]: 
+
+        Returns:
+          Loss as tensor.
+
         """
 
         pred = pred.transpose(0, 1).log_softmax(2)

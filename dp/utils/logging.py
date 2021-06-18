@@ -14,5 +14,13 @@ logging.config.dictConfig(config)
 
 
 def get_logger(name: str) -> Logger:
+    """
+
+    Args:
+      name: str: 
+
+    Returns:
+
+    """
     logger = getLogger(name)
     return logger

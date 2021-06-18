@@ -10,33 +10,42 @@ from dp.preprocessing.text import Preprocessor
 
 
 class ModelType(Enum):
+    """ """
     TRANSFORMER = 'transformer'
     AUTOREG_TRANSFORMER = 'autoreg_transformer'
 
     def is_autoregressive(self) -> bool:
+        """ """
         return self in {ModelType.AUTOREG_TRANSFORMER}
 
 
 class Model(torch.nn.Module, ABC):
+    """ """
 
     def __init__(self):
         super().__init__()
 
     @abstractmethod
     def generate(self, batch: Dict[str, torch.tensor]) -> Tuple[torch.tensor, torch.tensor]:
-        """
-        Generates phonemes for a text batch
+        """Generates phonemes for a text batch
 
-        :param batch: Dictionary containing: 'text' (tokenized text tensor),
-                     'text_len' (text length tensor),
-                     'start_index' (phoneme start indices for AutoregressiveTransformer)
-        :return: Tuple, where the first element is a tensor (phoneme tokens) and the second element
-                 is a tensor (phoneme token probabilities)
+        Args:
+          batch: Dictionary containing: 'text' (tokenized text tensor),
+        'text_len' (text length tensor),
+        'start_index' (phoneme start indices for AutoregressiveTransformer)
+          batch: Dict[str: 
+          torch.tensor]: 
+
+        Returns:
+          Tuple, where the first element is a tensor (phoneme tokens) and the second element
+          is a tensor (phoneme token probabilities)
+
         """
         pass
 
 
 class ForwardTransformer(Model):
+    """ """
 
     def __init__(self,
                  encoder_vocab_size: int,
@@ -86,13 +95,22 @@ class ForwardTransformer(Model):
 
     def generate(self,
                  batch: Dict[str, torch.tensor]) -> Tuple[torch.tensor, torch.tensor]:
-        """
-        Inference pass on a batch of tokenized texts.
+        """Inference pass on a batch of tokenized texts.
 
-        :param batch: Dictionary containing the input to the model with entry 'text' (text tensor)
-        :return: Tuple, where the first element is a tensor (phoneme tokens) and the second element
-                 is a tensor (phoneme token probabilities)
-        """
+        Args:
+          batch: Dictionary containing the input to the model with entry 'text' (text tensor)
+          batch: Dict[str: 
+          torch.tensor]) -> torch.tensor:         # shape: [N: 
+          T]"""Forward pass of the model on a data batch.:param batch: Dictionary with entry 'text' (text tensor).:return: Predictions as tensor."""x:  (Default value = batch['text']x = x.transpose(0)
+          1)        # shape: [T: 
+          N]src_pad_mask:  (Default value = make_len_mask(x).to(x.device)x = self.embedding(x)x = self.pos_encoder(x)x = self.encoder(x)
+          src_key_padding_mask:  (Default value = src_pad_mask)x = self.fc_out(x)x = x.transpose(0)
+          1)return xgenerate(self: 
+          torch.tensor]: 
+
+        Returns:
+          Tuple, where the first element is a tensor (phoneme tokens) and the second element
+          is a tensor (phoneme token probabilities)
 
         with torch.no_grad():
             x = self.forward(batch)
@@ -101,6 +119,14 @@ class ForwardTransformer(Model):
 
     @classmethod
     def from_config(cls, config: dict) -> 'ForwardTransformer':
+        """
+
+        Args:
+          config: dict: 
+
+        Returns:
+
+        """
         preprocessor = Preprocessor.from_config(config)
         return ForwardTransformer(
             encoder_vocab_size=preprocessor.text_tokenizer.vocab_size,
@@ -114,6 +140,7 @@ class ForwardTransformer(Model):
 
 
 class AutoregressiveTransformer(Model):
+    """ """
 
     def __init__(self,
                  encoder_vocab_size: int,
@@ -139,12 +166,17 @@ class AutoregressiveTransformer(Model):
         self.fc_out = nn.Linear(d_model, decoder_vocab_size)
 
     def forward(self, batch: Dict[str, torch.tensor]):         # shape: [N, T]
-        """
-        Foward pass of the model on a data batch.
+        """Foward pass of the model on a data batch.
 
-        :param batch: Dictionary with entries 'text' (text tensor) and 'phonemes'
-                      (phoneme tensor for teacher forcing)
-        :return: Predictions as tensor.
+        Args:
+          batch: Dictionary with entries 'text' (text tensor) and 'phonemes'
+        (phoneme tensor for teacher forcing)
+          batch: Dict[str: 
+          torch.tensor]: 
+
+        Returns:
+          Predictions as tensor.
+
         """
         src = batch['text']
         trg = batch['phonemes'][:, :-1]
@@ -173,14 +205,19 @@ class AutoregressiveTransformer(Model):
     def generate(self,
                  batch: Dict[str, torch.tensor],
                  max_len=100) -> Tuple[torch.tensor, torch.tensor]:
-        """
-        Inference pass on a batch of tokenized texts.
+        """Inference pass on a batch of tokenized texts.
 
-        :param batch: Dictionary containing the input to the model with entries 'text' (text tensor) and 'start_index'
-                      (tensor of start indices for each row of input text)
-        :param max_len: Max steps of the autoregressive inference loop.
-        :return: Tuple, where the first element is a tensor (phoneme tokens) and the second element
-                 is a tensor (phoneme token probabilities)
+        Args:
+          batch: Dictionary containing the input to the model with entries 'text' (text tensor) and 'start_index'
+        (tensor of start indices for each row of input text)
+          max_len: Max steps of the autoregressive inference loop. (Default value = 100)
+          batch: Dict[str: 
+          torch.tensor]: 
+
+        Returns:
+          Tuple, where the first element is a tensor (phoneme tokens) and the second element
+          is a tensor (phoneme token probabilities)
+
         """
 
         input = batch['text']
@@ -224,6 +261,14 @@ class AutoregressiveTransformer(Model):
 
     @classmethod
     def from_config(cls, config: dict) -> 'AutoregressiveTransformer':
+        """
+
+        Args:
+          config: dict: 
+
+        Returns:
+
+        """
         preprocessor = Preprocessor.from_config(config)
         return AutoregressiveTransformer(
             encoder_vocab_size=preprocessor.text_tokenizer.vocab_size,
@@ -239,6 +284,16 @@ class AutoregressiveTransformer(Model):
 
 
 def create_model(model_type: ModelType, config: Dict[str, Any]) -> Model:
+    """
+
+    Args:
+      model_type: ModelType: 
+      config: Dict[str: 
+      Any]: 
+
+    Returns:
+
+    """
     if model_type is ModelType.TRANSFORMER:
         model = ForwardTransformer.from_config(config)
     elif model_type is ModelType.AUTOREG_TRANSFORMER:
@@ -250,6 +305,15 @@ def create_model(model_type: ModelType, config: Dict[str, Any]) -> Model:
 
 
 def load_checkpoint(checkpoint_path: str, device='cpu') -> Tuple[Model, Dict[str, Any]]:
+    """
+
+    Args:
+      checkpoint_path: str: 
+      device:  (Default value = 'cpu')
+
+    Returns:
+
+    """
     device = torch.device(device)
     checkpoint = torch.load(checkpoint_path, map_location=device)
     model_type = checkpoint['config']['model']['type']

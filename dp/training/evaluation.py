@@ -4,13 +4,20 @@ from dp.training.metrics import phoneme_error, word_error
 
 
 def evaluate_samples(lang_samples: Dict[str, List[Tuple[List[str], List[str], List[str]]]]) -> Dict[str, Any]:
-    """
-    Calculates word and phoneme error rates per language and their mean across languages
+    """Calculates word and phoneme error rates per language and their mean across languages
 
-    :param lang_samples: Dictionary with languages as keys and list of prediction samples as values. Prediction
-           samples is given as a List of Tuples, where each Tuple is a tokenized representation of
-           (text, prediction, target).
-    :return: Dictionary with evaluation result (mean and per language)
+    Args:
+      lang_samples: Dictionary with languages as keys and list of prediction samples as values. Prediction
+    samples is given as a List of Tuples, where each Tuple is a tokenized representation of
+    (text, prediction, target).
+      lang_samples: Dict[str: 
+      List[Tuple[List[str]: 
+      List[str]: 
+      List[str]]]]: 
+
+    Returns:
+      Dictionary with evaluation result (mean and per language)
+
     """
 
     evaluation_result = dict()
