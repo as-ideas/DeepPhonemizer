@@ -49,7 +49,7 @@ class PhonemizerResult:
           phonemes (List[str]): List of output phonemes.
           split_text (List[List[str]]): List of texts, where each text is split into words and special chars.
           split_phonemes (List[List[str]]): List of phonemes corresponding to split_text.
-          predictions (Dict[str, Prediction]): Dictionary with entries word to tuple (phoneme, probability).
+          predictions (Dict[str, Prediction]): Dictionary with entries word to Tuple (phoneme, probability).
         """
 
         self.text = text

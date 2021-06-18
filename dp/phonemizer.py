@@ -193,8 +193,7 @@ class Phonemizer:
         Args:
           checkpoint_path (str): Path to the .pt checkpoint file.
           device (str): Device to send the model to ('cpu' or 'cuda'). (Default value = 'cpu')
-          lang_phoneme_dict (Dict, optional): Dictionary containing language shortcuts as keys (e.g. 'en') and
-                                   for each key a dictionary of word-phoneme mappings.
+          lang_phoneme_dict (Dict[str, Dict[str, str]], optional): Word-phoneme dictionary for each language.
 
         Returns:
           Phonemizer: Phonemizer object carrying the loaded model and, optionally, a phoneme dictionary.

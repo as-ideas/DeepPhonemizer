@@ -48,7 +48,7 @@ class LanguageTokenizer:
 
 class SequenceTokenizer:
 
-    """Tokenizes text and attached language-specific start index (and non-specific end index)."""
+    """Tokenizes text and optionally attaches language-specific start index (and non-specific end index)."""
 
     def __init__(self,
                  symbols: List[str],
@@ -93,7 +93,7 @@ class SequenceTokenizer:
 
     def __call__(self, sentence: Iterable[str], language: str) -> List[int]:
         """
-        Maps a sequence symbols for a language to a sequence of indices.
+        Maps a sequence of symbols for a language to a sequence of indices.
 
         Args:
           sentence  (Iterable[str]): Sentence (or word) as a sequence of symbols.
@@ -114,7 +114,7 @@ class SequenceTokenizer:
         return sequence
 
     def decode(self, sequence: Iterable[int], remove_special_tokens: bool = False) -> List[str]:
-        """Inverts a sequence of indices to the original sequence of symbols.
+        """Maps a sequence of indices to a sequence of symbols.
 
         Args:
           sequence (Iterable[int]): Encoded sequence to be decoded.
@@ -145,7 +145,7 @@ class SequenceTokenizer:
 
 class Preprocessor:
 
-    """ Preprocesses a data point (language, word, phonemes). """
+    """ Preprocesses data for a phonemizer training session. """
 
     def __init__(self,
                  lang_tokenizer: LanguageTokenizer,
@@ -165,9 +165,10 @@ class Preprocessor:
         self.phoneme_tokenizer = phoneme_tokenizer
 
     def __call__(self,
-                 item: Tuple[str, Iterable[str], Iterable[str]]) -> Tuple[int, List[int], List[int]]:
+                 item: Tuple[str, Iterable[str], Iterable[str]]) \
+            -> Tuple[int, List[int], List[int]]:
         """
-        Preprocesses a data tuple.
+        Preprocesses a data point.
 
         Args:
           item (Tuple): Data point comprised of (language, input text, output phonemes).
