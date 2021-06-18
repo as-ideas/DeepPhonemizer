@@ -17,6 +17,14 @@ class Predictor:
     def __init__(self,
                  model: torch.nn.Module,
                  preprocessor: Preprocessor) -> None:
+        """
+        Initializes a Predictor object with a trained transformer model a preprocessor.
+
+        Args:
+            model (Model): Trained transformer model.
+            preprocessor (Preprocessor): Preprocessor corresponding to the model configuration.
+        """
+
         self.model = model
         self.text_tokenizer = preprocessor.text_tokenizer
         self.phoneme_tokenizer = preprocessor.phoneme_tokenizer
@@ -34,7 +42,7 @@ class Predictor:
           batch_size (int): Size of batch for model input to speed up inference.
 
         Returns:
-          List[Prediction]: A list of prediction objects containing (word, phonemes, phoneme_tokens, token_probs, confidence)
+          List[Prediction]: A list of result objects containing (word, phonemes, phoneme_tokens, token_probs, confidence)
         """
 
         predictions = dict()

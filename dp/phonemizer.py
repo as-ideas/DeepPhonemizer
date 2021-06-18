@@ -11,11 +11,17 @@ DEFAULT_PUNCTUATION = '().,:?!/–'
 
 
 class Phonemizer:
-    """ """
 
     def __init__(self,
                  predictor: Predictor,
                  lang_phoneme_dict: Dict[str, Dict[str, str]] = None) -> None:
+        """
+        Initializes a phonemizer with a ready predictor.
+
+        Args:
+            predictor (Predictor): Predictor object carrying the trained transformer model.
+            lang_phoneme_dict (Dict[str, Dict[str, str]], optional): Word-phoneme dictionary for each language.
+        """
 
         self.predictor = predictor
         self.lang_phoneme_dict = lang_phoneme_dict
@@ -188,7 +194,7 @@ class Phonemizer:
           checkpoint_path (str): Path to the .pt checkpoint file.
           device (str): Device to send the model to ('cpu' or 'cuda'). (Default value = 'cpu')
           lang_phoneme_dict (Dict, optional): Dictionary containing language shortcuts as keys (e.g. 'en') and
-                                   for each key a dictionary of word-phoneme mappings. Example: {'en': {'hi': hai}}
+                                   for each key a dictionary of word-phoneme mappings.
 
         Returns:
           Phonemizer: Phonemizer object carrying the loaded model and, optionally, a phoneme dictionary.

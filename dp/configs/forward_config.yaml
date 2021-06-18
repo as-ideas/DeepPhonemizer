@@ -43,7 +43,7 @@ training:
   validate_steps: 10000              # Interval of training steps to validate the model
                                      # (for the autoregressive model this is teacher-forced).
   checkpoint_steps: 100000           # Interval of training steps to save the model.
-  n_generate_samples: 10             # Number of prediction samples to show on tensorboard.
+  n_generate_samples: 10             # Number of result samples to show on tensorboard.
   store_phoneme_dict_in_model: true  # Whether to store the raw phoneme dict in the model.
                                      # It will be loaded by the phonemizer object.
 

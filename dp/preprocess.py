@@ -24,11 +24,11 @@ def preprocess(config_file: str,
     Args:
       config_file (str): Path to the config.yaml that provides all necessary hyperparameters.
       train_data (List[Tuple[str, Iterable[str], Iterable[str]]]):
-        Training data as a list of Tuple (language, grapheme sequence, phoneme sequence).
+        Training data as a list of Tuples (language, grapheme sequence, phoneme sequence).
       val_data (List[Tuple[str, Iterable[str], Iterable[str]]], optional):
-        Validation data as a list of Tuple (language, grapheme sequence, phoneme sequence).
-      deduplicate_train_data (bool): Whether to deduplicate multiple occurences of the same word
-                                    (the first is taken) (Default value = True)
+        Validation data as a list of Tuples (language, grapheme sequence, phoneme sequence).
+      deduplicate_train_data (bool): Whether to deduplicate multiple occurences of the same word,
+                                    the first is taken (Default value = True).
 
     Returns:
       None: the preprocessing result is stored in a folder provided by the config.

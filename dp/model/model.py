@@ -14,6 +14,9 @@ class ModelType(Enum):
     AUTOREG_TRANSFORMER = 'autoreg_transformer'
 
     def is_autoregressive(self) -> bool:
+        """
+        Returns: bool: Whether the model is autoregressive.
+        """
         return self in {ModelType.AUTOREG_TRANSFORMER}
 
 
@@ -28,13 +31,13 @@ class Model(torch.nn.Module, ABC):
         Generates phonemes for a text batch
 
         Args:
-          batch (dict): Dictionary containing: 'text' (tokenized text tensor),
+          batch (Dict[str, torch.Tensor]): Dictionary containing 'text' (tokenized text tensor),
                        'text_len' (text length tensor),
                        'start_index' (phoneme start indices for AutoregressiveTransformer)
 
         Returns:
-          Tuple: The predictions. The first element is a tensor (phoneme tokens) and the second element
-                 is a tensor (phoneme token probabilities)
+          Tuple[torch.Tensor, torch.Tensor]: The predictions. The first element is a tensor (phoneme tokens)
+          and the second element  is a tensor (phoneme token probabilities)
         """
         pass
 
@@ -74,7 +77,7 @@ class ForwardTransformer(Model):
         Forward pass of the model on a data batch.
 
         Args:
-          batch (dict): Input batch entry 'text' (text tensor).
+         batch (Dict[str, torch.Tensor]): Input batch entry 'text' (text tensor).
 
         Returns:
           Tensor: Predictions.
@@ -96,7 +99,7 @@ class ForwardTransformer(Model):
         Inference pass on a batch of tokenized texts.
 
         Args:
-          batch (dict): Input batch with entry 'text' (text tensor).
+          batch (Dict[str, torch.Tensor]): Input batch with entry 'text' (text tensor).
 
         Returns:
           Tuple: The first element is a Tensor (phoneme tokens) and the second element
@@ -152,8 +155,8 @@ class AutoregressiveTransformer(Model):
         Foward pass of the model on a data batch.
 
         Args:
-          batch (dict): Input batch with entries 'text' (text tensor) and 'phonemes'
-                       (phoneme tensor for teacher forcing).
+          batch (Dict[str, torch.Tensor]): Input batch with entries 'text' (text tensor) and 'phonemes'
+                                           (phoneme tensor for teacher forcing).
 
         Returns:
           Tensor: Predictions.
@@ -190,13 +193,13 @@ class AutoregressiveTransformer(Model):
         Inference pass on a batch of tokenized texts.
 
         Args:
-          batch: Dictionary containing the input to the model with entries 'text' (text tensor) and 'start_index'
-                      (tensor of start indices for each row of input text)
+          batch (Dict[str, torch.Tensor]): Dictionary containing the input to the model with entries 'text'
+                                           and 'start_index'
           max_len: Max steps of the autoregressive inference loop.
 
         Returns:
-          Tuple: Predictions. The first element is a Tensor (phoneme tokens) and the second element
-                 is a Tensor (phoneme token probabilities).
+          Tuple: Predictions. The first element is a Tensor of phoneme tokens and the second element
+                 is a Tensor of phoneme token probabilities.
         """
 
         input = batch['text']
