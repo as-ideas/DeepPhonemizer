@@ -84,14 +84,14 @@ class Predictor:
             input_batch, lens_batch = [], []
             for text in text_batch:
                 input = self.text_tokenizer(text, language)
-                input_batch.append(torch.tensor(input))
-                lens_batch.append(torch.tensor(len(input)))
+                input_batch.append(torch.Tensor(input))
+                lens_batch.append(torch.Tensor(len(input)))
 
             input_batch = pad_sequence(sequences=input_batch,
                                        batch_first=True, padding_value=0)
             lens_batch = torch.stack(lens_batch)
             start_indx = self.phoneme_tokenizer.get_start_index(language)
-            start_inds = torch.tensor([start_indx]*input_batch.size(0)).to(input_batch.device)
+            start_inds = torch.Tensor([start_indx]*input_batch.size(0)).to(input_batch.device)
             batch = {
                 'text': input_batch,
                 'text_len': lens_batch,

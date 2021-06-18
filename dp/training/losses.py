@@ -12,15 +12,15 @@ class CrossEntropyLoss(torch.nn.Module):
 
     def forward(self,
                 pred: torch.Tensor,
-                batch: Dict[str, torch.tensor]) -> torch.tensor:
+                batch: Dict[str, torch.Tensor]) -> torch.Tensor:
         """Forward pass of the CrossEntropyLoss module on a batch.
 
         Args:
           pred: Batch of model predictions.
           batch: Dictionary of a training data batch, containing 'phonemes': target phonemes.
-          pred: torch.Tensor: 
+          pred: torch.Tensor:
           batch: Dict[str: 
-          torch.tensor]: 
+          torch.Tensor]:
 
         Returns:
           Loss as tensor.
@@ -41,16 +41,16 @@ class CTCLoss(torch.nn.Module):
 
     def forward(self,
                 pred: torch.Tensor,
-                batch: Dict[str, torch.tensor]) -> torch.tensor:
+                batch: Dict[str, torch.Tensor]) -> torch.Tensor:
         """Forward pass of the CTCLoss module on a batch.
 
         Args:
           pred: Batch of model predictions.
           batch: Dictionary of a training data batch, containing 'phonemes': target phonemes,
         'text_len': input text lengths, 'phonemes_len': target phoneme lengths
-          pred: torch.Tensor: 
+          pred: torch.Tensor:
           batch: Dict[str: 
-          torch.tensor]: 
+          torch.Tensor]:
 
         Returns:
           Loss as tensor.

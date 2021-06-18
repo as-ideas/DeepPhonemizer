@@ -26,8 +26,7 @@ def preprocess(config_file: str,
       val_data: Optional validation data as a list of Tuple (language, grapheme sequence, phoneme sequence).
       deduplicate_train_data: Whether to deduplicate multiple occurences of the same word (the first is taken) (Default value = True)
 
-    Returns:
-      None, the preprocessing result is stored in a folder provided by the config.
+    Returns: None, the preprocessing result is stored in a folder provided by the config.
 
     """
 

@@ -77,12 +77,12 @@ def unpickle_binary(file: Union[str, Path]) -> Any:
         return pickle.load(f)
 
 
-def to_device(batch: Dict[str, torch.tensor], device: torch.device) -> Dict[str, torch.tensor]:
+def to_device(batch: Dict[str, torch.Tensor], device: torch.device) -> Dict[str, torch.Tensor]:
     """
 
     Args:
       batch: Dict[str: 
-      torch.tensor]: 
+      torch.Tensor]:
       device: torch.device: 
 
     Returns:
