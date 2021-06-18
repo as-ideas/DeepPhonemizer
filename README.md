@@ -45,10 +45,13 @@ phonemizer('Phonemizing an English text is imposimpable!', lang='en_us')
 
 ### Training
 
-All parameters are set in a config.yaml, you can find example configs in the installed package under:
+You can easily train your own autoregressive or forward transformer model. 
+All necessary parameters are set in a config.yaml, which you can find under:
 ```bash
 dp/configs/forward_config.yaml
+dp/configs/autoreg_config.yaml
 ```
+for the forward and autoregressive transformer model, respectively.
 
 Pepare data in a tuple-format and use the preprocess and train API:
 
