@@ -3,7 +3,11 @@ from setuptools import setup, find_packages
 long_description = """ DeepPhonemizer is a multilingual grapheme-to-phoneme modeling library that leverages recent deep learning 
 technology and is optimized for usage in production systems such as TTS. In particular, the library should
 be accurate, fast, easy to use. Moreover, you can train a custom model on your own dataset in a few lines of code.
-DeepPhonemizer is compatible with Python 3.6+ and is distributed under the MIT license."""
+DeepPhonemizer is compatible with Python 3.6+ and is distributed under the MIT license.
+
+Read the documentation at: https://as-ideas.github.io/DeepPhonemizer/
+
+"""
 
 setup(
     name='deep-phonemizer',

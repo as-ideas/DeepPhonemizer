@@ -1,19 +1,23 @@
 
 paths:
-  checkpoint_dir: checkpoints # directory to store model checkpoints and tensorboard
-  data_dir: datasets # directory to store processed data
+  checkpoint_dir: checkpoints   # Directory to store model checkpoints and tensorboard, will be created if not existing.
+  data_dir: datasets            # Directory to store processed data, will be created if not existing.
 
 preprocessing:
-  languages: ['de', 'en_us']
+  languages: ['de', 'en_us']    # All languages in the dataset.
+
   text_symbols: 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZäöüÄÖÜß'
   phoneme_symbols: ['a', 'b', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z', 'æ', 'ç', 'ð', 'ø', 'ŋ', 'œ', 'ɐ', 'ɑ', 'ɔ', 'ə', 'ɛ', 'ɝ', 'ɹ', 'ɡ', 'ɪ', 'ʁ', 'ʃ', 'ʊ', 'ʌ', 'ʏ', 'ʒ', 'ʔ', 'ˈ', 'ˌ', 'ː', '̃', '̍', '̥', '̩', '̯', '͡', 'θ']
-  char_repeats: 1 # repeating chars of input text to enable mapping to longer phoneme sequences
-  lowercase: true
-  n_val: 5000
+
+  char_repeats: 1                # Number of grapheme character repeats to allow for mapping to longer phoneme sequences.
+                                 # Set to 1 for autoreg_transformer.
+  lowercase: true                # Whether to lowercase the grapheme input.
+  n_val: 5000                    # Default number of validation data points if no explicit validation data is provided.
+
 
 model:
-  type: 'autoreg_transformer'  # choices: ['transformer', 'autoreg_transformer']
-
+  type: 'autoreg_transformer'            # Whether to use a forward transformer or autoregressive transformer model.
+                                 # Choices: ['transformer', 'autoreg_transformer']
   d_model: 512
   d_fft: 1024
   layers: 4
@@ -22,19 +26,22 @@ model:
 
 training:
 
-  # learning rate and scheduler - scheduler is reducing lr on plateau of phoneme error rate (tested every n_generate_steps)
-  learning_rate: 0.0001
-  warmup_steps: 10000
-  scheduler_plateau_factor: 0.5 # factor to multiply learning rate on plateau
-  scheduler_plateau_patience: 10 # number of text generations with no improvement to tolerate
+  # Hyperparams for learning rate and scheduler.
+  # The scheduler is reducing the lr on plateau of phoneme error rate (tested every n_generate_steps).
 
-  batch_size: 32
-  batch_size_val: 32
-  epochs: 200
-  generate_steps: 10000 # text generation is used to calculate phoneme error rate for scheduler
-  validate_steps: 10000
-  checkpoint_steps: 100000
-  n_generate_samples: 10
+  learning_rate: 0.0001              # Learning rate of Adam.
+  warmup_steps: 10000                # Linear increase of the lr from zero to the given lr within the given number of steps.
+  scheduler_plateau_factor: 0.5      # Factor to multiply learning rate on plateau.
+  scheduler_plateau_patience: 10     # Number of text generations with no improvement to tolerate.
+  batch_size: 32                     # Training batch size.
+  batch_size_val: 32                 # Validation batch size.
+  epochs: 500                        # Number of epochs to train.
+  generate_steps: 10000              # Interval of training steps to generate sample outputs. Also, at this step the phoneme and word
+                                     # error rates are calculated for the scheduler.
+  validate_steps: 10000              # Interval of training steps to validate the model
+                                     # (for the autoregressive model this is teacher-forced).
+  checkpoint_steps: 100000           # Interval of training steps to save the model.
+  n_generate_samples: 10             # Number of prediction samples to show on tensorboard.
+  store_phoneme_dict_in_model: true  # Whether to store the raw phoneme dict in the model.
+                                     # It will be loaded by the phonemizer object.
 
-
-  store_phoneme_dict_in_model: true  # store the raw phoneme dict to inject it into the phonemizer later

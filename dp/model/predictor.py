@@ -11,7 +11,7 @@ from dp.preprocessing.utils import _batchify, _product
 
 
 class Predictor:
-    
+
     """ Performs model predictions on a batch of inputs. """
 
     def __init__(self,

@@ -13,7 +13,6 @@ from dp.utils.io import unpickle_binary
 
 
 class PhonemizerDataset(Dataset):
-    """ """
 
     def __init__(self,
                  items: List[Tuple[int, List[int], List[int]]]) -> None:
@@ -36,7 +35,6 @@ class PhonemizerDataset(Dataset):
 
 # From https://github.com/fatchord/WaveRNN/blob/master/utils/dataset.py
 class BinnedLengthSampler(Sampler):
-    """ """
 
     def __init__(self, phoneme_lens: List[int], batch_size: int, bin_size: int, seed=42) -> None:
         _, self.idx = torch.sort(torch.tensor(phoneme_lens))

@@ -21,14 +21,16 @@ from dp.utils.io import to_device, unpickle_binary
 
 class Trainer:
 
+    """ Performs model training. """
+
     def __init__(self, checkpoint_dir: Path, loss_type='ctc') -> None:
         """
         Initializes a Trainer object.
 
         Args:
-          checkpoint_dir: Directory to store the model checkpoints.
-          loss_type: Type of loss: 'ctc' for forward transformer models
-               and 'cross_entropy' for autoregressive models.
+          checkpoint_dir (Path): Directory to store the model checkpoints.
+          loss_type (str): Type of loss: 'ctc' for forward transformer models
+                           and 'cross_entropy' for autoregressive models.
         """
 
         self.checkpoint_dir = checkpoint_dir
@@ -45,19 +47,20 @@ class Trainer:
     def train(self,
               model: Model,
               checkpoint: Dict[str, Any],
-              store_phoneme_dict_in_model=True) -> None:
+              store_phoneme_dict_in_model: bool = True) -> None:
         """
         Performs training of a transformer model.
 
         Args:
-          model: Model to be trained (can be a fresh model or restored from a checkpoint).
-          checkpoint: Dictionary with entries 'optimizer': optimizer state dict,
-                           'preprocessor': Preprocessor and 'config': Config.
-          store_phoneme_dict_in_model: Whether to store a dictionary of word-phoneme mappings
-               in the model checkpoint so that it can be automatically loaded by a Phonemizer object.
+          model (Model): Model to be trained (can be a fresh model or restored from a checkpoint).
+          checkpoint (Dict[str, Any]): Dictionary with entries 'optimizer': optimizer state dict,
+                                       'preprocessor': Preprocessor and 'config': Dict.
+          store_phoneme_dict_in_model (bool): Whether to store a dictionary of word-phoneme mappings
+                                              in the model checkpoint so that it can be automatically
+                                              loaded by a Phonemizer object.
 
         Returns:
-          None, the checkpoints will be stored in a folder provided when instantiating a Trainer.
+          None: the checkpoints will be stored in a folder provided when instantiating a Trainer.
         """
 
         config = checkpoint['config']

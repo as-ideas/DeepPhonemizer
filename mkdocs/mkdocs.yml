@@ -5,6 +5,7 @@ site_author: Axel Springer AI
 nav:
     - Home: index.md
     - Documentation:
+        - Phonemizer: phonemizer.md
         - Preprocess: preprocess.md
         - Train: train.md
         - Model:
@@ -13,6 +14,9 @@ nav:
             - model/utils.md
         - Preprocessing:
             - preprocessing/text.md
+        - Training:
+            - training/trainer.md
+            - training/evaluation.md
 theme:
   name: 'material'
   palette:
