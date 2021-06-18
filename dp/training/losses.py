@@ -10,7 +10,7 @@ class CrossEntropyLoss(torch.nn.Module):
         self.criterion = torch.nn.CrossEntropyLoss(ignore_index=0)
 
     def forward(self,
-                pred: torch.tensor,
+                pred: torch.Tensor,
                 batch: Dict[str, torch.tensor]) -> torch.tensor:
         """
         Forward pass of the CrossEntropyLoss module on a batch.
@@ -32,7 +32,7 @@ class CTCLoss(torch.nn.Module):
         self.criterion  = torch.nn.CTCLoss()
 
     def forward(self,
-                pred: torch.tensor,
+                pred: torch.Tensor,
                 batch: Dict[str, torch.tensor]) -> torch.tensor:
         """
         Forward pass of the CTCLoss module on a batch.

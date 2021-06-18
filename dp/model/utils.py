@@ -21,12 +21,12 @@ class PositionalEncoding(torch.nn.Module):
         pe = pe.unsqueeze(0).transpose(0, 1)
         self.register_buffer('pe', pe)
 
-    def forward(self, x: torch.tensor) -> torch.tensor:         # shape: [T, N]
+    def forward(self, x: torch.Tensor) -> torch.tensor:         # shape: [T, N]
         x = x + self.scale * self.pe[:x.size(0), :]
         return self.dropout(x)
 
 
-def get_dedup_tokens(logits_batch: torch.tensor) \
+def get_dedup_tokens(logits_batch: torch.Tensor) \
         -> Tuple[torch.tensor, torch.tensor]:
     """
     Converts a batch of logits into the batch most probable tokens and their probabilities.
@@ -67,17 +67,17 @@ def generate_square_subsequent_mask(sz: int) -> torch.tensor:
     return mask
 
 
-def make_len_mask(inp: torch.tensor) -> torch.tensor:
+def make_len_mask(inp: torch.Tensor) -> torch.tensor:
     return (inp == 0).transpose(0, 1)
 
 
-def get_len_util_stop(sequence: torch.tensor, end_index: int) -> torch.tensor:
+def get_len_util_stop(sequence: torch.Tensor, end_index: int) -> torch.tensor:
     for i, val in enumerate(sequence):
         if val == end_index:
             return i + 1
     return len(sequence)
 
 
-def trim_util_stop(sequence: torch.tensor, end_index: int) -> torch.tensor:
+def trim_util_stop(sequence: torch.Tensor, end_index: int) -> torch.tensor:
     seq_len = get_len_util_stop(sequence, end_index)
     return sequence[:seq_len]

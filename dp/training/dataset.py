@@ -36,7 +36,7 @@ class PhonemizerDataset(Dataset):
 # From https://github.com/fatchord/WaveRNN/blob/master/utils/dataset.py
 class BinnedLengthSampler(Sampler):
 
-    def __init__(self, phoneme_lens: torch.tensor, batch_size: int, bin_size: int, seed=42) -> None:
+    def __init__(self, phoneme_lens: List[int], batch_size: int, bin_size: int, seed=42) -> None:
         _, self.idx = torch.sort(torch.tensor(phoneme_lens))
         self.batch_size = batch_size
         self.bin_size = bin_size

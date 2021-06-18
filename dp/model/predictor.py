@@ -7,7 +7,7 @@ from dp import Prediction
 from dp.model.model import load_checkpoint
 from dp.model.utils import get_len_util_stop
 from dp.preprocessing.text import Preprocessor
-from dp.preprocessing.utils import batchify, get_sequence_prob
+from dp.preprocessing.utils import batchify, product
 
 
 class Predictor:
@@ -60,7 +60,7 @@ class Predictor:
             output.append(Prediction(word=word,
                                      phonemes=''.join(out_phons),
                                      phoneme_tokens=out_phons_tokens,
-                                     confidence=get_sequence_prob(probs),
+                                     confidence=product(probs),
                                      token_probs=probs))
 
         return output

@@ -171,7 +171,7 @@ class Preprocessor:
         :param config: Dictionary containing preprocessing hyperparams.
         :return: Preprocessor object.
         """
-        
+
         text_symbols = config['preprocessing']['text_symbols']
         phoneme_symbols = config['preprocessing']['phoneme_symbols']
         lang_symbols = config['preprocessing']['languages']
