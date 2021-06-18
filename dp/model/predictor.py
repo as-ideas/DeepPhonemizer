@@ -27,10 +27,13 @@ class Predictor:
         """
         Predicts phonemes for a list of words.
 
-        :param words: List of words to predict.
-        :param lang: Language of texts.
-        :param batch_size: Size of batch for model input to speed up inference.
-        :return: A list of prediction objects containing (word, phonemes, phoneme_tokens, token_probs, confidence)
+        Args:
+          words: List of words to predict.
+          lang: Language of texts.
+          batch_size: Size of batch for model input to speed up inference.
+
+        Returns:
+          A list of prediction objects containing (word, phonemes, phoneme_tokens, token_probs, confidence)
         """
 
         predictions = dict()
@@ -71,15 +74,8 @@ class Predictor:
                        batch_size: int,
                        language: str) \
             -> Dict[str, Tuple[List[int], List[float]]]:
-        """Returns dictionary with key = word and val = Tuple of (phoneme tokens, phoneme probs)
-
-        Args:
-          texts: List[str]: 
-          batch_size: int: 
-          language: str: 
-
-        Returns:
-
+        """
+        Returns dictionary with key = word and val = Tuple of (phoneme tokens, phoneme probs)
         """
 
         predictions = dict()

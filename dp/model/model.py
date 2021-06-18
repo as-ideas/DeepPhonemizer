@@ -70,8 +70,11 @@ class ForwardTransformer(Model):
         """
         Forward pass of the model on a data batch.
 
-        :param batch: Dictionary with entry 'text' (text tensor).
-        :return: Predictions as tensor.
+        Args:
+          batch: Dictionary with entry 'text' (text tensor).
+
+        Returns:
+          Predictions as tensor.
         """
 
         x = batch['text']

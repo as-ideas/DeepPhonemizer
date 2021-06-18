@@ -25,8 +25,9 @@ class Trainer:
         """
         Initializes a Trainer object.
 
-        :param checkpoint_dir: Directory to store the model checkpoints.
-        :param loss_type: Type of loss: 'ctc' for forward transformer models
+        Args:
+          checkpoint_dir: Directory to store the model checkpoints.
+          loss_type: Type of loss: 'ctc' for forward transformer models
                and 'cross_entropy' for autoregressive models.
         """
 
@@ -48,12 +49,15 @@ class Trainer:
         """
         Performs training of a transformer model.
 
-        :param model: Model to be trained (can be a fresh model or restored from a checkpoint).
-        :param checkpoint: Dictionary with entries 'optimizer': optimizer state dict,
+        Args:
+          model: Model to be trained (can be a fresh model or restored from a checkpoint).
+          checkpoint: Dictionary with entries 'optimizer': optimizer state dict,
                            'preprocessor': Preprocessor and 'config': Config.
-        :param store_phoneme_dict_in_model: Whether to store a dictionary of word-phoneme mappings
+          store_phoneme_dict_in_model: Whether to store a dictionary of word-phoneme mappings
                in the model checkpoint so that it can be automatically loaded by a Phonemizer object.
-        :return: None, the checkpoints will be stored in a folder provided when instantiating a Trainer.
+
+        Returns:
+          None, the checkpoints will be stored in a folder provided when instantiating a Trainer.
         """
 
         config = checkpoint['config']
