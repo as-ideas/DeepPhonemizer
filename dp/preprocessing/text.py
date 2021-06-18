@@ -9,8 +9,10 @@ class LanguageTokenizer:
         """
         Initializes a language tokenizer for a list of languages.
 
-        :param languages: List of languages, e.g. ['de', 'en'].
+        Args:
+          languages (List[str]): List of languages, e.g. ['de', 'en'].
         """
+
         self.lang_index = {l: i for i, l in enumerate(languages)}
         self.index_lang = {i: l for i, l in enumerate(languages)}
 
@@ -18,8 +20,11 @@ class LanguageTokenizer:
         """
         Maps the language to an index.
 
-        :param lang: Language to be mapped, e.g. 'de'.
-        :return: Index of language.
+        Args:
+          lang (str): Language to be mapped, e.g. 'de'.
+
+        Returns:
+          int: Index of language.
         """
 
         if lang not in self.lang_index:
@@ -32,11 +37,10 @@ class LanguageTokenizer:
         """Inverts the index mapping of a language.
 
         Args:
-          index: Index of language.
-          index: int: 
+          index (int): Index of language.
 
         Returns:
-          Language as string.
+          str: Language for the given index.
 
         """
         return self.index_lang[index]
@@ -50,22 +54,23 @@ class SequenceTokenizer:
                  symbols: List[str],
                  languages: List[str],
                  char_repeats: int,
-                 lowercase=True,
-                 append_start_end=True,
+                 lowercase: bool = True,
+                 append_start_end: bool =True,
                  pad_token='_',
                  end_token='<end>') -> None:
         """
         Initializes a SequenceTokenizer object.
 
-        :param symbols: Character (or phoneme) symbols.
-        :param languages: List of languages.
-        :param char_repeats: Number of repeats for each character to allow the forward model to map to longer
+        Args:
+          symbols (List[str]): Character (or phoneme) symbols.
+          languages (List[str]): List of languages.
+          char_repeats (int): Number of repeats for each character to allow the forward model to map to longer
                phoneme sequences. Example: for char_repeats=2 the tokenizer maps hi -> hhii.
-        :param lowercase: Whether to lowercase the input word.
-        :param append_start_end: Whether to append special start and end tokens. Start and end tokens are
+          lowercase (bool): Whether to lowercase the input word.
+          append_start_end (bool): Whether to append special start and end tokens. Start and end tokens are
                index mappings of the chosen language.
-        :param pad_token: Special pad token for index 0.
-        :param end_token: Special end of sequence token.
+          pad_token (str): Special pad token for index 0.
+          end_token (str): Special end of sequence token.
         """
 
         self.languages = languages
@@ -90,10 +95,14 @@ class SequenceTokenizer:
         """
         Maps a sequence symbols for a language to a sequence of indices.
 
-        :param sentence: Sentence (or word) as a sequence of symbols.
-        :param language: Language for the mapping that defines the start and end token indices.
-        :return: Sequence of token indices.
+        Args:
+          sentence  (Iterable[str]): Sentence (or word) as a sequence of symbols.
+          language (str): Language for the mapping that defines the start and end token indices.
+
+        Returns:
+           List[int]: Sequence of token indices.
         """
+
         sentence = [item for item in sentence for i in range(self.char_repeats)]
         if language not in self.languages:
             raise ValueError(f'Language not supported: {language}. Supported languages: {self.languages}')
@@ -101,20 +110,19 @@ class SequenceTokenizer:
             sentence = [s.lower() for s in sentence]
         sequence = [self.token_to_idx[c] for c in sentence if c in self.token_to_idx]
         if self.append_start_end:
-            sequence = [self.get_start_index(language)] + sequence + [self.end_index]
+            sequence = [self._get_start_index(language)] + sequence + [self.end_index]
         return sequence
 
-    def decode(self, sequence: Iterable[int], remove_special_tokens=False) -> List[str]:
+    def decode(self, sequence: Iterable[int], remove_special_tokens: bool = False) -> List[str]:
         """Inverts a sequence of indices to the original sequence of symbols.
 
         Args:
-          sequence: Encoded sequence to be decoded.
-          remove_special_tokens: Whether to remove special tokens such as pad or start and end tokens. (Default value = False)
+          sequence (Iterable[int]): Encoded sequence to be decoded.
+          remove_special_tokens (bool): Whether to remove special tokens such as pad or start and end tokens. (Default value = False)
           sequence: Iterable[int]: 
 
         Returns:
-          Decoded sequence of symbols.
-
+           List[str]: Decoded sequence of symbols.
         """
 
         sequence = list(sequence)
@@ -127,32 +135,17 @@ class SequenceTokenizer:
             decoded = [d for d in decoded if d not in self.special_tokens]
         return decoded
 
-    def get_start_index(self, language: str) -> int:
-        """Returns the start token index for a language.
-
-        Args:
-          language: str: 
-
-        Returns:
-
-        """
+    def _get_start_index(self, language: str) -> int:
         lang_token = self._make_start_token(language)
         return self.token_to_idx[lang_token]
 
     def _make_start_token(self, language: str) -> str:
-        """
-
-        Args:
-          language: str: 
-
-        Returns:
-
-        """
         return '<' + language + '>'
 
 
 class Preprocessor:
-    """ """
+
+    """ Preprocesses a data point (language, word, phonemes). """
 
     def __init__(self,
                  lang_tokenizer: LanguageTokenizer,
@@ -161,9 +154,10 @@ class Preprocessor:
         """
         Initializes a preprocessor object.
 
-        :param lang_tokenizer: Tokenizer for input language.
-        :param text_tokenizer: Tokenizer for input text.
-        :param phoneme_tokenizer: Tokenizer for output phonemes.
+        Args:
+          lang_tokenizer (LanguageTokenizer): Tokenizer for input language.
+          text_tokenizer (SequenceTokenizer): Tokenizer for input text.
+          phoneme_tokenizer (SequenceTokenizer): Tokenizer for output phonemes.
         """
 
         self.lang_tokenizer = lang_tokenizer
@@ -174,9 +168,11 @@ class Preprocessor:
                  item: Tuple[str, Iterable[str], Iterable[str]]) -> Tuple[int, List[int], List[int]]:
         """
         Preprocesses a data tuple.
-        :param item: Data point comprised of (language, input text, output phonemes).
-        :return: Preprocessed data point as a tuple comprised of
-                (language tokens, input_text tokens, output phonemes tokens)
+
+        Args:
+          item (Tuple): Data point comprised of (language, input text, output phonemes).
+
+        Returns: Tuple: Preprocessed data point as (language tokens, input_text tokens, output phonemes tokens)
         """
 
         lang, text, phonemes = item
@@ -190,13 +186,10 @@ class Preprocessor:
         """Initializes a preprocessor from a config.
 
         Args:
-          config: Dictionary containing preprocessing hyperparams.
-          config: Dict[str: 
-          Any]: 
+          config (Dict[str, Any]): Dictionary containing preprocessing hyperparams.
 
         Returns:
-          Preprocessor object.
-
+          Preprocessor: Preprocessor object.
         """
 
         text_symbols = config['preprocessing']['text_symbols']

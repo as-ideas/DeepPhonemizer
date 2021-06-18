@@ -6,9 +6,17 @@ from torch.nn.utils.rnn import pad_sequence
 
 
 class PositionalEncoding(torch.nn.Module):
-    """ """
 
     def __init__(self, d_model: int, dropout=0.1, max_len=5000) -> None:
+        """
+        Initializes positional encoding.
+
+        Args:
+            d_model (int): Dimension of model.
+            dropout (float): Dropout after positional encoding.
+            max_len: Max length of precalculated position sequence.
+        """
+
         super(PositionalEncoding, self).__init__()
         self.dropout = torch.nn.Dropout(p=dropout)
         self.scale = torch.nn.Parameter(torch.ones(1))
@@ -23,14 +31,6 @@ class PositionalEncoding(torch.nn.Module):
         self.register_buffer('pe', pe)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:         # shape: [T, N]
-        """
-
-        Args:
-          x: torch.Tensor:
-
-        Returns:
-
-        """
         x = x + self.scale * self.pe[:x.size(0), :]
         return self.dropout(x)
 
@@ -40,11 +40,11 @@ def get_dedup_tokens(logits_batch: torch.Tensor) \
     """Converts a batch of logits into the batch most probable tokens and their probabilities.
 
     Args:
-      logits_batch: Batch of logits (N x T x V).
-      logits_batch: torch.Tensor:
+      logits_batch (Tensor): Batch of logits (N x T x V).
+      logits_batch (Tensor): torch.Tensor:
 
     Returns:
-      Tuple, where the first element is a tensor (token indices) and the second element
+      Tuple: Deduplicated tokens. The first element is a tensor (token indices) and the second element
       is a tensor (token probabilities)
 
     """
@@ -74,57 +74,23 @@ def get_dedup_tokens(logits_batch: torch.Tensor) \
     return out_tokens, out_probs
 
 
-def generate_square_subsequent_mask(sz: int) -> torch.Tensor:
-    """
-
-    Args:
-      sz: int: 
-
-    Returns:
-
-    """
+def _generate_square_subsequent_mask(sz: int) -> torch.Tensor:
     mask = torch.triu(torch.ones(sz, sz), 1)
     mask = mask.masked_fill(mask == 1, float('-inf'))
     return mask
 
 
-def make_len_mask(inp: torch.Tensor) -> torch.Tensor:
-    """
-
-    Args:
-      inp: torch.Tensor:
-
-    Returns:
-
-    """
+def _make_len_mask(inp: torch.Tensor) -> torch.Tensor:
     return (inp == 0).transpose(0, 1)
 
 
-def get_len_util_stop(sequence: torch.Tensor, end_index: int) -> torch.Tensor:
-    """
-
-    Args:
-      sequence: torch.Tensor:
-      end_index: int: 
-
-    Returns:
-
-    """
+def _get_len_util_stop(sequence: torch.Tensor, end_index: int) -> int:
     for i, val in enumerate(sequence):
         if val == end_index:
             return i + 1
     return len(sequence)
 
 
-def trim_util_stop(sequence: torch.Tensor, end_index: int) -> torch.Tensor:
-    """
-
-    Args:
-      sequence: torch.Tensor:
-      end_index: int: 
-
-    Returns:
-
-    """
-    seq_len = get_len_util_stop(sequence, end_index)
+def _trim_util_stop(sequence: torch.Tensor, end_index: int) -> torch.Tensor:
+    seq_len = _get_len_util_stop(sequence, end_index)
     return sequence[:seq_len]

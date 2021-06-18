@@ -5,7 +5,7 @@ from typing import Tuple, Dict, Any
 import torch
 import torch.nn as nn
 from torch.nn import TransformerEncoderLayer, LayerNorm, TransformerEncoder, ModuleList
-from dp.model.utils import get_dedup_tokens, make_len_mask, generate_square_subsequent_mask, PositionalEncoding
+from dp.model.utils import get_dedup_tokens, _make_len_mask, _generate_square_subsequent_mask, PositionalEncoding
 from dp.preprocessing.text import Preprocessor
 
 
@@ -82,7 +82,7 @@ class ForwardTransformer(Model):
 
         x = batch['text']
         x = x.transpose(0, 1)        # shape: [T, N]
-        src_pad_mask = make_len_mask(x).to(x.device)
+        src_pad_mask = _make_len_mask(x).to(x.device)
         x = self.embedding(x)
         x = self.pos_encoder(x)
         x = self.encoder(x, src_key_padding_mask=src_pad_mask)
@@ -165,10 +165,10 @@ class AutoregressiveTransformer(Model):
         src = src.transpose(0, 1)        # shape: [T, N]
         trg = trg.transpose(0, 1)
 
-        trg_mask = generate_square_subsequent_mask(len(trg)).to(trg.device)
+        trg_mask = _generate_square_subsequent_mask(len(trg)).to(trg.device)
 
-        src_pad_mask = make_len_mask(src).to(trg.device)
-        trg_pad_mask = make_len_mask(trg).to(trg.device)
+        src_pad_mask = _make_len_mask(src).to(trg.device)
+        trg_pad_mask = _make_len_mask(trg).to(trg.device)
 
         src = self.encoder(src)
         src = self.pos_encoder(src)
@@ -204,7 +204,7 @@ class AutoregressiveTransformer(Model):
 
         batch_size = input.size(0)
         input = input.transpose(0, 1)          # shape: [T, N]
-        src_pad_mask = make_len_mask(input).to(input.device)
+        src_pad_mask = _make_len_mask(input).to(input.device)
         with torch.no_grad():
             input = self.encoder(input)
             input = self.pos_encoder(input)
@@ -213,7 +213,7 @@ class AutoregressiveTransformer(Model):
             out_indices = start_index.unsqueeze(0)
             out_logits = []
             for i in range(max_len):
-                tgt_mask = generate_square_subsequent_mask(i + 1).to(input.device)
+                tgt_mask = _generate_square_subsequent_mask(i + 1).to(input.device)
                 output = self.decoder(out_indices)
                 output = self.pos_decoder(output)
                 output = self.transformer.decoder(output,
@@ -248,7 +248,7 @@ class AutoregressiveTransformer(Model):
         Returns:
           AutoregressiveTransformer: Model object.
         """
-        
+
         preprocessor = Preprocessor.from_config(config)
         return AutoregressiveTransformer(
             encoder_vocab_size=preprocessor.text_tokenizer.vocab_size,

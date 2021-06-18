@@ -10,7 +10,7 @@ from torch.optim.lr_scheduler import ReduceLROnPlateau
 from torch.utils.tensorboard import SummaryWriter
 
 from dp.model.model import Model
-from dp.model.utils import trim_util_stop
+from dp.model.utils import _trim_util_stop
 from dp.preprocessing.text import Preprocessor
 from dp.training.dataset import new_dataloader
 from dp.training.decorators import ignore_exception
@@ -191,7 +191,7 @@ class Trainer:
                 lang = batch['language'][i]
                 lang = lang_tokenizer.decode(lang.detach().cpu().item())
                 generated = generated_batch[i, :].cpu()
-                generated = trim_util_stop(generated, phoneme_tokenizer.end_index)
+                generated = _trim_util_stop(generated, phoneme_tokenizer.end_index)
                 text, target = text.detach().cpu(), target.detach().cpu()
                 text = text_tokenizer.decode(text, remove_special_tokens=True)
                 generated = phoneme_tokenizer.decode(generated, remove_special_tokens=True)

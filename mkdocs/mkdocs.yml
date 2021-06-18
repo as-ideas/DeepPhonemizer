@@ -1,0 +1,30 @@
+site_name: DeepPhonemizer
+site_author: Axel Springer AI
+
+
+nav:
+    - Home: index.md
+    - Documentation:
+        - Preprocess: preprocess.md
+        - Train: train.md
+        - Model:
+            - model/model.md
+            - model/predictor.md
+            - model/utils.md
+        - Preprocessing:
+            - preprocessing/text.md
+theme:
+  name: 'material'
+  palette:
+    primary: 'black'
+    accent: 'indigo'
+
+repo_name: 'as-ideas/DeepPhonemizer'
+repo_url: 'https://github.com/as-ideas/DeepPhonemizer'
+
+google_analytics:
+  - 'UA-137434942-5'
+  - 'auto'
+
+markdown_extensions:
+  - codehilite

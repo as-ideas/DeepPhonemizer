@@ -7,7 +7,7 @@ def evaluate_samples(lang_samples: Dict[str, List[Tuple[List[str], List[str], Li
     """Calculates word and phoneme error rates per language and their mean across languages
 
     Args:
-      lang_samples: Dictionary with languages as keys and list of prediction samples as values. Prediction
+      lang_samples (: Dictionary with languages as keys and list of prediction samples as values. Prediction
     samples is given as a List of Tuples, where each Tuple is a tokenized representation of
     (text, prediction, target).
       lang_samples: Dict[str: 

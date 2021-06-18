@@ -65,14 +65,6 @@ class BinnedLengthSampler(Sampler):
 
 
 def collate_dataset(batch: List[dict]) -> Dict[str, torch.Tensor]:
-    """
-
-    Args:
-      batch: List[dict]: 
-
-    Returns:
-
-    """
     lang = [b['language'] for b in batch]
     lang = torch.tensor(lang).long()
     text = [b['text'] for b in batch]
@@ -94,17 +86,6 @@ def new_dataloader(dataset_file: Path,
                    batch_size=32,
                    drop_last=False,
                    use_binning=True) -> DataLoader:
-    """
-
-    Args:
-      dataset_file: Path: 
-      batch_size:  (Default value = 32)
-      drop_last:  (Default value = False)
-      use_binning:  (Default value = True)
-
-    Returns:
-
-    """
     dataset = unpickle_binary(dataset_file)
     phonemizer_dataset = PhonemizerDataset(dataset)
     phoneme_lens = [len(p) for _, _, p in dataset]
