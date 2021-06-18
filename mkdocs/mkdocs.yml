@@ -6,15 +6,15 @@ nav:
     - Home: index.md
     - Documentation:
         - Phonemizer: phonemizer.md
-        - Preprocess: preprocess.md
-        - Train: train.md
-        - Model:
+        - preprocess: preprocess.md
+        - train: train.md
+        - model:
             - model/model.md
             - model/predictor.md
             - model/utils.md
-        - Preprocessing:
+        - preprocessing:
             - preprocessing/text.md
-        - Training:
+        - training:
             - training/trainer.md
             - training/evaluation.md
 theme:
