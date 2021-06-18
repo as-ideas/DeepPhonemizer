@@ -16,7 +16,7 @@ def train(config_file: str,
     Triggers training of a phonemizer model.
 
     :param config_file: Path to the config.yaml that stores all necessary parameters.
-    :param checkpoint_file (optional): Path to a model checkpoint to resume training for (e.g. latest_model.pt)
+    :param checkpoint_file: Optional path to a model checkpoint to resume training for (e.g. latest_model.pt)
     :return: None, the model checkpoints are stored in a folder provided by the config.
     """
 

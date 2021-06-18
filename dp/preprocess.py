@@ -23,7 +23,7 @@ def preprocess(config_file: str,
 
     :param config_file: Path to the config.yaml that provides all necessary hyperparameters.
     :param train_data: Training data as a list of Tuple (language, grapheme sequence, phoneme sequence).
-    :param val_data (optional): Validation data as a list of Tuple (language, grapheme sequence, phoneme sequence).
+    :param val_data: Optional validation data as a list of Tuple (language, grapheme sequence, phoneme sequence).
     :param deduplicate_train_data: Whether to deduplicate multiple occurences of the same word (the first is taken)
     :return: None, the preprocessing result is stored in a folder provided by the config.
     """

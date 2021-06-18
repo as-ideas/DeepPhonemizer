@@ -52,7 +52,7 @@ class Trainer:
         :param checkpoint: Dictionary with entries 'optimizer': optimizer state dict,
                            'preprocessor': Preprocessor and 'config': Config.
         :param store_phoneme_dict_in_model: Whether to store a dictionary of word-phoneme mappings
-               in the model checkpoint so that it can be automatically loaded by the Phonemizer.
+               in the model checkpoint so that it can be automatically loaded by a Phonemizer object.
         :return: None, the checkpoints will be stored in a folder provided when instantiating a Trainer.
         """
 

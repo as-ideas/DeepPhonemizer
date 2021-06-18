@@ -80,7 +80,7 @@ class Phonemizer:
             cleaned_words.update(split)
 
         # collect dictionary phonemes for words and hyphenated words
-        word_phonemes = {word: self.get_dict_entry(word=word, lang=lang, punc_set=punc_set)
+        word_phonemes = {word: self._get_dict_entry(word=word, lang=lang, punc_set=punc_set)
                          for word in cleaned_words}
 
         # if word is not in dictionary, split it into subwords
@@ -88,7 +88,7 @@ class Phonemizer:
         word_splits = dict()
         for word in words_to_split:
             key = word
-            word = self.expand_acronym(word) if expand_acronyms else word
+            word = self._expand_acronym(word) if expand_acronyms else word
             word_split = re.split(r'([-])', word)
             word_splits[key] = word_split
 
@@ -96,9 +96,9 @@ class Phonemizer:
         subwords = {w for values in word_splits.values() for w in values}
         subwords = {w for w in subwords if w not in word_phonemes}
         for subword in subwords:
-            word_phonemes[subword] = self.get_dict_entry(word=subword,
-                                                         lang=lang,
-                                                         punc_set=punc_set)
+            word_phonemes[subword] = self._get_dict_entry(word=subword,
+                                                          lang=lang,
+                                                          punc_set=punc_set)
 
         # predict all subwords that are missing in the phoneme dict
         words_to_predict = [word for word, phons in word_phonemes.items()
@@ -129,10 +129,10 @@ class Phonemizer:
                                 split_phonemes=phoneme_lists,
                                 predictions=pred_dict)
 
-    def get_dict_entry(self,
-                       word: str,
-                       lang: str,
-                       punc_set: Set[str]) -> Union[str, None]:
+    def _get_dict_entry(self,
+                        word: str,
+                        lang: str,
+                        punc_set: Set[str]) -> Union[str, None]:
         if word in punc_set or len(word) == 0:
             return word
         if not self.lang_phoneme_dict or lang not in self.lang_phoneme_dict:
@@ -148,7 +148,7 @@ class Phonemizer:
             return None
 
     @staticmethod
-    def expand_acronym(word: str) -> str:
+    def _expand_acronym(word: str) -> str:
         subwords = []
         for subword in word.split('-'):
             expanded = []
@@ -176,6 +176,15 @@ class Phonemizer:
                         checkpoint_path: str,
                         device='cpu',
                         lang_phoneme_dict: Dict[str, Dict[str, str]] = None) -> 'Phonemizer':
+        """
+        Initializes a Phonemizer object from a model checkpoint (.pt file).
+
+        :param checkpoint_path: Path to the .pt checkpoint file.
+        :param device: Device to send the model to ('cpu' or 'cuda').
+        :param lang_phoneme_dict: Optional dictionary containing language shortcuts as keys (e.g. 'en') and
+               for each key a dictionary of word-phoneme mappings. Example: {'en': {'hi': hai}}
+        :return: Phonemizer object.
+        """
         model, checkpoint = load_checkpoint(checkpoint_path, device=device)
         applied_phoneme_dict = None
         if lang_phoneme_dict is not None:
