@@ -65,7 +65,7 @@ def get_dedup_tokens(logits_batch: torch.Tensor) \
             out_probs_i.append(max_logit.item())
             ind = ind + c
         out_tokens.append(cons_tokens)
-        out_probs_i = torch.Tensor(out_probs_i)
+        out_probs_i = torch.tensor(out_probs_i)
         out_probs.append(out_probs_i)
 
     out_tokens = pad_sequence(out_tokens, batch_first=True, padding_value=0)

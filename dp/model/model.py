@@ -7,6 +7,7 @@ import torch.nn as nn
 from torch.nn import TransformerEncoderLayer, LayerNorm, TransformerEncoder, ModuleList
 from dp.model.utils import get_dedup_tokens, _make_len_mask, _generate_square_subsequent_mask, PositionalEncoding
 from dp.preprocessing.text import Preprocessor
+from dp.utils.io import read_config
 
 
 class ModelType(Enum):
@@ -93,6 +94,7 @@ class ForwardTransformer(Model):
         x = x.transpose(0, 1)
         return x
 
+    @torch.jit.export
     def generate(self,
                  batch: Dict[str, torch.Tensor]) -> Tuple[torch.Tensor, torch.Tensor]:
         """
@@ -186,6 +188,7 @@ class AutoregressiveTransformer(Model):
         output = output.transpose(0, 1)
         return output
 
+    @torch.jit.export
     def generate(self,
                  batch: Dict[str, torch.Tensor],
                  max_len=100) -> Tuple[torch.Tensor, torch.Tensor]:
@@ -307,3 +310,12 @@ def load_checkpoint(checkpoint_path: str, device: str = 'cpu') -> Tuple[Model, D
     model.load_state_dict(checkpoint['model'])
     model.eval()
     return model, checkpoint
+
+
+if __name__ == '__main__':
+    config = read_config('/Users/cschaefe/workspace/DeepPhonemizer/dp/configs/forward_config.yaml')
+    model = ForwardTransformer.from_config(config)
+    model_jit = torch.jit.script(model)
+    print(model_jit)
+    x = {'text': torch.ones(1, 10)}
+    y = model_jit.generate()
