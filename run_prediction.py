@@ -1,4 +1,3 @@
-import torch
 from dp.phonemizer import Phonemizer
 
 if __name__ == '__main__':
