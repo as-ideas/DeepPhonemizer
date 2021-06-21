@@ -69,3 +69,9 @@ class TestAutoregTraining(unittest.TestCase):
 
         result = predictor(words=['gewürz'], lang='en_us')[0]
         self.assertTrue(0.8 < result.confidence < 0.84)
+
+        # test jit export
+        predictor.model = torch.jit.script(predictor.model)
+        result_jit = predictor(words=['gewürz'], lang='en_us')[0]
+        self.assertEqual(result.phonemes, result_jit.phonemes)
+        self.assertEqual(result.confidence, result_jit.confidence)

@@ -191,14 +191,14 @@ class AutoregressiveTransformer(Model):
     @torch.jit.export
     def generate(self,
                  batch: Dict[str, torch.Tensor],
-                 max_len=100) -> Tuple[torch.Tensor, torch.Tensor]:
+                 max_len: int = 100) -> Tuple[torch.Tensor, torch.Tensor]:
         """
         Inference pass on a batch of tokenized texts.
 
         Args:
           batch (Dict[str, torch.Tensor]): Dictionary containing the input to the model with entries 'text'
                                            and 'start_index'
-          max_len: Max steps of the autoregressive inference loop.
+          max_len (int): Max steps of the autoregressive inference loop.
 
         Returns:
           Tuple: Predictions. The first element is a Tensor of phoneme tokens and the second element
@@ -310,12 +310,3 @@ def load_checkpoint(checkpoint_path: str, device: str = 'cpu') -> Tuple[Model, D
     model.load_state_dict(checkpoint['model'])
     model.eval()
     return model, checkpoint
-
-
-if __name__ == '__main__':
-    config = read_config('/Users/cschaefe/workspace/DeepPhonemizer/dp/configs/forward_config.yaml')
-    model = ForwardTransformer.from_config(config)
-    model_jit = torch.jit.script(model)
-    print(model_jit)
-    x = {'text': torch.ones(1, 10)}
-    y = model_jit.generate()
