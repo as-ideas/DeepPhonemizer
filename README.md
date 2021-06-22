@@ -20,7 +20,7 @@ The main advantages of this repo are:
 
 Check out the [inference](https://colab.research.google.com/github/as-ideas/DeepPhonemizer/blob/main/dp/notebooks/Inference_Example.ipynb) and [training](https://colab.research.google.com/github/as-ideas/DeepPhonemizer/blob/main/dp/notebooks/Training_Example.ipynb) tutorials on Colab! 
 
-Read the documentation at: https://as-ideas.github.io/DeepPhonemizer/
+#Read the documentation at: https://as-ideas.github.io/DeepPhonemizer/
 
 
 ### Installation
