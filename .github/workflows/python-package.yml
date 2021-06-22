@@ -68,7 +68,7 @@ jobs:
       run: |
         cd mkdocs && sh build_docs.sh
     - name: Deploy documentation
-      #if: github.ref == 'refs/heads/main'
+      if: github.ref == 'refs/heads/main'
       uses: JamesIves/github-pages-deploy-action@4.1.4
       with:
         branch: gh-pages
