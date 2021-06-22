@@ -48,11 +48,13 @@ jobs:
         fail_ci_if_error: true
 
   deploy:
+
     runs-on: ubuntu-18.04
     strategy:
       fail-fast: true
       matrix:
         python-version: [3.8]
+    steps:
     - name: Make documentation
       run: |
         cd mkdocs && sh build_docs.sh
