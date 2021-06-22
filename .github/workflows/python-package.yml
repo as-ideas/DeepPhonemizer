@@ -46,3 +46,6 @@ jobs:
         flags: tests
         name: codecov-umbrella
         fail_ci_if_error: true
+    - name: Make documentation
+      run: |
+        cd mkdocs && sh build_docs.sh
