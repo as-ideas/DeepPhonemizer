@@ -28,7 +28,7 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         python -m pip install flake8
-        python -m pip install -e ".[tests, docs]"
+        python -m pip install -e ".[tests]"
     - name: Lint with flake8
       run: |
         # stop the build if there are Python syntax errors or undefined names
@@ -46,6 +46,30 @@ jobs:
         flags: tests
         name: codecov-umbrella
         fail_ci_if_error: true
+
+  deploy-documentation:
+
+    runs-on: ubuntu-18.04
+    strategy:
+      fail-fast: true
+      matrix:
+        python-version: [3.8]
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v2
+      with:
+        python-version: ${{ matrix.python-version }}
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        python -m pip install -e ".[docs]"
     - name: Make documentation
       run: |
         cd mkdocs && sh build_docs.sh
+    - name: Deploy documentation
+      if: github.ref == 'refs/heads/main'
+      uses: JamesIves/github-pages-deploy-action@4.1.4
+      with:
+        branch: gh-pages
+        folder: docs
