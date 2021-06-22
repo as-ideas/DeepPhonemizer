@@ -106,17 +106,17 @@ class TestPhonemizer(unittest.TestCase):
         self.assertEqual('special-phon-de', result)
 
     def test_expand_acronym(self) -> None:
-        expanded = Phonemizer.expand_acronym('hallo')
+        expanded = Phonemizer._expand_acronym('hallo')
         self.assertEqual('hallo', expanded)
 
-        expanded = Phonemizer.expand_acronym('HAL')
+        expanded = Phonemizer._expand_acronym('HAL')
         self.assertEqual('H-A-L', expanded)
 
-        expanded = Phonemizer.expand_acronym('hallO')
+        expanded = Phonemizer._expand_acronym('hallO')
         self.assertEqual('hall-O', expanded)
 
-        expanded = Phonemizer.expand_acronym('HaLO')
+        expanded = Phonemizer._expand_acronym('HaLO')
         self.assertEqual('Ha-L-O', expanded)
 
-        expanded = Phonemizer.expand_acronym('vCPU')
+        expanded = Phonemizer._expand_acronym('vCPU')
         self.assertEqual('v-C-P-U', expanded)

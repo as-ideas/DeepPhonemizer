@@ -5,16 +5,26 @@ from torch.nn.utils.rnn import pad_sequence
 
 from dp import Prediction
 from dp.model.model import load_checkpoint
-from dp.model.utils import get_len_util_stop
+from dp.model.utils import _get_len_util_stop
 from dp.preprocessing.text import Preprocessor
-from dp.preprocessing.utils import batchify, get_sequence_prob
+from dp.preprocessing.utils import _batchify, _product
 
 
 class Predictor:
 
+    """ Performs model predictions on a batch of inputs. """
+
     def __init__(self,
                  model: torch.nn.Module,
                  preprocessor: Preprocessor) -> None:
+        """
+        Initializes a Predictor object with a trained transformer model a preprocessor.
+
+        Args:
+            model (Model): Trained transformer model.
+            preprocessor (Preprocessor): Preprocessor corresponding to the model configuration.
+        """
+
         self.model = model
         self.text_tokenizer = preprocessor.text_tokenizer
         self.phoneme_tokenizer = preprocessor.phoneme_tokenizer
@@ -22,14 +32,17 @@ class Predictor:
     def __call__(self,
                  words: List[str],
                  lang: str,
-                 batch_size=8) -> List[Prediction]:
+                 batch_size: int = 8) -> List[Prediction]:
         """
         Predicts phonemes for a list of words.
 
-        :param words: List of words to predict.
-        :param lang: Language of texts.
-        :param batch_size: Size of batch for model input to speed up inference.
-        :return: A list of prediction objects containing (word, phonemes, phoneme_tokens, token_probs, confidence)
+        Args:
+          words (list): List of words to predict.
+          lang (str): Language of texts.
+          batch_size (int): Size of batch for model input to speed up inference.
+
+        Returns:
+          List[Prediction]: A list of result objects containing (word, phonemes, phoneme_tokens, token_probs, confidence)
         """
 
         predictions = dict()
@@ -60,7 +73,7 @@ class Predictor:
             output.append(Prediction(word=word,
                                      phonemes=''.join(out_phons),
                                      phoneme_tokens=out_phons_tokens,
-                                     confidence=get_sequence_prob(probs),
+                                     confidence=_product(probs),
                                      token_probs=probs))
 
         return output
@@ -70,10 +83,12 @@ class Predictor:
                        batch_size: int,
                        language: str) \
             -> Dict[str, Tuple[List[int], List[float]]]:
-        """ Returns dictionary with key = word and val = Tuple of (phoneme tokens, phoneme probs) """
+        """
+        Returns dictionary with key = word and val = Tuple of (phoneme tokens, phoneme probs)
+        """
 
         predictions = dict()
-        text_batches = batchify(texts, batch_size)
+        text_batches = _batchify(texts, batch_size)
         for text_batch in text_batches:
             input_batch, lens_batch = [], []
             for text in text_batch:
@@ -84,7 +99,7 @@ class Predictor:
             input_batch = pad_sequence(sequences=input_batch,
                                        batch_first=True, padding_value=0)
             lens_batch = torch.stack(lens_batch)
-            start_indx = self.phoneme_tokenizer.get_start_index(language)
+            start_indx = self.phoneme_tokenizer._get_start_index(language)
             start_inds = torch.tensor([start_indx]*input_batch.size(0)).to(input_batch.device)
             batch = {
                 'text': input_batch,
@@ -95,13 +110,23 @@ class Predictor:
                 output_batch, probs_batch = self.model.generate(batch)
             output_batch, probs_batch = output_batch.cpu(), probs_batch.cpu()
             for text, output, probs in zip(text_batch, output_batch, probs_batch):
-                seq_len = get_len_util_stop(output, self.phoneme_tokenizer.end_index)
+                seq_len = _get_len_util_stop(output, self.phoneme_tokenizer.end_index)
                 predictions[text] = (output[:seq_len].tolist(), probs[:seq_len].tolist())
 
         return predictions
 
     @classmethod
     def from_checkpoint(cls, checkpoint_path: str, device='cpu') -> 'Predictor':
+        """Initializes the predictor from a checkpoint (.pt file).
+
+        Args:
+          checkpoint_path (str): Path to the checkpoint file (.pt).
+          device (str): Device to load the model on ('cpu' or 'cuda'). (Default value = 'cpu').
+
+        Returns:
+          Predictor: Predictor object.
+
+        """
         model, checkpoint = load_checkpoint(checkpoint_path, device=device)
         preprocessor = checkpoint['preprocessor']
         return Predictor(model=model, preprocessor=preprocessor)

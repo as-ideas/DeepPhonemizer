@@ -32,7 +32,7 @@ class TestAutoregTraining(unittest.TestCase):
         config = read_config(self.test_config_path)
         data_dir = self.temp_dir / 'datasets'
         checkpoint_dir = self.temp_dir / 'checkpoints'
-        config_path = self.temp_dir / 'forward_test_config.yaml'
+        config_path = self.temp_dir / 'autoreg_test_config.yaml'
         config['paths']['data_dir'] = str(data_dir)
         config['paths']['checkpoint_dir'] = str(checkpoint_dir)
         save_config(config, config_path)

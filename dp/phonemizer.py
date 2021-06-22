@@ -15,6 +15,13 @@ class Phonemizer:
     def __init__(self,
                  predictor: Predictor,
                  lang_phoneme_dict: Dict[str, Dict[str, str]] = None) -> None:
+        """
+        Initializes a phonemizer with a ready predictor.
+
+        Args:
+            predictor (Predictor): Predictor object carrying the trained transformer model.
+            lang_phoneme_dict (Dict[str, Dict[str, str]], optional): Word-phoneme dictionary for each language.
+        """
 
         self.predictor = predictor
         self.lang_phoneme_dict = lang_phoneme_dict
@@ -22,18 +29,21 @@ class Phonemizer:
     def __call__(self,
                  text: Union[str, List[str]],
                  lang: str,
-                 punctuation=DEFAULT_PUNCTUATION,
-                 expand_acronyms=True,
-                 batch_size=8) -> Union[str, List[str]]:
+                 punctuation: str = DEFAULT_PUNCTUATION,
+                 expand_acronyms: bool = True,
+                 batch_size:int = 8) -> Union[str, List[str]]:
         """
         Phonemizes a single text or list of texts.
 
-        :param text: Text to phonemize as single string or list of strings.
-        :param lang: Language used for phonemization.
-        :param punctuation: Punctuation symbols by which the texts are split.
-        :param expand_acronyms: Whether to expand an acronym, e.g. DIY -> D-I-Y.
-        :param batch_size: Batch size of model to speed up inference.
-        :return: Phonemized text as string, or list of strings, respectively.
+        Args:
+          text (str): Text to phonemize as single string or list of strings.
+          lang (str): Language used for phonemization.
+          punctuation (str): Punctuation symbols by which the texts are split.
+          expand_acronyms (bool): Whether to expand an acronym, e.g. DIY -> D-I-Y.
+          batch_size (int): Batch size of model to speed up inference.
+
+        Returns:
+          Union[str, List[str]]: Phonemized text as string, or list of strings, respectively.
         """
 
         single_input_string = isinstance(text, str)
@@ -51,21 +61,23 @@ class Phonemizer:
     def phonemise_list(self,
                        texts: List[str],
                        lang: str,
-                       punctuation=DEFAULT_PUNCTUATION,
-                       expand_acronyms=True,
-                       batch_size=8) -> PhonemizerResult:
+                       punctuation: str = DEFAULT_PUNCTUATION,
+                       expand_acronyms: bool = True,
+                       batch_size: int = 8) -> PhonemizerResult:
 
-        """
-        Phonemizes a list of texts and returns tokenized texts,
+        """Phonemizes a list of texts and returns tokenized texts,
         phonemes and word predictions with probabilities.
 
-        :param texts: List texts to phonemize.
-        :param lang: Language used for phonemization.
-        :param punctuation: Punctuation symbols by which the texts are split.
-        :param expand_acronyms: Whether to expand an acronym, e.g. DIY -> D-I-Y.
-        :param batch_size: Batch size of model to speed up inference.
-        :return: PhonemizerResult object containing original texts,
-                 phonemes, split texts, split phonemes, and predictions
+        Args:
+          texts (List[str]): List texts to phonemize.
+          lang (str): Language used for phonemization.
+          punctuation (str): Punctuation symbols by which the texts are split. (Default value = DEFAULT_PUNCTUATION)
+          expand_acronyms (bool): Whether to expand an acronym, e.g. DIY -> D-I-Y. (Default value = True)
+          batch_size (int): Batch size of model to speed up inference. (Default value = 8)
+
+        Returns:
+          PhonemizerResult: Object containing original texts, phonemes, split texts, split phonemes, and predictions.
+
         """
 
         punc_set = set(punctuation + '- ')
@@ -80,7 +92,7 @@ class Phonemizer:
             cleaned_words.update(split)
 
         # collect dictionary phonemes for words and hyphenated words
-        word_phonemes = {word: self.get_dict_entry(word=word, lang=lang, punc_set=punc_set)
+        word_phonemes = {word: self._get_dict_entry(word=word, lang=lang, punc_set=punc_set)
                          for word in cleaned_words}
 
         # if word is not in dictionary, split it into subwords
@@ -88,7 +100,7 @@ class Phonemizer:
         word_splits = dict()
         for word in words_to_split:
             key = word
-            word = self.expand_acronym(word) if expand_acronyms else word
+            word = self._expand_acronym(word) if expand_acronyms else word
             word_split = re.split(r'([-])', word)
             word_splits[key] = word_split
 
@@ -96,9 +108,9 @@ class Phonemizer:
         subwords = {w for values in word_splits.values() for w in values}
         subwords = {w for w in subwords if w not in word_phonemes}
         for subword in subwords:
-            word_phonemes[subword] = self.get_dict_entry(word=subword,
-                                                         lang=lang,
-                                                         punc_set=punc_set)
+            word_phonemes[subword] = self._get_dict_entry(word=subword,
+                                                          lang=lang,
+                                                          punc_set=punc_set)
 
         # predict all subwords that are missing in the phoneme dict
         words_to_predict = [word for word, phons in word_phonemes.items()
@@ -129,10 +141,10 @@ class Phonemizer:
                                 split_phonemes=phoneme_lists,
                                 predictions=pred_dict)
 
-    def get_dict_entry(self,
-                       word: str,
-                       lang: str,
-                       punc_set: Set[str]) -> Union[str, None]:
+    def _get_dict_entry(self,
+                        word: str,
+                        lang: str,
+                        punc_set: Set[str]) -> Union[str, None]:
         if word in punc_set or len(word) == 0:
             return word
         if not self.lang_phoneme_dict or lang not in self.lang_phoneme_dict:
@@ -148,7 +160,7 @@ class Phonemizer:
             return None
 
     @staticmethod
-    def expand_acronym(word: str) -> str:
+    def _expand_acronym(word: str) -> str:
         subwords = []
         for subword in word.split('-'):
             expanded = []
@@ -176,6 +188,17 @@ class Phonemizer:
                         checkpoint_path: str,
                         device='cpu',
                         lang_phoneme_dict: Dict[str, Dict[str, str]] = None) -> 'Phonemizer':
+        """Initializes a Phonemizer object from a model checkpoint (.pt file).
+
+        Args:
+          checkpoint_path (str): Path to the .pt checkpoint file.
+          device (str): Device to send the model to ('cpu' or 'cuda'). (Default value = 'cpu')
+          lang_phoneme_dict (Dict[str, Dict[str, str]], optional): Word-phoneme dictionary for each language.
+
+        Returns:
+          Phonemizer: Phonemizer object carrying the loaded model and, optionally, a phoneme dictionary.
+        """
+
         model, checkpoint = load_checkpoint(checkpoint_path, device=device)
         applied_phoneme_dict = None
         if lang_phoneme_dict is not None:

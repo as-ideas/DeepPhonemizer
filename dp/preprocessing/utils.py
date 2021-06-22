@@ -1,10 +1,8 @@
 import math
-from typing import List
-
-import torch
+from typing import List, Union, Any
 
 
-def get_sequence_prob(probs: torch.tensor) -> float:
+def _product(probs: Union[None, List[float]]) -> float:
     if probs is None or len(probs) == 0:
         return 0.
     if 0 in probs:
@@ -13,7 +11,7 @@ def get_sequence_prob(probs: torch.tensor) -> float:
     return prob
 
 
-def batchify(input: list, batch_size: int) -> List[list]:
+def _batchify(input: List[Any], batch_size: int) -> List[List[Any]]:
     l = len(input)
     output = []
     for i in range(0, l, batch_size):

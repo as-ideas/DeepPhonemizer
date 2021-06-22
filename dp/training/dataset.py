@@ -19,7 +19,7 @@ class PhonemizerDataset(Dataset):
         super().__init__()
         self.items = items
 
-    def __getitem__(self, index: int) -> Dict[str, torch.tensor]:
+    def __getitem__(self, index: int) -> Dict[str, torch.Tensor]:
         item = self.items[index]
         language, text, phonemes = item
         text = torch.tensor(text, dtype=torch.long)
@@ -36,7 +36,7 @@ class PhonemizerDataset(Dataset):
 # From https://github.com/fatchord/WaveRNN/blob/master/utils/dataset.py
 class BinnedLengthSampler(Sampler):
 
-    def __init__(self, phoneme_lens: torch.tensor, batch_size: int, bin_size: int, seed=42) -> None:
+    def __init__(self, phoneme_lens: List[int], batch_size: int, bin_size: int, seed=42) -> None:
         _, self.idx = torch.sort(torch.tensor(phoneme_lens))
         self.batch_size = batch_size
         self.bin_size = bin_size
@@ -56,13 +56,13 @@ class BinnedLengthSampler(Sampler):
             last_bin = idx[len(binned_idx):]
             self.random.shuffle(last_bin)
             binned_idx = np.concatenate([binned_idx, last_bin])
-        return iter(torch.tensor(binned_idx).long())
+        return iter(torch.Tensor(binned_idx).long())
 
     def __len__(self):
         return len(self.idx)
 
 
-def collate_dataset(batch: List[dict]) -> Dict[str, torch.tensor]:
+def collate_dataset(batch: List[dict]) -> Dict[str, torch.Tensor]:
     lang = [b['language'] for b in batch]
     lang = torch.tensor(lang).long()
     text = [b['text'] for b in batch]

@@ -1,8 +1,8 @@
 import traceback
-from time import time
 
 
 def ignore_exception(f):
+
     def apply_func(*args, **kwargs):
         try:
             result = f(*args, **kwargs)

@@ -3,10 +3,38 @@ from typing import List, Union, Tuple
 
 
 def word_error(predicted: List[Union[str, int]], target: List[Union[str, int]]) -> float:
+    """Calculates the word error rate of a single word result.
+
+    Args:
+      predicted: Predicted word.
+      target: Target word.
+      predicted: List[Union[str: 
+      int]]: 
+      target: List[Union[str: 
+
+    Returns:
+      Word error
+
+    """
+
     return int(predicted != target)
 
 
 def phoneme_error(predicted: List[Union[str, int]], target: List[Union[str, int]]) -> Tuple[int, int]:
+    """Calculates the phoneme error rate of a single result based on the Levenshtein distance.
+
+    Args:
+      predicted: Predicted word.
+      target: Target word.
+      predicted: List[Union[str: 
+      int]]: 
+      target: List[Union[str: 
+
+    Returns:
+      Phoneme error.
+
+    """
+
     d = numpy.zeros((len(target) + 1) * (len(predicted) + 1),
                     dtype=numpy.uint8)
     d = d.reshape((len(target) + 1, len(predicted) + 1))

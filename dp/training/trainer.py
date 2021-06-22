@@ -10,7 +10,7 @@ from torch.optim.lr_scheduler import ReduceLROnPlateau
 from torch.utils.tensorboard import SummaryWriter
 
 from dp.model.model import Model
-from dp.model.utils import trim_util_stop
+from dp.model.utils import _trim_util_stop
 from dp.preprocessing.text import Preprocessor
 from dp.training.dataset import new_dataloader
 from dp.training.decorators import ignore_exception
@@ -21,7 +21,18 @@ from dp.utils.io import to_device, unpickle_binary
 
 class Trainer:
 
+    """ Performs model training. """
+
     def __init__(self, checkpoint_dir: Path, loss_type='ctc') -> None:
+        """
+        Initializes a Trainer object.
+
+        Args:
+          checkpoint_dir (Path): Directory to store the model checkpoints.
+          loss_type (str): Type of loss: 'ctc' for forward transformer models
+                           and 'cross_entropy' for autoregressive models.
+        """
+
         self.checkpoint_dir = checkpoint_dir
         self.checkpoint_dir.mkdir(parents=True, exist_ok=True)
         self.writer = SummaryWriter(log_dir=str(self.checkpoint_dir / 'logs'))
@@ -35,8 +46,22 @@ class Trainer:
 
     def train(self,
               model: Model,
-              checkpoint: dict,
-              store_phoneme_dict_in_model=True) -> None:
+              checkpoint: Dict[str, Any],
+              store_phoneme_dict_in_model: bool = True) -> None:
+        """
+        Performs training of a transformer model.
+
+        Args:
+          model (Model): Model to be trained (can be a fresh model or restored from a checkpoint).
+          checkpoint (Dict[str, Any]): Dictionary with entries 'optimizer': optimizer state dict,
+                                       'preprocessor': Preprocessor and 'config': Dict.
+          store_phoneme_dict_in_model (bool): Whether to store a dictionary of word-phoneme mappings
+                                              in the model checkpoint so that it can be automatically
+                                              loaded by a Phonemizer object.
+
+        Returns:
+          None: the checkpoints will be stored in a folder provided when instantiating a Trainer.
+        """
 
         config = checkpoint['config']
         data_dir = Path(config['paths']['data_dir'])
@@ -101,35 +126,35 @@ class Trainer:
                                        global_step=step)
 
                 if step % config['training']['validate_steps'] == 0:
-                    val_loss = self.validate(model, val_batches)
+                    val_loss = self._validate(model, val_batches)
                     self.writer.add_scalar('Loss/val', val_loss, global_step=step)
 
                 if step % config['training']['generate_steps'] == 0:
-                    lang_samples = self.generate_samples(model=model,
-                                                         preprocessor=checkpoint['preprocessor'],
-                                                         val_batches=val_batches)
+                    lang_samples = self._generate_samples(model=model,
+                                                          preprocessor=checkpoint['preprocessor'],
+                                                          val_batches=val_batches)
                     eval_result = evaluate_samples(lang_samples=lang_samples)
-                    self.write_summaries(lang_samples=lang_samples,
-                                         eval_result=eval_result,
-                                         n_generate_samples=config['training']['n_generate_samples'],
-                                         step=step)
+                    self._write_summaries(lang_samples=lang_samples,
+                                          eval_result=eval_result,
+                                          n_generate_samples=config['training']['n_generate_samples'],
+                                          step=step)
                     if eval_result['mean_per'] is not None and eval_result['mean_per'] < best_per:
-                        self.save_model(model=model, optimizer=optimizer, checkpoint=checkpoint,
-                                        path=self.checkpoint_dir / f'best_model.pt')
-                        self.save_model(model=model, optimizer=None, checkpoint=checkpoint,
-                                        path=self.checkpoint_dir / f'best_model_no_optim.pt')
+                        self._save_model(model=model, optimizer=optimizer, checkpoint=checkpoint,
+                                         path=self.checkpoint_dir / f'best_model.pt')
+                        self._save_model(model=model, optimizer=None, checkpoint=checkpoint,
+                                         path=self.checkpoint_dir / f'best_model_no_optim.pt')
                         scheduler.step(eval_result['mean_per'])
 
                 if step % config['training']['checkpoint_steps'] == 0:
                     step = step // 1000
-                    self.save_model(model=model, optimizer=optimizer, checkpoint=checkpoint,
-                                    path=self.checkpoint_dir / f'model_step_{step}k.pt')
+                    self._save_model(model=model, optimizer=optimizer, checkpoint=checkpoint,
+                                     path=self.checkpoint_dir / f'model_step_{step}k.pt')
 
             losses = []
-            self.save_model(model=model, optimizer=optimizer, checkpoint=checkpoint,
-                            path=self.checkpoint_dir / 'latest_model.pt')
+            self._save_model(model=model, optimizer=optimizer, checkpoint=checkpoint,
+                             path=self.checkpoint_dir / 'latest_model.pt')
 
-    def validate(self, model: Model, val_batches: List[dict]) -> float:
+    def _validate(self, model: Model, val_batches: List[dict]) -> float:
         device = next(model.parameters()).device
         criterion = self.criterion.to(device)
         model.eval()
@@ -145,10 +170,10 @@ class Trainer:
         return sum(val_losses) / len(val_losses)
 
     @ignore_exception
-    def generate_samples(self,
-                         model: Model,
-                         preprocessor: Preprocessor,
-                         val_batches: List[dict]) -> Dict[str, List[Tuple[List[str], List[str], List[str]]]]:
+    def _generate_samples(self,
+                          model: Model,
+                          preprocessor: Preprocessor,
+                          val_batches: List[dict]) -> Dict[str, List[Tuple[List[str], List[str], List[str]]]]:
 
         """ Returns a dictionary with entries lang: Tuple of (word, generated, target) """
 
@@ -169,7 +194,7 @@ class Trainer:
                 lang = batch['language'][i]
                 lang = lang_tokenizer.decode(lang.detach().cpu().item())
                 generated = generated_batch[i, :].cpu()
-                generated = trim_util_stop(generated, phoneme_tokenizer.end_index)
+                generated = _trim_util_stop(generated, phoneme_tokenizer.end_index)
                 text, target = text.detach().cpu(), target.detach().cpu()
                 text = text_tokenizer.decode(text, remove_special_tokens=True)
                 generated = phoneme_tokenizer.decode(generated, remove_special_tokens=True)
@@ -181,11 +206,11 @@ class Trainer:
         return lang_prediction_result
 
     @ignore_exception
-    def write_summaries(self,
-                        lang_samples: Dict[str, List[Tuple[List[str], List[str], List[str]]]],
-                        eval_result: Dict[str, Any],
-                        n_generate_samples: int,
-                        step: int) -> None:
+    def _write_summaries(self,
+                         lang_samples: Dict[str, List[Tuple[List[str], List[str], List[str]]]],
+                         eval_result: Dict[str, Any],
+                         n_generate_samples: int,
+                         step: int) -> None:
 
         self.writer.add_scalar(f'Phoneme_Error_Rate/mean',
                                eval_result['mean_per'], global_step=step)
@@ -211,11 +236,11 @@ class Trainer:
             log_text = '\n'.join(log_text_list[:n_generate_samples])
             self.writer.add_text(f'{lang}/text_prediction_target', log_text, global_step=step)
 
-    def save_model(self,
-                   model: torch.nn.Module,
-                   optimizer: torch.optim,
-                   checkpoint: Dict[str, Any],
-                   path: Path) -> None:
+    def _save_model(self,
+                    model: torch.nn.Module,
+                    optimizer: torch.optim,
+                    checkpoint: Dict[str, Any],
+                    path: Path) -> None:
         checkpoint['model'] = model.state_dict()
         if optimizer is not None:
             checkpoint['optimizer'] = optimizer.state_dict()
