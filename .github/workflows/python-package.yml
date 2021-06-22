@@ -46,10 +46,18 @@ jobs:
         flags: tests
         name: codecov-umbrella
         fail_ci_if_error: true
+
+  deploy-documentation:
+    runs-on: ubuntu-18.04
+    strategy:
+      fail-fast: true
+      matrix:
+        python-version: [3.8]
     - name: Make documentation
       run: |
         cd mkdocs && sh build_docs.sh
     - name: Deploy documentation
+      #if: github.ref == 'refs/heads/main'
       uses: JamesIves/github-pages-deploy-action@4.1.4
       with:
         branch: gh-pages
