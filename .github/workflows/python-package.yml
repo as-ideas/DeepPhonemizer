@@ -49,15 +49,8 @@ jobs:
     - name: Make documentation
       run: |
         cd mkdocs && sh build_docs.sh
-    - name: Commit files
-      run: |
-        echo ${{ github.ref }}
-        git add .
-        git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
-        git config --local user.name "github-actions[bot]"
-        git commit -m "CI: Automated build push" -a | exit 0
-    - name: Push changes
-      if: github.ref == 'refs/heads/main'
-      uses: ad-m/github-push-action@master
+    - name: Deploy documentation
+      uses: peaceiris/actions-gh-pages@v3
       with:
         github_token: ${{ secrets.GITHUB_TOKEN }}
+        publish_dir: ./docs
