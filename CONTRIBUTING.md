@@ -27,7 +27,7 @@ You may look through the [GitHub issues](https://github.com/as-ideas/DeepPhonemi
 - Make sure any new function or class you introduce has proper docstrings.
 
 ## Testing
-- We use [pytest](https://docs.pytest.org/en/latest/) for our testing. Make sure to write tests for any new feature and/or bug fixes.
+- We use [unittest](https://docs.python.org/3/library/unittest.html) for our testing. Make sure to write tests for any new feature and/or bug fixes.
 
 ## Main Contributor List
 We maintain a list of main contributors to appreciate all the contributions.
