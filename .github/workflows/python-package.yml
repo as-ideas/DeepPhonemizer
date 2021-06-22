@@ -47,7 +47,7 @@ jobs:
         name: codecov-umbrella
         fail_ci_if_error: true
 
-  deploy-documentation:
+  deploy:
     runs-on: ubuntu-18.04
     strategy:
       fail-fast: true
