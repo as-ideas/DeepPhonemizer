@@ -17,7 +17,7 @@ class PositionalEncoding(torch.nn.Module):
             max_len: Max length of precalculated position sequence.
         """
 
-        super(PositionalEncoding, self).__init__()
+        super().__init__()
         self.dropout = torch.nn.Dropout(p=dropout)
         self.scale = torch.nn.Parameter(torch.ones(1))
 

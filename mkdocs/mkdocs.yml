@@ -4,7 +4,8 @@ site_author: Axel Springer AI
 
 nav:
     - Home: index.md
-    - Documentation:
+    - Contributing: CONTRIBUTING.md
+    - API Reference:
         - Phonemizer: phonemizer.md
         - Result: result.md
         - preprocess: preprocess.md
