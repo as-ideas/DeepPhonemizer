@@ -70,3 +70,9 @@ class TestForwardTraining(unittest.TestCase):
         result = predictor(words=['gewürz'], lang='en_us')[0]
         self.assertEqual('ɡəvʏʁt͡s', result.phonemes)
         self.assertTrue(0.82 < result.confidence < 0.86)
+
+        # test jit export
+        predictor.model = torch.jit.script(predictor.model)
+        result_jit = predictor(words=['gewürz'], lang='en_us')[0]
+        self.assertEqual(result.phonemes, result_jit.phonemes)
+        self.assertEqual(result.confidence, result_jit.confidence)

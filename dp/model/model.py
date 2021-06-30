@@ -4,7 +4,8 @@ from typing import Tuple, Dict, Any
 
 import torch
 import torch.nn as nn
-from torch.nn import TransformerEncoderLayer, LayerNorm, TransformerEncoder, ModuleList
+from torch.nn import TransformerEncoderLayer, LayerNorm, TransformerEncoder
+
 from dp.model.utils import get_dedup_tokens, _make_len_mask, _generate_square_subsequent_mask, PositionalEncoding
 from dp.preprocessing.text import Preprocessor
 
@@ -93,6 +94,7 @@ class ForwardTransformer(Model):
         x = x.transpose(0, 1)
         return x
 
+    @torch.jit.export
     def generate(self,
                  batch: Dict[str, torch.Tensor]) -> Tuple[torch.Tensor, torch.Tensor]:
         """
@@ -186,16 +188,17 @@ class AutoregressiveTransformer(Model):
         output = output.transpose(0, 1)
         return output
 
+    @torch.jit.export
     def generate(self,
                  batch: Dict[str, torch.Tensor],
-                 max_len=100) -> Tuple[torch.Tensor, torch.Tensor]:
+                 max_len: int = 100) -> Tuple[torch.Tensor, torch.Tensor]:
         """
         Inference pass on a batch of tokenized texts.
 
         Args:
           batch (Dict[str, torch.Tensor]): Dictionary containing the input to the model with entries 'text'
                                            and 'start_index'
-          max_len: Max steps of the autoregressive inference loop.
+          max_len (int): Max steps of the autoregressive inference loop.
 
         Returns:
           Tuple: Predictions. The first element is a Tensor of phoneme tokens and the second element

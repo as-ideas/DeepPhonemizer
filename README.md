@@ -81,7 +81,7 @@ only to predict out-of-dictionary words.
 ```python
 from dp.phonemizer import Phonemizer
 
-phonemizer = Phonemizer.from_checkpoint('/content/checkpoints/best_model.pt')
+phonemizer = Phonemizer.from_checkpoint('checkpoints/best_model.pt')
 phonemes = phonemizer('Phonemizing an English text is imposimpable!', lang='en_us')
 ```
 
@@ -101,9 +101,22 @@ for word, pred in result.predictions.items():
 
 | Model | Language | Dataset | Repo Version
 |---|---|---|---|
-|[en_us_cmudict_ipa_foward](https://public-asai-dl-models.s3.eu-central-1.amazonaws.com/DeepPhonemizer/en_us_cmudict_ipa_forward.pt) | en_us | [cmudict-ipa](https://github.com/menelik3/cmudict-ipa) | 0.0.10 |
-|[en_us_cmudict_foward](https://public-asai-dl-models.s3.eu-central-1.amazonaws.com/DeepPhonemizer/en_us_cmudict_ipa_forward.pt) | en_us | [cmudict](https://github.com/microsoft/CNTK/tree/master/Examples/SequenceToSequence/CMUDict/Data) | 0.0.10 |
-|[latin_ipa_foward](https://public-asai-dl-models.s3.eu-central-1.amazonaws.com/DeepPhonemizer/latin_ipa_forward.pt) | en_uk, en_us, de, fr, es | [wikipron](https://github.com/CUNY-CL/wikipron/tree/master/data/scrape/tsv) | 0.0.10 |
+|[en_us_cmudict_ipa_forward](https://public-asai-dl-models.s3.eu-central-1.amazonaws.com/DeepPhonemizer/en_us_cmudict_ipa_forward.pt) | en_us | [cmudict-ipa](https://github.com/menelik3/cmudict-ipa) | 0.0.10 |
+|[en_us_cmudict_forward](https://public-asai-dl-models.s3.eu-central-1.amazonaws.com/DeepPhonemizer/en_us_cmudict_ipa_forward.pt) | en_us | [cmudict](https://github.com/microsoft/CNTK/tree/master/Examples/SequenceToSequence/CMUDict/Data) | 0.0.10 |
+|[latin_ipa_forward](https://public-asai-dl-models.s3.eu-central-1.amazonaws.com/DeepPhonemizer/latin_ipa_forward.pt) | en_uk, en_us, de, fr, es | [wikipron](https://github.com/CUNY-CL/wikipron/tree/master/data/scrape/tsv) | 0.0.10 |
+
+### Torchscript Export
+
+You can easily export the underlying transformer models with TorchScript:
+```python
+import torch
+from dp.phonemizer import Phonemizer
+
+phonemizer = Phonemizer.from_checkpoint('checkpoints/best_model.pt')
+model = phonemizer.predictor.model
+phonemizer.predictor.model = torch.jit.script(model)
+phonemizer('Running the torchscript model!')
+```
 
 
 ### Maintainers
