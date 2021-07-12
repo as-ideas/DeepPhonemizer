@@ -1,4 +1,12 @@
-# DeepPhonemizer
+<p align="center">
+    <br>
+    <img src="assets/header.png" width="800"/>
+    <br>
+</p>
+
+<h2 align="center">
+<p>A G2P library in PyTorch</p>
+</h2>
 
 ![Build Status](https://github.com/as-ideas/DeepPhonemizer/workflows/pytest/badge.svg)
 ![codecov](https://codecov.io/gh/as-ideas/DeepPhonemizer/branch/main/graph/badge.svg)
