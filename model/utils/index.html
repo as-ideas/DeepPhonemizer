@@ -11,19 +11,19 @@
         <meta name="author" content="Axel Springer AI">
       
       
-      <link rel="icon" href="/assets/images/favicon.png">
+      <link rel="icon" href="../../assets/images/favicon.png">
       <meta name="generator" content="mkdocs-1.2.2, mkdocs-material-7.2.0">
     
     
       
-        <title>DeepPhonemizer</title>
+        <title>Utils - DeepPhonemizer</title>
       
     
     
-      <link rel="stylesheet" href="/assets/stylesheets/main.fe914879.min.css">
+      <link rel="stylesheet" href="../../assets/stylesheets/main.fe914879.min.css">
       
         
-        <link rel="stylesheet" href="/assets/stylesheets/palette.ba0d045b.min.css">
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ba0d045b.min.css">
         
           
           
@@ -70,12 +70,17 @@
     <body dir="ltr" data-md-color-scheme="" data-md-color-primary="black" data-md-color-accent="indigo">
   
     
-    <script>function __prefix(e){return new URL("/",location).pathname+"."+e}function __get(e,t=localStorage){return JSON.parse(t.getItem(__prefix(e)))}</script>
+    <script>function __prefix(e){return new URL("../..",location).pathname+"."+e}function __get(e,t=localStorage){return JSON.parse(t.getItem(__prefix(e)))}</script>
     
     <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
     <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
     <label class="md-overlay" for="__drawer"></label>
     <div data-md-component="skip">
+      
+        
+        <a href="#get_dedup_tokens" class="md-skip">
+          Skip to content
+        </a>
       
     </div>
     <div data-md-component="announce">
@@ -84,7 +89,7 @@
     
       <header class="md-header" data-md-component="header">
   <nav class="md-header__inner md-grid" aria-label="Header">
-    <a href="/." title="DeepPhonemizer" class="md-header__button md-logo" aria-label="DeepPhonemizer" data-md-component="logo">
+    <a href="../.." title="DeepPhonemizer" class="md-header__button md-logo" aria-label="DeepPhonemizer" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54z"/></svg>
@@ -103,7 +108,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              
+              Utils
             
           </span>
         </div>
@@ -181,7 +186,7 @@
 
 <nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
   <label class="md-nav__title" for="__drawer">
-    <a href="/." title="DeepPhonemizer" class="md-nav__button md-logo" aria-label="DeepPhonemizer" data-md-component="logo">
+    <a href="../.." title="DeepPhonemizer" class="md-nav__button md-logo" aria-label="DeepPhonemizer" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54z"/></svg>
@@ -213,7 +218,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/." class="md-nav__link">
+      <a href="../.." class="md-nav__link">
         Home
       </a>
     </li>
@@ -228,7 +233,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/CONTRIBUTING/" class="md-nav__link">
+      <a href="../../CONTRIBUTING/" class="md-nav__link">
         Contributing
       </a>
     </li>
@@ -241,12 +246,14 @@
 
   
   
+    
+  
   
     
-    <li class="md-nav__item md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
       
       
-        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_3" type="checkbox" id="__nav_3" >
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_3" type="checkbox" id="__nav_3" checked>
       
       <label class="md-nav__link" for="__nav_3">
         API Reference
@@ -264,7 +271,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/phonemizer/" class="md-nav__link">
+      <a href="../../phonemizer/" class="md-nav__link">
         Phonemizer
       </a>
     </li>
@@ -276,7 +283,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/result/" class="md-nav__link">
+      <a href="../../result/" class="md-nav__link">
         Result
       </a>
     </li>
@@ -288,7 +295,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/preprocess/" class="md-nav__link">
+      <a href="../../preprocess/" class="md-nav__link">
         preprocess
       </a>
     </li>
@@ -300,7 +307,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/train/" class="md-nav__link">
+      <a href="../../train/" class="md-nav__link">
         train
       </a>
     </li>
@@ -310,12 +317,14 @@
             
   
   
+    
+  
   
     
-    <li class="md-nav__item md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
       
       
-        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_3_5" type="checkbox" id="__nav_3_5" >
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_3_5" type="checkbox" id="__nav_3_5" checked>
       
       <label class="md-nav__link" for="__nav_3_5">
         model
@@ -333,7 +342,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/model/model/" class="md-nav__link">
+      <a href="../model/" class="md-nav__link">
         Model
       </a>
     </li>
@@ -345,7 +354,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/model/predictor/" class="md-nav__link">
+      <a href="../predictor/" class="md-nav__link">
         Predictor
       </a>
     </li>
@@ -355,11 +364,135 @@
             
   
   
+    
   
-    <li class="md-nav__item">
-      <a href="/model/utils/" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" data-md-toggle="toc" type="checkbox" id="__toc">
+      
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          Utils
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
         Utils
       </a>
+      
+        
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#get_dedup_tokens" class="md-nav__link">
+    get_dedup_tokens
+  </a>
+  
+    <nav class="md-nav" aria-label="get_dedup_tokens">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#args" class="md-nav__link">
+    Args
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#returns" class="md-nav__link">
+    Returns
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_generate_square_subsequent_mask" class="md-nav__link">
+    _generate_square_subsequent_mask
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_make_len_mask" class="md-nav__link">
+    _make_len_mask
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_get_len_util_stop" class="md-nav__link">
+    _get_len_util_stop
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_trim_util_stop" class="md-nav__link">
+    _trim_util_stop
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#class-positionalencoding" class="md-nav__link">
+    class PositionalEncoding
+  </a>
+  
+    <nav class="md-nav" aria-label="class PositionalEncoding">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#__init__" class="md-nav__link">
+    __init__
+  </a>
+  
+    <nav class="md-nav" aria-label="__init__">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#args_1" class="md-nav__link">
+    Args
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#forward" class="md-nav__link">
+    forward
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -396,7 +529,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/preprocessing/text/" class="md-nav__link">
+      <a href="../../preprocessing/text/" class="md-nav__link">
         Text
       </a>
     </li>
@@ -435,7 +568,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/training/trainer/" class="md-nav__link">
+      <a href="../../training/trainer/" class="md-nav__link">
         Trainer
       </a>
     </li>
@@ -447,7 +580,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/training/evaluation/" class="md-nav__link">
+      <a href="../../training/evaluation/" class="md-nav__link">
         Evaluation
       </a>
     </li>
@@ -473,11 +606,191 @@
               </div>
             
             
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#get_dedup_tokens" class="md-nav__link">
+    get_dedup_tokens
+  </a>
+  
+    <nav class="md-nav" aria-label="get_dedup_tokens">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#args" class="md-nav__link">
+    Args
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#returns" class="md-nav__link">
+    Returns
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_generate_square_subsequent_mask" class="md-nav__link">
+    _generate_square_subsequent_mask
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_make_len_mask" class="md-nav__link">
+    _make_len_mask
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_get_len_util_stop" class="md-nav__link">
+    _get_len_util_stop
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_trim_util_stop" class="md-nav__link">
+    _trim_util_stop
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#class-positionalencoding" class="md-nav__link">
+    class PositionalEncoding
+  </a>
+  
+    <nav class="md-nav" aria-label="class PositionalEncoding">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#__init__" class="md-nav__link">
+    __init__
+  </a>
+  
+    <nav class="md-nav" aria-label="__init__">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#args_1" class="md-nav__link">
+    Args
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#forward" class="md-nav__link">
+    forward
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
           
           <div class="md-content" data-md-component="content">
             <article class="md-content__inner md-typeset">
               
-  <h1>404 - Not found</h1>
+                
+                  <a href="https://github.com/as-ideas/DeepPhonemizer/edit/master/docs/model/utils.md" title="Edit this page" class="md-content__button md-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20.71 7.04c.39-.39.39-1.04 0-1.41l-2.34-2.34c-.37-.39-1.02-.39-1.41 0l-1.84 1.83 3.75 3.75M3 17.25V21h3.75L17.81 9.93l-3.75-3.75L3 17.25z"/></svg>
+                  </a>
+                
+                
+                  <h1>Utils</h1>
+                
+                <h3 id="get_dedup_tokens">get_dedup_tokens</h3>
+<div class="codehilite"><pre><span></span><code><span class="k">def</span> <span class="nf">get_dedup_tokens</span><span class="p">(</span><span class="n">logits_batch</span><span class="p">)</span>
+</code></pre></div>
+
+<p>Converts a batch of logits into the batch most probable tokens and their probabilities.</p>
+<h5 id="args">Args</h5>
+<ul>
+<li><strong>logits_batch (Tensor)</strong>: Batch of logits (N x T x V).</li>
+</ul>
+<h5 id="returns">Returns</h5>
+<ul>
+<li><strong>Tuple</strong>: Deduplicated tokens. The first element is a tensor (token indices) and the second element</li>
+</ul>
+<h3 id="_generate_square_subsequent_mask">_generate_square_subsequent_mask</h3>
+<div class="codehilite"><pre><span></span><code><span class="k">def</span> <span class="nf">_generate_square_subsequent_mask</span><span class="p">(</span><span class="n">sz</span><span class="p">)</span>
+</code></pre></div>
+
+<h3 id="_make_len_mask">_make_len_mask</h3>
+<div class="codehilite"><pre><span></span><code><span class="k">def</span> <span class="nf">_make_len_mask</span><span class="p">(</span><span class="n">inp</span><span class="p">)</span>
+</code></pre></div>
+
+<h3 id="_get_len_util_stop">_get_len_util_stop</h3>
+<div class="codehilite"><pre><span></span><code><span class="k">def</span> <span class="nf">_get_len_util_stop</span><span class="p">(</span><span class="n">sequence</span><span class="p">,</span> <span class="n">end_index</span><span class="p">)</span>
+</code></pre></div>
+
+<h3 id="_trim_util_stop">_trim_util_stop</h3>
+<div class="codehilite"><pre><span></span><code><span class="k">def</span> <span class="nf">_trim_util_stop</span><span class="p">(</span><span class="n">sequence</span><span class="p">,</span> <span class="n">end_index</span><span class="p">)</span>
+</code></pre></div>
+
+<h2 id="class-positionalencoding">class PositionalEncoding</h2>
+<h3 id="__init__">__init__</h3>
+<div class="codehilite"><pre><span></span><code><span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="n">d_model</span><span class="p">,</span> <span class="n">dropout</span><span class="p">,</span> <span class="n">max_len</span><span class="p">)</span>
+</code></pre></div>
+
+<p>Initializes positional encoding.</p>
+<h5 id="args_1">Args</h5>
+<ul>
+<li>
+<p><strong>d_model (int)</strong>: Dimension of model.</p>
+</li>
+<li>
+<p><strong>dropout (float)</strong>: Dropout after positional encoding.</p>
+</li>
+<li>
+<p><strong>max_len</strong>: Max length of precalculated position sequence.</p>
+</li>
+</ul>
+<h3 id="forward">forward</h3>
+<div class="codehilite"><pre><span></span><code><span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+</code></pre></div>
+                
+              
+              
+                
+
 
               
             </article>
@@ -488,6 +801,41 @@
       
         
 <footer class="md-footer">
+  
+    <nav class="md-footer__inner md-grid" aria-label="Footer">
+      
+        
+        <a href="../predictor/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Predictor" rel="prev">
+          <div class="md-footer__button md-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+          </div>
+          <div class="md-footer__title">
+            <div class="md-ellipsis">
+              <span class="md-footer__direction">
+                Previous
+              </span>
+              Predictor
+            </div>
+          </div>
+        </a>
+      
+      
+        
+        <a href="../../preprocessing/text/" class="md-footer__link md-footer__link--next" aria-label="Next: Text" rel="next">
+          <div class="md-footer__title">
+            <div class="md-ellipsis">
+              <span class="md-footer__direction">
+                Next
+              </span>
+              Text
+            </div>
+          </div>
+          <div class="md-footer__button md-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11H4z"/></svg>
+          </div>
+        </a>
+      
+    </nav>
   
   <div class="md-footer-meta md-typeset">
     <div class="md-footer-meta__inner md-grid">
@@ -508,10 +856,10 @@
     <div class="md-dialog" data-md-component="dialog">
       <div class="md-dialog__inner md-typeset"></div>
     </div>
-    <script id="__config" type="application/json">{"base": "/", "features": [], "translations": {"clipboard.copy": "Copy to clipboard", "clipboard.copied": "Copied to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.placeholder": "Search", "search.result.placeholder": "Type to start searching", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.term.missing": "Missing", "select.version.title": "Select version"}, "search": "/assets/javascripts/workers/search.53c85856.min.js", "version": null}</script>
+    <script id="__config" type="application/json">{"base": "../..", "features": [], "translations": {"clipboard.copy": "Copy to clipboard", "clipboard.copied": "Copied to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.placeholder": "Search", "search.result.placeholder": "Type to start searching", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.term.missing": "Missing", "select.version.title": "Select version"}, "search": "../../assets/javascripts/workers/search.53c85856.min.js", "version": null}</script>
     
     
-      <script src="/assets/javascripts/bundle.716f8af4.min.js"></script>
+      <script src="../../assets/javascripts/bundle.716f8af4.min.js"></script>
       
     
   </body>
