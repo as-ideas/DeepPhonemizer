@@ -41,7 +41,6 @@ def get_dedup_tokens(logits_batch: torch.Tensor) \
 
     Args:
       logits_batch (Tensor): Batch of logits (N x T x V).
-      logits_batch (Tensor): torch.Tensor:
 
     Returns:
       Tuple: Deduplicated tokens. The first element is a tensor (token indices) and the second element
