@@ -11,7 +11,7 @@ Read the documentation at: https://as-ideas.github.io/DeepPhonemizer/
 
 setup(
     name='deep-phonemizer',
-    version='0.0.15',
+    version='0.0.17',
     author='Christian Schäfer',
     author_email='c.schaefer.home@gmail.com',
     description='Grapheme to phoneme conversion with deep learning.',
