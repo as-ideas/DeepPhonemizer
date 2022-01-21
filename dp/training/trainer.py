@@ -99,8 +99,11 @@ class Trainer:
         start_epoch = checkpoint['step'] // len(train_loader)
 
         for epoch in range(start_epoch + 1, config['training']['epochs'] + 1):
+            model.train()
             pbar = tqdm.tqdm(enumerate(train_loader, 1), total=len(train_loader))
             for i, batch in pbar:
+                if i > 10:
+                    continue
                 checkpoint['step'] += 1
                 step = checkpoint['step']
                 self._set_warmup_lr(optimizer=optimizer, step=step,
@@ -108,7 +111,7 @@ class Trainer:
                 batch = to_device(batch, device)
                 avg_loss = sum(losses) / len(losses) if len(losses) > 0 else math.inf
                 pbar.set_description(desc=f'Epoch: {epoch} | Step {step} '
-                                          f'| Loss: {avg_loss:#.4}', refresh=True)
+                                          f'| Train loss: {avg_loss:#.4}', refresh=True)
                 pred = model(batch)
                 loss = criterion(pred, batch)
 
@@ -149,6 +152,20 @@ class Trainer:
                     step = step // 1000
                     self._save_model(model=model, optimizer=optimizer, checkpoint=checkpoint,
                                      path=self.checkpoint_dir / f'model_step_{step}k.pt')
+
+            model.eval()
+            val_losses = []
+            with torch.no_grad():
+                for val_batch in val_loader:
+                    val_batch = to_device(val_batch, device)
+                    val_pred = model(val_batch)
+                    val_loss = criterion(val_pred, val_batch)
+                    val_losses.append(val_loss.item())
+            avg_val_loss = sum(val_losses) / len(val_losses) if len(val_losses) > 0 else math.inf
+            print(f"Validation loss: {avg_val_loss:#.4}")
+            #pbar.set_description(desc=f'Epoch: {epoch} | Step {step} '
+            #                          f'| Train loss: {avg_loss:#.4}'
+            #                          f'| Val loss: {avg_val_loss:#.4}', refresh=True)
 
             losses = []
             self._save_model(model=model, optimizer=optimizer, checkpoint=checkpoint,
