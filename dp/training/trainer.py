@@ -102,8 +102,6 @@ class Trainer:
             model.train()
             pbar = tqdm.tqdm(enumerate(train_loader, 1), total=len(train_loader))
             for i, batch in pbar:
-                if i > 10:
-                    continue
                 checkpoint['step'] += 1
                 step = checkpoint['step']
                 self._set_warmup_lr(optimizer=optimizer, step=step,
