@@ -109,10 +109,9 @@ class Trainer:
             checkpoint['step'] = 0
         start_epoch = checkpoint['step'] // len(train_loader)
 
-        if self.use_ddp and self.rank == 0:
-            train_loader.sampler.set_epoch(start_epoch)
-
         for epoch in range(start_epoch + 1, config['training']['epochs'] + 1):
+            if self.use_ddp:
+                train_loader.sampler.set_epoch(epoch)
             pbar = tqdm.tqdm(enumerate(train_loader, 1), total=len(train_loader))
             for i, batch in pbar:
                 checkpoint['step'] += 1
