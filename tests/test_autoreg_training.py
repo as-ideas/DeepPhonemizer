@@ -53,7 +53,7 @@ class TestAutoregTraining(unittest.TestCase):
                    val_data=val_data,
                    deduplicate_train_data=False)
 
-        train(config_file=config_path)
+        train(rank=0, num_gpus=0, config_file=config_path)
 
         predictor = Predictor.from_checkpoint(checkpoint_dir / 'latest_model.pt')
 

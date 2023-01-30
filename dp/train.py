@@ -1,4 +1,8 @@
+import os
 from pathlib import Path
+
+import torch
+from torch.distributed import init_process_group
 
 from dp.model.model import load_checkpoint, ModelType, \
     create_model
@@ -10,12 +14,16 @@ from dp.utils.logging import get_logger
 logger = get_logger(__name__)
 
 
-def train(config_file: str,
+def train(rank: int,
+          num_gpus: int,
+          config_file: str,
           checkpoint_file: str = None) -> None:
     """
     Runs training of a transformer model.
 
     Args:
+      rank (int): Device id
+      num_gpus (int): Number of devices
       config_file (str): Path to the config.yaml that stores all necessary parameters.
       checkpoint_file (str, optional): Path to a model checkpoint to resume training for (e.g. latest_model.pt)
 
@@ -25,6 +33,12 @@ def train(config_file: str,
     """
 
     config = read_config(config_file)
+
+    if num_gpus >= 1:
+        os.environ["MASTER_ADDR"] = "localhost"
+        os.environ["MASTER_PORT"] = "12355"
+        init_process_group(backend=config['training']['ddp_backend'], rank=rank, world_size=num_gpus)
+
     if checkpoint_file is not None:
         logger.info(f'Restoring model from checkpoint: {checkpoint_file}')
         model, checkpoint = load_checkpoint(checkpoint_file)
@@ -53,7 +67,15 @@ def train(config_file: str,
     checkpoint_dir = Path(config['paths']['checkpoint_dir'])
     logger.info(f'Checkpoints will be stored at {checkpoint_dir.absolute()}')
     loss_type = 'cross_entropy' if model_type.is_autoregressive() else 'ctc'
-    trainer = Trainer(checkpoint_dir=checkpoint_dir, loss_type=loss_type)
+
+    if num_gpus > 0:
+        device = torch.device('cuda:{:d}'.format(rank))
+    else:
+        device = torch.device('cpu')
+
+    use_ddp = True if num_gpus > 1 else False
+
+    trainer = Trainer(checkpoint_dir=checkpoint_dir, device=device, rank=rank, use_ddp=use_ddp, loss_type=loss_type)
     trainer.train(model=model,
                   checkpoint=checkpoint,
                   store_phoneme_dict_in_model=config['training']['store_phoneme_dict_in_model'])

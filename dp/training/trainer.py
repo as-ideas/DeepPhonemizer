@@ -5,6 +5,7 @@ from typing import List, Dict, Any, Tuple
 
 import torch
 import tqdm
+from torch.nn.parallel import DistributedDataParallel
 from torch.optim import Adam
 from torch.optim.lr_scheduler import ReduceLROnPlateau
 from torch.utils.tensorboard import SummaryWriter
@@ -20,21 +21,26 @@ from dp.utils.io import to_device, unpickle_binary
 
 
 class Trainer:
-
     """ Performs model training. """
 
-    def __init__(self, checkpoint_dir: Path, loss_type='ctc') -> None:
+    def __init__(self, checkpoint_dir: Path, device: torch.device, rank: int, use_ddp: bool, loss_type='ctc') -> None:
         """
         Initializes a Trainer object.
 
         Args:
           checkpoint_dir (Path): Directory to store the model checkpoints.
+          device (torch.device): Device used for training
+          rank (int): Rank of the current device
+          use_ddp (bool): Flag whether DDP is used for training
           loss_type (str): Type of loss: 'ctc' for forward transformer models
                            and 'cross_entropy' for autoregressive models.
         """
 
         self.checkpoint_dir = checkpoint_dir
         self.checkpoint_dir.mkdir(parents=True, exist_ok=True)
+        self.use_ddp = use_ddp
+        self.rank = rank
+        self.device = device
         self.writer = SummaryWriter(log_dir=str(self.checkpoint_dir / 'logs'))
         self.loss_type = loss_type
         if loss_type == 'ctc':
@@ -66,11 +72,13 @@ class Trainer:
         config = checkpoint['config']
         data_dir = Path(config['paths']['data_dir'])
 
-        device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
-        model = model.to(device)
+        model = model.to(self.device)
         model.train()
 
-        criterion = self.criterion.to(device)
+        if self.use_ddp:
+            model = DistributedDataParallel(model, device_ids=[self.rank])
+
+        criterion = self.criterion.to(self.device)
 
         optimizer = Adam(model.parameters())
         if 'optimizer' in checkpoint:
@@ -78,15 +86,18 @@ class Trainer:
         for g in optimizer.param_groups:
             g['lr'] = config['training']['learning_rate']
 
-        train_loader = new_dataloader(dataset_file=data_dir / 'train_dataset.pkl',
+        train_loader = new_dataloader(dataset_file=data_dir / 'train_dataset.pkl', use_ddp=self.use_ddp,
                                       drop_last=True, batch_size=config['training']['batch_size'])
-        val_loader = new_dataloader(dataset_file=data_dir / 'val_dataset.pkl',
-                                    drop_last=False, batch_size=config['training']['batch_size_val'])
+
+        if self.rank == 0:
+            val_loader = new_dataloader(dataset_file=data_dir / 'val_dataset.pkl', use_ddp=False,
+                                        drop_last=False, batch_size=config['training']['batch_size_val'])
+
+            val_batches = sorted([b for b in val_loader], key=lambda x: -x['text_len'][0])
+
         if store_phoneme_dict_in_model:
             phoneme_dict = unpickle_binary(data_dir / 'phoneme_dict.pkl')
             checkpoint['phoneme_dict'] = phoneme_dict
-
-        val_batches = sorted([b for b in val_loader], key=lambda x: -x['text_len'][0])
 
         scheduler = ReduceLROnPlateau(optimizer,
                                       factor=config['training']['scheduler_plateau_factor'],
@@ -98,6 +109,9 @@ class Trainer:
             checkpoint['step'] = 0
         start_epoch = checkpoint['step'] // len(train_loader)
 
+        if self.use_ddp and self.rank == 0:
+            train_loader.sampler.set_epoch(start_epoch)
+
         for epoch in range(start_epoch + 1, config['training']['epochs'] + 1):
             pbar = tqdm.tqdm(enumerate(train_loader, 1), total=len(train_loader))
             for i, batch in pbar:
@@ -105,10 +119,11 @@ class Trainer:
                 step = checkpoint['step']
                 self._set_warmup_lr(optimizer=optimizer, step=step,
                                     config=config)
-                batch = to_device(batch, device)
+                batch = to_device(batch, self.device)
                 avg_loss = sum(losses) / len(losses) if len(losses) > 0 else math.inf
-                pbar.set_description(desc=f'Epoch: {epoch} | Step {step} '
+                pbar.set_description(desc=f'Rank: {self.rank} | Epoch: {epoch} | Step {step} '
                                           f'| Loss: {avg_loss:#.4}', refresh=True)
+
                 pred = model(batch)
                 loss = criterion(pred, batch)
 
@@ -125,34 +140,36 @@ class Trainer:
                 self.writer.add_scalar('Params/learning_rate', [g['lr'] for g in optimizer.param_groups][0],
                                        global_step=step)
 
-                if step % config['training']['validate_steps'] == 0:
-                    val_loss = self._validate(model, val_batches)
-                    self.writer.add_scalar('Loss/val', val_loss, global_step=step)
+                if self.rank == 0:
+                    if step % config['training']['validate_steps'] == 0:
+                        val_loss = self._validate(model, val_batches)
+                        self.writer.add_scalar('Loss/val', val_loss, global_step=step)
 
-                if step % config['training']['generate_steps'] == 0:
-                    lang_samples = self._generate_samples(model=model,
-                                                          preprocessor=checkpoint['preprocessor'],
-                                                          val_batches=val_batches)
-                    eval_result = evaluate_samples(lang_samples=lang_samples)
-                    self._write_summaries(lang_samples=lang_samples,
-                                          eval_result=eval_result,
-                                          n_generate_samples=config['training']['n_generate_samples'],
-                                          step=step)
-                    if eval_result['mean_per'] is not None and eval_result['mean_per'] < best_per:
+                    if step % config['training']['generate_steps'] == 0:
+                        lang_samples = self._generate_samples(model=model,
+                                                              preprocessor=checkpoint['preprocessor'],
+                                                              val_batches=val_batches)
+                        eval_result = evaluate_samples(lang_samples=lang_samples)
+                        self._write_summaries(lang_samples=lang_samples,
+                                              eval_result=eval_result,
+                                              n_generate_samples=config['training']['n_generate_samples'],
+                                              step=step)
+                        if eval_result['mean_per'] is not None and eval_result['mean_per'] < best_per:
+                            self._save_model(model=model, optimizer=optimizer, checkpoint=checkpoint,
+                                             path=self.checkpoint_dir / f'best_model.pt')
+                            self._save_model(model=model, optimizer=None, checkpoint=checkpoint,
+                                             path=self.checkpoint_dir / f'best_model_no_optim.pt')
+                            scheduler.step(eval_result['mean_per'])
+
+                    if step % config['training']['checkpoint_steps'] == 0:
+                        step = step // 1000
                         self._save_model(model=model, optimizer=optimizer, checkpoint=checkpoint,
-                                         path=self.checkpoint_dir / f'best_model.pt')
-                        self._save_model(model=model, optimizer=None, checkpoint=checkpoint,
-                                         path=self.checkpoint_dir / f'best_model_no_optim.pt')
-                        scheduler.step(eval_result['mean_per'])
-
-                if step % config['training']['checkpoint_steps'] == 0:
-                    step = step // 1000
-                    self._save_model(model=model, optimizer=optimizer, checkpoint=checkpoint,
-                                     path=self.checkpoint_dir / f'model_step_{step}k.pt')
+                                         path=self.checkpoint_dir / f'model_step_{step}k.pt')
 
             losses = []
-            self._save_model(model=model, optimizer=optimizer, checkpoint=checkpoint,
-                             path=self.checkpoint_dir / 'latest_model.pt')
+            if self.rank == 0:
+                self._save_model(model=model, optimizer=optimizer, checkpoint=checkpoint,
+                                 path=self.checkpoint_dir / 'latest_model.pt')
 
     def _validate(self, model: Model, val_batches: List[dict]) -> float:
         device = next(model.parameters()).device
@@ -186,7 +203,7 @@ class Trainer:
 
         for batch in val_batches:
             batch = to_device(batch, device)
-            generated_batch, _ = model.generate(batch)
+            generated_batch, _ = (model.module if self.use_ddp else model).generate(batch)
             for i in range(batch['text'].size(0)):
                 text_len = batch['text_len'][i]
                 text = batch['text'][i, :text_len]
@@ -241,7 +258,7 @@ class Trainer:
                     optimizer: torch.optim,
                     checkpoint: Dict[str, Any],
                     path: Path) -> None:
-        checkpoint['model'] = model.state_dict()
+        checkpoint['model'] = (model.module if self.use_ddp else model).state_dict()
         if optimizer is not None:
             checkpoint['optimizer'] = optimizer.state_dict()
         else:

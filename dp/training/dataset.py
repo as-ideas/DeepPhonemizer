@@ -5,9 +5,9 @@ from typing import List, Dict, Tuple
 import numpy as np
 import torch
 from torch.nn.utils.rnn import pad_sequence
+from torch.utils.data import DistributedSampler
 from torch.utils.data.dataloader import DataLoader
 from torch.utils.data.dataset import Dataset
-from torch.utils.data.sampler import Sampler
 
 from dp.utils.io import unpickle_binary
 
@@ -34,7 +34,7 @@ class PhonemizerDataset(Dataset):
 
 
 # From https://github.com/fatchord/WaveRNN/blob/master/utils/dataset.py
-class BinnedLengthSampler(Sampler):
+class BinnedLengthSampler(DistributedSampler):
 
     def __init__(self, phoneme_lens: List[int], batch_size: int, bin_size: int, seed=42) -> None:
         _, self.idx = torch.sort(torch.tensor(phoneme_lens))
@@ -83,16 +83,21 @@ def collate_dataset(batch: List[dict]) -> Dict[str, torch.Tensor]:
 def new_dataloader(dataset_file: Path,
                    batch_size=32,
                    drop_last=False,
-                   use_binning=True) -> DataLoader:
+                   use_binning=True,
+                   use_ddp=False) -> DataLoader:
     dataset = unpickle_binary(dataset_file)
     phonemizer_dataset = PhonemizerDataset(dataset)
     phoneme_lens = [len(p) for _, _, p in dataset]
+
     if use_binning:
         sampler = BinnedLengthSampler(phoneme_lens=phoneme_lens,
                                       batch_size=batch_size,
-                                      bin_size=batch_size*3)
+                                      bin_size=batch_size * 3)
     else:
-        sampler = None
+        if use_ddp:
+            sampler = DistributedSampler(phonemizer_dataset)
+        else:
+            sampler = None
 
     return DataLoader(phonemizer_dataset,
                       collate_fn=collate_dataset,

@@ -37,13 +37,14 @@ training:
   scheduler_plateau_patience: 10     # Number of text generations with no improvement to tolerate.
   batch_size: 32                     # Training batch size.
   batch_size_val: 32                 # Validation batch size.
-  epochs: 500                        # Number of epochs to train.
-  generate_steps: 10000              # Interval of training steps to generate sample outputs. Also, at this step the phoneme and word
+  epochs: 2                        # Number of epochs to train.
+  generate_steps: 100              # Interval of training steps to generate sample outputs. Also, at this step the phoneme and word
                                      # error rates are calculated for the scheduler.
-  validate_steps: 10000              # Interval of training steps to validate the model
+  validate_steps: 10              # Interval of training steps to validate the model
                                      # (for the autoregressive model this is teacher-forced).
-  checkpoint_steps: 100000           # Interval of training steps to save the model.
+  checkpoint_steps: 10           # Interval of training steps to save the model.
   n_generate_samples: 10             # Number of result samples to show on tensorboard.
   store_phoneme_dict_in_model: true  # Whether to store the raw phoneme dict in the model.
                                      # It will be loaded by the phonemizer object.
+  ddp_backend: 'nccl'                # Backend used by Torch DDS
 
