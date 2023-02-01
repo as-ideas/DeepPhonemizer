@@ -35,8 +35,8 @@ def train(rank: int,
     config = read_config(config_file)
 
     if num_gpus >= 1:
-        os.environ["MASTER_ADDR"] = "localhost"
-        os.environ["MASTER_PORT"] = "12355"
+        os.environ["MASTER_ADDR"] = config['training']['ddp_host']
+        os.environ["MASTER_PORT"] = config['training']['ddp_post']
         init_process_group(backend=config['training']['ddp_backend'], rank=rank, world_size=num_gpus)
 
     if checkpoint_file is not None:
