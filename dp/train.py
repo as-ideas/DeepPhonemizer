@@ -34,7 +34,7 @@ def train(rank: int,
 
     config = read_config(config_file)
 
-    if num_gpus >= 1:
+    if num_gpus > 1:
         os.environ["MASTER_ADDR"] = config['training']['ddp_host']
         os.environ["MASTER_PORT"] = config['training']['ddp_post']
         init_process_group(backend=config['training']['ddp_backend'], rank=rank, world_size=num_gpus)
@@ -69,7 +69,7 @@ def train(rank: int,
     loss_type = 'cross_entropy' if model_type.is_autoregressive() else 'ctc'
 
     if num_gpus > 0:
-        device = torch.device('cuda:{:d}'.format(rank))
+        device = torch.device(f'cuda:{rank}')
     else:
         device = torch.device('cpu')
 

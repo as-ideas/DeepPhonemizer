@@ -22,7 +22,7 @@ if __name__ == '__main__':
 
     num_gpus = torch.cuda.device_count()
 
-    if num_gpus >= 1:
+    if num_gpus > 1:
         mp.spawn(train, nprocs=num_gpus, args=(num_gpus, config_file))
     else:
         train(rank=0, num_gpus=num_gpus, config_file=config_file)

@@ -48,4 +48,4 @@ training:
                                      # It will be loaded by the phonemizer object.
   ddp_backend: 'nccl'                # Backend used by Torch DDP
   ddp_host: 'localhost'              # Hostname used by Torch DDP
-  ddp_post: 12355                    # Port used by Torch DDP
+  ddp_post: '12355'                    # Port used by Torch DDP
