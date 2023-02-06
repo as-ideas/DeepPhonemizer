@@ -94,10 +94,7 @@ def new_dataloader(dataset_file: Path,
                                       batch_size=batch_size,
                                       bin_size=batch_size * 3)
     else:
-        if use_ddp:
-            sampler = DistributedSampler(phonemizer_dataset)
-        else:
-            sampler = None
+        sampler = DistributedSampler(phonemizer_dataset) if use_ddp else None
 
     return DataLoader(phonemizer_dataset,
                       collate_fn=collate_dataset,
