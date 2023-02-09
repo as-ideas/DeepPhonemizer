@@ -46,4 +46,6 @@ training:
   n_generate_samples: 10             # Number of result samples to show on tensorboard.
   store_phoneme_dict_in_model: true  # Whether to store the raw phoneme dict in the model.
                                      # It will be loaded by the phonemizer object.
-
+  ddp_backend: 'nccl'                # Backend used by Torch DDP
+  ddp_host: 'localhost'              # Hostname used by Torch DDP
+  ddp_post: '12355'                    # Port used by Torch DDP

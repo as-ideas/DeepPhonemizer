@@ -1,3 +1,6 @@
+import torch
+import torch.multiprocessing as mp
+
 from dp.preprocess import preprocess
 from dp.train import train
 
@@ -17,4 +20,9 @@ if __name__ == '__main__':
                val_data=val_data,
                deduplicate_train_data=False)
 
-    train(config_file=config_file)
+    num_gpus = torch.cuda.device_count()
+
+    if num_gpus > 1:
+        mp.spawn(train, nprocs=num_gpus, args=(num_gpus, config_file))
+    else:
+        train(rank=0, num_gpus=num_gpus, config_file=config_file)
