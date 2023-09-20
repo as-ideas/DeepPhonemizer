@@ -38,7 +38,7 @@ training:
   batch_size: 32                     # Training batch size.
   batch_size_val: 32                 # Validation batch size.
   epochs: 500                        # Number of epochs to train.
-  generate_steps: 10              # Interval of training steps to generate sample outputs. Also, at this step the phoneme and word
+  generate_steps: 10000              # Interval of training steps to generate sample outputs. Also, at this step the phoneme and word
                                      # error rates are calculated for the scheduler.
   validate_steps: 10000              # Interval of training steps to validate the model
                                      # (for the autoregressive model this is teacher-forced).
