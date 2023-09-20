@@ -224,7 +224,7 @@ class AutoregressiveTransformer(Model):
                 tgt_mask = _generate_square_subsequent_mask(i + 1).to(input.device)
                 output = self.decoder(out_indices)
                 output = self.pos_decoder(output)
-                output += input[:i+1, :, :]
+                output += input[1:i+2, :, :]
                 output = self.transformer.decoder(output,
                                                   input,
                                                   memory_key_padding_mask=src_pad_mask,
