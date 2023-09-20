@@ -13,7 +13,7 @@ from dp.utils.logging import get_logger
 logger = get_logger(__name__)
 
 
-def preprocess(config_file: str,
+def preprocess(config: dict,
                train_data: List[Tuple[str, Iterable[str], Iterable[str]]],
                val_data: List[Tuple[str, Iterable[str], Iterable[str]]] = None,
                deduplicate_train_data=True) -> None:
@@ -35,7 +35,7 @@ def preprocess(config_file: str,
 
     """
 
-    config = read_config(config_file)
+    #config = read_config(config_file)
 
     model_type = config['model']['type']
     model_type = ModelType(model_type)

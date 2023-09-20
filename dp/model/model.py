@@ -181,7 +181,7 @@ class AutoregressiveTransformer(Model):
         trg = self.decoder(trg)
         trg = self.pos_decoder(trg)
 
-        trg += src[1:, :, :]
+        #trg += src[1:, :, :]
 
         output = self.transformer(src, trg, src_mask=None, tgt_mask=trg_mask,
                                   memory_mask=None, src_key_padding_mask=src_pad_mask,

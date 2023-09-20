@@ -16,7 +16,7 @@ logger = get_logger(__name__)
 
 def train(rank: int,
           num_gpus: int,
-          config_file: str,
+          config: dict,
           checkpoint_file: str = None) -> None:
     """
     Runs training of a transformer model.
@@ -32,7 +32,7 @@ def train(rank: int,
 
     """
 
-    config = read_config(config_file)
+    #config = read_config(config_file)
 
     if num_gpus > 1:
         os.environ["MASTER_ADDR"] = config['training']['ddp_host']

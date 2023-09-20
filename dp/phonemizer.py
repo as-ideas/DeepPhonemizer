@@ -7,7 +7,7 @@ from dp.model.model import load_checkpoint
 from dp.model.predictor import Predictor
 from dp.utils.logging import get_logger
 
-DEFAULT_PUNCTUATION = '().,:?!/–'
+DEFAULT_PUNCTUATION = ''
 
 
 class Phonemizer:

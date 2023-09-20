@@ -8,12 +8,12 @@ preprocessing:
 
   # Text (grapheme) and phoneme symbols, either provide a string or list of strings.
   # Symbols in the dataset will be filtered according to these lists!
-  text_symbols: 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZäöüÄÖÜß'
+  text_symbols: ['!', "'", ',', '.', ':', ';', '?', ' ', '-', 'i', 'y', 'ɨ', 'ʉ', 'ɯ', 'u', 'ɪ', 'ʏ', 'ʊ', 'e', 'ø', 'ɘ', 'ə', 'ɵ', 'ɤ', 'o', 'ɛ', 'œ', 'ɜ', 'ɞ', 'ʌ', 'ɔ', 'æ', 'ɐ', 'a', 'ɶ', 'ɑ', 'ɒ', 'ᵻ', 'ʘ', 'ɓ', 'ǀ', 'ɗ', 'ǃ', 'ʄ', 'ǂ', 'ɠ', 'ǁ', 'ʛ', 'p', 'b', 't', 'd', 'ʈ', 'ɖ', 'c', 'ɟ', 'k', 'ɡ', 'q', 'ɢ', 'ʔ', 'ɴ', 'ŋ', 'ɲ', 'ɳ', 'n', 'ɱ', 'm', 'ʙ', 'r', 'ʀ', 'ⱱ', 'ɾ', 'ɽ', 'ɸ', 'β', 'f', 'v', 'θ', 'ð', 's', 'z', 'ʃ', 'ʒ', 'ʂ', 'ʐ', 'ç', 'ʝ', 'x', 'ɣ', 'χ', 'ʁ', 'ħ', 'ʕ', 'h', 'ɦ', 'ɬ', 'ɮ', 'ʋ', 'ɹ', 'ɻ', 'j', 'ɰ', 'l', 'ɭ', 'ʎ', 'ʟ', 'ˈ', 'ˌ', 'ː', 'ˑ', 'ʍ', 'w', 'ɥ', 'ʜ', 'ʢ', 'ʡ', 'ɕ', 'ʑ', 'ɺ', 'ɧ', 'ɚ', '˞', 'ɫ', 'g', 'ɝ', '̃', '̍', '̥', '̩', '̯', '͡']
   phoneme_symbols: '0123456789'
 
   char_repeats: 1                # Number of grapheme character repeats to allow for mapping to longer phoneme sequences.
                                  # Set to 1 for autoreg_transformer.
-  lowercase: true                # Whether to lowercase the grapheme input.
+  lowercase: false                # Whether to lowercase the grapheme input.
   n_val: 5000                    # Default number of validation data points if no explicit validation data is provided.
 
 
@@ -38,7 +38,7 @@ training:
   batch_size: 32                     # Training batch size.
   batch_size_val: 32                 # Validation batch size.
   epochs: 500                        # Number of epochs to train.
-  generate_steps: 10000              # Interval of training steps to generate sample outputs. Also, at this step the phoneme and word
+  generate_steps: 10              # Interval of training steps to generate sample outputs. Also, at this step the phoneme and word
                                      # error rates are calculated for the scheduler.
   validate_steps: 10000              # Interval of training steps to validate the model
                                      # (for the autoregressive model this is teacher-forced).
