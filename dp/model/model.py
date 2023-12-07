@@ -320,16 +320,22 @@ def load_checkpoint(checkpoint: str, device: str = 'cpu', model_cache_dir: str =
         model_pt_name = os.path.basename(checkpoint)
         checkpoint_file_path = f"{model_cache_dir}/{model_pt_name}"
         if not os.path.exists(checkpoint_file_path):
-            print(f"Downloading {model_pt_name}...")
+            print(f"Downloading {model_pt_name} ...")
             checkpoint_url = f"{DEFAULT_MODEL_BUCKET}/{model_pt_name}"
-            response = requests.get(checkpoint_url)
-            with open(checkpoint_file_path, 'wb') as file:
-                file.write(response.content)
-            print("Download complete.")
+            try:
+                response = requests.get(checkpoint_url)
+                response.raise_for_status()
+                with open(checkpoint_file_path, 'wb') as file:
+                    file.write(response.content)
+                print("Download complete.")
+            except requests.exceptions.HTTPError as h_err:
+                print(f"HTTP Error: {h_err}")
+            except requests.exceptions.RequestException as r_exc:
+                print(f"Request Error: {r_exc}")
         else:
             print(f"{model_pt_name} already exists in cache.")
 
-    print(f"Loading model from {checkpoint_file_path}")
+    print(f"Loading model from {checkpoint_file_path} ...")
     # checkpoint_file_path should contain the .pt file (either already there or just downloaded)
     checkpoint = torch.load(checkpoint_file_path, map_location=device)
     model_type = checkpoint['config']['model']['type']
