@@ -11,6 +11,8 @@ from torch.nn import TransformerEncoderLayer, LayerNorm, TransformerEncoder
 from dp.model.utils import get_dedup_tokens, _make_len_mask, _generate_square_subsequent_mask, PositionalEncoding
 from dp.preprocessing.text import Preprocessor
 
+DEFAULT_MODEL_BUCKET = 'https://public-asai-dl-models.s3.eu-central-1.amazonaws.com/DeepPhonemizer'
+
 
 class ModelType(Enum):
     TRANSFORMER = 'transformer'
@@ -303,7 +305,6 @@ def load_checkpoint(checkpoint: str, device: str = 'cpu', model_cache_dir: str =
              and the second element is a dictionary (config).
     """
 
-    default_s3_base_url = 'https://public-asai-dl-models.s3.eu-central-1.amazonaws.com/DeepPhonemizer'
     device = torch.device(device)
 
     if not checkpoint[-3:] == '.pt':
@@ -320,7 +321,7 @@ def load_checkpoint(checkpoint: str, device: str = 'cpu', model_cache_dir: str =
         checkpoint_file_path = f"{model_cache_dir}/{model_pt_name}"
         if not os.path.exists(checkpoint_file_path):
             print(f"Downloading {model_pt_name}...")
-            checkpoint_url = f"{default_s3_base_url}/{model_pt_name}"
+            checkpoint_url = f"{DEFAULT_MODEL_BUCKET}/{model_pt_name}"
             response = requests.get(checkpoint_url)
             with open(checkpoint_file_path, 'wb') as file:
                 file.write(response.content)
