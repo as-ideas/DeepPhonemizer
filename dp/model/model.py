@@ -294,13 +294,15 @@ def create_model(model_type: ModelType, config: Dict[str, Any]) -> Model:
                          f'Supported types: {[t.value for t in ModelType]}')
     return model
 
+
 def load_checkpoint(checkpoint: str, device: str = 'cpu', model_cache_dir: str = 'model_cache') -> Tuple[Model, Dict[str, Any]]:
     """
     Initializes a model from a checkpoint (.pt file). If the checkpoint doesn't exist, it is downloaded to a cache.
 
     Args:
-        checkpoint (str): Path to checkpoint file (.pt) or name of pre-trained model (.pt) or URL to pre-trained model (.pt)
+        checkpoint (str): Path to checkpoint file (.pt) or name of pre-trained model (.pt) or URL to checkpoint (.pt)
         device (str): Device to put the model to ('cpu' or 'cuda').
+        model_cache_dir (str): Path to model cache (where downloaded checkpoints will be stored to and retrieved from)
 
     Returns: Tuple: The first element is a Model (the loaded model)
              and the second element is a dictionary (config).
@@ -341,7 +343,6 @@ def load_checkpoint(checkpoint: str, device: str = 'cpu', model_cache_dir: str =
             print(f"{model_pt_name} already exists in cache.")
 
     print(f"Loading model from {checkpoint_file_path} ...")
-    # checkpoint_file_path should contain the .pt file (either already there or just downloaded)
     checkpoint = torch.load(checkpoint_file_path, map_location=device)
     model_type = checkpoint['config']['model']['type']
     model_type = ModelType(model_type)

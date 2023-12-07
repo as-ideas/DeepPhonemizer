@@ -187,19 +187,21 @@ class Phonemizer:
     def from_checkpoint(cls,
                         checkpoint_path: str,
                         device='cpu',
-                        lang_phoneme_dict: Dict[str, Dict[str, str]] = None) -> 'Phonemizer':
+                        lang_phoneme_dict: Dict[str, Dict[str, str]] = None,
+                        model_cache_dir: str = 'model_cache') -> 'Phonemizer':
         """Initializes a Phonemizer object from a model checkpoint (.pt file).
 
         Args:
-          checkpoint_path (str): Path to the .pt checkpoint file.
+          checkpoint_path (str): Path to checkpoint file (.pt), name of pre-trained model (.pt), or checkpoint URL (.pt)
           device (str): Device to send the model to ('cpu' or 'cuda'). (Default value = 'cpu')
           lang_phoneme_dict (Dict[str, Dict[str, str]], optional): Word-phoneme dictionary for each language.
+          model_cache_dir (str): Path to model cache (where downloaded checkpoints will be stored to and retrieved from)
 
         Returns:
           Phonemizer: Phonemizer object carrying the loaded model and, optionally, a phoneme dictionary.
         """
 
-        model, checkpoint = load_checkpoint(checkpoint_path, device=device)
+        model, checkpoint = load_checkpoint(checkpoint_path, device=device, model_cache_dir=model_cache_dir)
         applied_phoneme_dict = None
         if lang_phoneme_dict is not None:
             applied_phoneme_dict = lang_phoneme_dict
