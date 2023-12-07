@@ -3,6 +3,7 @@ from enum import Enum
 import os
 import requests
 from typing import Tuple, Dict, Any
+import validators
 
 import torch
 import torch.nn as nn
@@ -298,7 +299,7 @@ def load_checkpoint(checkpoint: str, device: str = 'cpu', model_cache_dir: str =
     Initializes a model from a checkpoint (.pt file). If the checkpoint doesn't exist, it is downloaded to a cache.
 
     Args:
-        checkpoint (str): Path to checkpoint file (.pt) or name of pre-trained model (.pt).
+        checkpoint (str): Path to checkpoint file (.pt) or name of pre-trained model (.pt) or URL to pre-trained model (.pt)
         device (str): Device to put the model to ('cpu' or 'cuda').
 
     Returns: Tuple: The first element is a Model (the loaded model)
@@ -321,7 +322,11 @@ def load_checkpoint(checkpoint: str, device: str = 'cpu', model_cache_dir: str =
         checkpoint_file_path = f"{model_cache_dir}/{model_pt_name}"
         if not os.path.exists(checkpoint_file_path):
             print(f"Downloading {model_pt_name} ...")
-            checkpoint_url = f"{DEFAULT_MODEL_BUCKET}/{model_pt_name}"
+            if validators.url(checkpoint):
+                checkpoint_url = checkpoint
+            else:
+                # Try default model bucket
+                checkpoint_url = f"{DEFAULT_MODEL_BUCKET}/{model_pt_name}"
             try:
                 response = requests.get(checkpoint_url)
                 response.raise_for_status()

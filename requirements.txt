@@ -5,3 +5,4 @@ tensorboard
 certifi>=2022.12.7
 wheel>=0.38.0
 setuptools>=65.5.1
+validators==0.22.0
