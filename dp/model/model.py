@@ -334,9 +334,9 @@ def load_checkpoint(checkpoint: str, device: str = 'cpu', model_cache_dir: str =
                     file.write(response.content)
                 print("Download complete.")
             except requests.exceptions.HTTPError as h_err:
-                print(f"HTTP Error: {h_err}")
+                raise h_err
             except requests.exceptions.RequestException as r_exc:
-                print(f"Request Error: {r_exc}")
+                raise r_exc
         else:
             print(f"{model_pt_name} already exists in cache.")
 
