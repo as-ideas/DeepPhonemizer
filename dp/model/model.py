@@ -1,6 +1,10 @@
 from abc import ABC, abstractmethod
 from enum import Enum
+import os
+import requests
 from typing import Tuple, Dict, Any
+from cached_path import cached_path
+import validators
 
 import torch
 import torch.nn as nn
@@ -8,6 +12,8 @@ from torch.nn import TransformerEncoderLayer, LayerNorm, TransformerEncoder
 
 from dp.model.utils import get_dedup_tokens, _make_len_mask, _generate_square_subsequent_mask, PositionalEncoding
 from dp.preprocessing.text import Preprocessor
+
+DEFAULT_MODEL_BUCKET = 'https://public-asai-dl-models.s3.eu-central-1.amazonaws.com/DeepPhonemizer'
 
 
 class ModelType(Enum):
@@ -290,12 +296,12 @@ def create_model(model_type: ModelType, config: Dict[str, Any]) -> Model:
     return model
 
 
-def load_checkpoint(checkpoint_path: str, device: str = 'cpu') -> Tuple[Model, Dict[str, Any]]:
+def load_checkpoint(checkpoint: str, device: str = 'cpu') -> Tuple[Model, Dict[str, Any]]:
     """
-    Initializes a model from a checkpoint (.pt file).
+    Initializes a model from a checkpoint (.pt file). If the checkpoint doesn't exist, it is downloaded to a cache.
 
     Args:
-        checkpoint_path (str): Path to checkpoint file (.pt).
+        checkpoint (str): Path to checkpoint file (.pt) or name of pre-trained model (.pt) or URL to checkpoint (.pt)
         device (str): Device to put the model to ('cpu' or 'cuda').
 
     Returns: Tuple: The first element is a Model (the loaded model)
@@ -303,6 +309,13 @@ def load_checkpoint(checkpoint_path: str, device: str = 'cpu') -> Tuple[Model, D
     """
 
     device = torch.device(device)
+    if not checkpoint[-3:] == '.pt':
+        raise ValueError(f'{checkpoint} is not a valid model file (.pt).')
+    if not os.path.exists(checkpoint) and not validators.url(checkpoint):
+        model_pt_name = os.path.basename(checkpoint)
+        checkpoint = f"{DEFAULT_MODEL_BUCKET}/{model_pt_name}"
+    checkpoint_path = cached_path(checkpoint)
+    print(f"Loading model from {checkpoint_path} ...")
     checkpoint = torch.load(checkpoint_path, map_location=device)
     model_type = checkpoint['config']['model']['type']
     model_type = ModelType(model_type)

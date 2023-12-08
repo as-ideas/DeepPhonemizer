@@ -191,7 +191,7 @@ class Phonemizer:
         """Initializes a Phonemizer object from a model checkpoint (.pt file).
 
         Args:
-          checkpoint_path (str): Path to the .pt checkpoint file.
+          checkpoint_path (str): Path to checkpoint file (.pt), name of pre-trained model (.pt), or checkpoint URL (.pt)
           device (str): Device to send the model to ('cpu' or 'cuda'). (Default value = 'cpu')
           lang_phoneme_dict (Dict[str, Dict[str, str]], optional): Word-phoneme dictionary for each language.
 
