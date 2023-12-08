@@ -19,7 +19,8 @@ setup(
     long_description_content_type='text/x-rst',
     license='MIT',
     install_requires=['torch>=1.2.0', 'tqdm>=4.38.0', 'PyYAML>=5.1', 'tensorboard',
-                      'certifi>=2022.12.7', 'wheel>=0.38.0', 'setuptools>=65.5.1', 'validators>=0.22.0'],
+                      'certifi>=2022.12.7', 'wheel>=0.38.0', 'setuptools>=65.5.1',
+                      'cached-path>=1.5.0', 'validators>=0.22.0'],
     extras_require={
         'tests': ['pytest-cov'],
         'docs': ['mkdocs', 'mkdocs-material'],

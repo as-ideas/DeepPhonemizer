@@ -3,6 +3,7 @@ from enum import Enum
 import os
 import requests
 from typing import Tuple, Dict, Any
+from cached_path import cached_path
 import validators
 
 import torch
@@ -295,55 +296,27 @@ def create_model(model_type: ModelType, config: Dict[str, Any]) -> Model:
     return model
 
 
-def load_checkpoint(checkpoint: str, device: str = 'cpu', model_cache_dir: str = 'model_cache') -> Tuple[Model, Dict[str, Any]]:
+def load_checkpoint(checkpoint: str, device: str = 'cpu') -> Tuple[Model, Dict[str, Any]]:
     """
     Initializes a model from a checkpoint (.pt file). If the checkpoint doesn't exist, it is downloaded to a cache.
 
     Args:
         checkpoint (str): Path to checkpoint file (.pt) or name of pre-trained model (.pt) or URL to checkpoint (.pt)
         device (str): Device to put the model to ('cpu' or 'cuda').
-        model_cache_dir (str): Path to model cache (where downloaded checkpoints will be stored to and retrieved from)
 
     Returns: Tuple: The first element is a Model (the loaded model)
              and the second element is a dictionary (config).
     """
 
     device = torch.device(device)
-
     if not checkpoint[-3:] == '.pt':
         raise ValueError(f'{checkpoint} is not a valid model file (.pt).')
-
-    if os.path.exists(checkpoint):
-        # Loading model from given path, not model cache.
-        checkpoint_file_path = checkpoint
-    else:
-        # Loading model from model cache. Download model to cache if necessary.
-        if not os.path.exists(model_cache_dir):
-            os.makedirs(model_cache_dir)
+    if not os.path.exists(checkpoint) and not validators.url(checkpoint):
         model_pt_name = os.path.basename(checkpoint)
-        checkpoint_file_path = f"{model_cache_dir}/{model_pt_name}"
-        if not os.path.exists(checkpoint_file_path):
-            print(f"Downloading {model_pt_name} ...")
-            if validators.url(checkpoint):
-                checkpoint_url = checkpoint
-            else:
-                # Try default model bucket
-                checkpoint_url = f"{DEFAULT_MODEL_BUCKET}/{model_pt_name}"
-            try:
-                response = requests.get(checkpoint_url)
-                response.raise_for_status()
-                with open(checkpoint_file_path, 'wb') as file:
-                    file.write(response.content)
-                print("Download complete.")
-            except requests.exceptions.HTTPError as h_err:
-                raise h_err
-            except requests.exceptions.RequestException as r_exc:
-                raise r_exc
-        else:
-            print(f"{model_pt_name} already exists in cache.")
-
-    print(f"Loading model from {checkpoint_file_path} ...")
-    checkpoint = torch.load(checkpoint_file_path, map_location=device)
+        checkpoint = f"{DEFAULT_MODEL_BUCKET}/{model_pt_name}"
+    checkpoint_path = cached_path(checkpoint)
+    print(f"Loading model from {checkpoint_path} ...")
+    checkpoint = torch.load(checkpoint_path, map_location=device)
     model_type = checkpoint['config']['model']['type']
     model_type = ModelType(model_type)
     model = create_model(model_type, config=checkpoint['config'])
